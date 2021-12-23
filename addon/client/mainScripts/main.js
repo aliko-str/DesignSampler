@@ -5,35 +5,77 @@
 // const _debug = true;
 
 (function(){
+	function applyPageModsAsync(){
+		// We need to do this before anything else, but after a page loaded -- pageMods determine which iframes are visible (e.g., due to removing "overflow:hidden" on <html>)
+		return browser.runtime.sendMessage({"action": "GiveMePageMods"})
+			.then((msg)=>{
+				console.assert(msg.action === "HaveYourPageMods");
+				try {
+					var pageModF = eval("(" + msg.pageModF + ")");
+					if (!pageModF || typeof pageModF !== "function") {
+						throw new Error("Passed pageModF isn't a function: " + msg.pageModF);
+					}
+				} catch (err) {
+					console.error("[PAGE_MODS]", err);
+				}
+				// Enabling Page-Script events --> because some of our pageMods rely on "click" event handlers
+				window.dispatchEvent(new Event("StartEventHandling"));
+				try {
+					pageModF(jQuery, window.CssInjector._injectStringCss);
+					window.__ssGenericPageMod();
+				} catch (e) {
+					console.error("[PAGE_MODS] Page Modification Failed (but we continue): ", e);
+				}
+			})
+			.then(window._scrollDownAsync) 
+			.then(window._scrollTopAsync)
+			// .then(window.stopMarqueeAsync)
+			.then(()=>window._alarmPr(350)) // Giving a bit of time for animations to run/start/apply + Scrolling Up/Down for JS-triggered scroll-dependent animations to run
+			.then(()=>{
+				// Page Mods and Animation Freezing 
+				window.__pageContextGenericMods();
+				window.stopAllAnimations(); // Everything is frozen in place after this F - no changed to DOM from page scripts
+			})
+			.then(()=>window._alarmPr(450)); // So stopped animations/transitions finalize... Hope 450 is enough
+	}
+	
 	function addonMain(){
+		applyPageModsAsync().then(handleIFrameLoadingAsync).then(mainWork);
+	}
+	
+	function handleIFrameLoadingAsync(){
 		console.log("Main Content Script rolling, ", window.location.href);
 		_listenForDocSizeQuestions();
-		const handleIFrameLoaded = (msg)=>{
-			if(msg.action === "IFramesLoaded"){
-				browser.runtime.onMessage.removeListener(handleIFrameLoaded); // clean up
-				// for some reason "smooth" scrolling sometimes doesn't render/does nothing --> use instant just to be sure all coord matching works
-				window.scrollTo({top: 0, left: 0, behavior: "instant"});
-				// Recording allPrimitivesCmpStylesNoStyling <== Putting it here because we may need to record allPrimitivesCmpStylesNoStyling and we can't toggle styling without some animations snapping back in "default" state, which is often hidden/invisible
-				window.toggleCssStyling("off");
-				$(":visible").toArray().forEach(el => {
-					const st = window.getComputedStyle(el);
-					el._noStylingCmpCSS = window.__cssValsToObj(st, window.__getAllCssPropList({excludePrefixed: false}));
-				});
-				window.toggleCssStyling("on");
-				main();
-				// // Giving a bit of time for animations to run/start/apply + Scrolling Up/Down for JS-triggered scroll-dependent animations to run
-				// window._scrollDownAsync()
-				// 	.then(window._scrollTopAsync)
-				// 	.then(()=>window._alarmPr(350))
-				// 	.then(()=>{
-				// 		// Page Mods and Animation Freezing 
-				// 		window.__pageContextGenericMods();
-				// 		window.stopAllAnimations(); // Everything is frozen in place after this F - no changed to DOM from page scripts
-				// 		// continue with our work
-				// 		main();
-				// 	});
-			}
-		};
+		var handleIFrameLoaded;
+		const allDonePr = new Promise(function(resolve, reject) {
+			handleIFrameLoaded = (msg)=>{
+				if(msg.action === "IFramesLoaded"){
+					browser.runtime.onMessage.removeListener(handleIFrameLoaded); // clean up
+					// for some reason "smooth" scrolling sometimes doesn't render/does nothing --> use instant just to be sure all coord matching works
+					window.scrollTo({top: 0, left: 0, behavior: "instant"});
+					// Recording allPrimitivesCmpStylesNoStyling <== Putting it here because we may need to record allPrimitivesCmpStylesNoStyling and we can't toggle styling without some animations snapping back in "default" state, which is often hidden/invisible
+					window.toggleCssStyling("off");
+					$(":visible").toArray().forEach(el => {
+						const st = window.getComputedStyle(el);
+						el._noStylingCmpCSS = window.__cssValsToObj(st, window.__getAllCssPropList({excludePrefixed: false}));
+					});
+					window.toggleCssStyling("on");
+					resolve();
+					// main();
+					// // Giving a bit of time for animations to run/start/apply + Scrolling Up/Down for JS-triggered scroll-dependent animations to run
+					// window._scrollDownAsync()
+					// 	.then(window._scrollTopAsync)
+					// 	.then(()=>window._alarmPr(350))
+					// 	.then(()=>{
+					// 		// Page Mods and Animation Freezing 
+					// 		window.__pageContextGenericMods();
+					// 		window.stopAllAnimations(); // Everything is frozen in place after this F - no changed to DOM from page scripts
+					// 		// continue with our work
+					// 		main();
+					// 	});
+				}
+			};
+		});
 		
 		browser.runtime.onMessage.addListener(handleIFrameLoaded);
 		const MIN_VIS_IFRAME_SIZE = 25; // pixels, adsense sometimes uses 4 by 4, so we should fit in
@@ -98,9 +140,10 @@
 			}
 		});
 		browser.runtime.sendMessage({"action": "HaveIFramesLoaded?"});
+		return allDonePr;
 	};
 
-	function main() {
+	function mainWork() {
 		var urlId = "NOT SET URL ID";
 		var tabId = "NOT SET TAB ID";
 		var pageModF = "NOT Set";
@@ -117,11 +160,7 @@
 			"pageScrollHeight": document.scrollingElement.scrollHeight,
 			"pageTitleId": document.title
 		}).then(function (respObj) {
-			if (respObj.action !== "haveYourTabId") {
-				throw new Error("Only Id related responses are welcome..."); // fool check
-			}
-			// console.log("[scrollHeight] AFTER:", document.scrollingElement.scrollHeight, "window.innerHeight:", window.innerHeight);
-			// debugger;
+			console.assert(respObj.action === "haveYourTabId");
 			// restoring the real page title
 			document.title = oldTitle;
 			// saving our internal tab/url ids
@@ -129,41 +168,40 @@
 			urlId = respObj.urlId;
 			settings = respObj.settings;
 			// window.__glSettings = settings; // never used yet
-			try {
-				pageModF = eval("(" + respObj.pageModF + ")");
-				if (!pageModF || typeof pageModF !== "function") {
-					throw new Error("Passed pageModF isn't a function: " + respObj.pageModF);
-				}
-			} catch (err) {
-				if (settings.debug) {
-					throw err;
-				}
-				console.error(err);
-			}
-			// Enabling Page-Script events --> because some of our pageMods rely on "click" event handlers
-			window.dispatchEvent(new Event("StartEventHandling"));
-			try {
-				pageModF(jQuery, window.CssInjector._injectStringCss);
-				window.__ssGenericPageMod();
-			} catch (e) {
-				if (settings.debug) {
-					throw e;
-				}
-				console.error(urlId, " Page Modification Failed (but we continue): ", e);
-			}
+			// try {
+			// 	pageModF = eval("(" + respObj.pageModF + ")");
+			// 	if (!pageModF || typeof pageModF !== "function") {
+			// 		throw new Error("Passed pageModF isn't a function: " + respObj.pageModF);
+			// 	}
+			// } catch (err) {
+			// 	if (settings.debug) {
+			// 		throw err;
+			// 	}
+			// 	console.error(err);
+			// }
+			// // Enabling Page-Script events --> because some of our pageMods rely on "click" event handlers
+			// window.dispatchEvent(new Event("StartEventHandling"));
+			// try {
+			// 	pageModF(jQuery, window.CssInjector._injectStringCss);
+			// 	window.__ssGenericPageMod();
+			// } catch (e) {
+			// 	if (settings.debug) {
+			// 		throw e;
+			// 	}
+			// 	console.error(urlId, " Page Modification Failed (but we continue): ", e);
+			// }
 		}).then(()=>{
-			// Giving a bit of time for animations to run/start/apply + Scrolling Up/Down for JS-triggered scroll-dependent animations to run
-			return window._scrollDownAsync()
-				.then(window._scrollTopAsync)
-				// .then(window.stopMarqueeAsync)
-				.then(()=>window._alarmPr(350))
-				.then(()=>{
-					// Page Mods and Animation Freezing 
-					window.__pageContextGenericMods();
-					window.stopAllAnimations(); // Everything is frozen in place after this F - no changed to DOM from page scripts
-					
-				})
-				.then(()=>window._alarmPr(450)); // So stopped animations/transitions finalize... Hope 450 is enough
+			// // Giving a bit of time for animations to run/start/apply + Scrolling Up/Down for JS-triggered scroll-dependent animations to run
+			// return window._scrollDownAsync()
+			// 	.then(window._scrollTopAsync)
+			// 	// .then(window.stopMarqueeAsync)
+			// 	.then(()=>window._alarmPr(350))
+			// 	.then(()=>{
+			// 		// Page Mods and Animation Freezing 
+			// 		window.__pageContextGenericMods();
+			// 		window.stopAllAnimations(); // Everything is frozen in place after this F - no changed to DOM from page scripts
+			// 	})
+			// 	.then(()=>window._alarmPr(450)); // So stopped animations/transitions finalize... Hope 450 is enough
 		}).then(()=>{
 			// Run it all - Promises used for async
 			const p0 = (!settings.screenshotsNeeded) ? Promise.resolve() : (browser.runtime.sendMessage({
@@ -191,14 +229,6 @@
 								"dat": window.__cnvs2DataUrl(diffCnvs)
 							});
 						});
-						// const {accuDiff, diffCnvs} = window.prepDomForDataExtraction(true);
-						// return browser.runtime.sendMessage({
-						// 	"action": "SaveImg",
-						// 	"urlId": urlId,
-						// 	"folders": ["visDiffAfterDomManip"],
-						// 	"name": accuDiff + "_" + window._urlToHost(urlId),
-						// 	"dat": window.__cnvs2DataUrl(diffCnvs)
-						// });
 					});
 				}
 				return Promise.resolve(); // we won't be collecting data, so don't bother changing anything
@@ -263,16 +293,6 @@
 				// return new Promise(()=>{});
 				
 				// EXTRA step -- add a 'variant' in settings.screenshotVariants to later obtain white space measurement
-				// { // NOTE: TXT.BLACK_CHAR doesn't work well - there is a big length mismatch after char replacement
-				// 	img: window.SCRAMBLE_VARIANTS.IMG.BLACK_OUT,
-				// 	cntrl: window.SCRAMBLE_VARIANTS.CNTRL.BLACK_OUT,
-				// 	txt: window.SCRAMBLE_VARIANTS.TXT.BLACK_CHAR
-				// }, 
-				// , { // NOTE: BLACK_BG_NO_BTWLINES looks a bit weird -- just go with BLACK_BG
-				// 	img: window.SCRAMBLE_VARIANTS.IMG.BLACK_OUT,
-				// 	cntrl: window.SCRAMBLE_VARIANTS.CNTRL.BLACK_OUT,
-				// 	text: window.SCRAMBLE_VARIANTS.TXT.BLACK_BG_NO_BTWLINES
-				// }
 				const extraScrambleVariants = [{
 					img: window.SCRAMBLE_VARIANTS.IMG.BLACK_OUT,
 					cntrl: window.SCRAMBLE_VARIANTS.CNTRL.BLACK_OUT,
@@ -348,12 +368,6 @@
 					// console.log("DONE 2 cluster saving");
 				});
 			}).then(()=>{
-				// 
-				// debugger;
-				// return window._scramblePage(settings.screenshotVariants[3], urlId).then(()=>{
-				// 	return new Promise(()=>{});
-				// }); // urlId is here for logging only
-				// 
 				return  (!settings.screenshotVariants.length) ? Promise.resolve() : settings.screenshotVariants.reduce((p, variant) => {
 					// make it sequential -- we can't do it in parallel
 					return p.then(()=>{
@@ -385,10 +399,6 @@
 								"scrambleMethod": variant
 							});
 						}).then(()=>{
-				
-	//			return new Promise(()=>{});
-							
-							// return window._restorePage(variant);
 							window._restorePage(variant);
 							// a small delay to apply CSS changes
 							return new Promise(function(resolve, reject) {

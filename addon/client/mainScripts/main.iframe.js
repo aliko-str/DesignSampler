@@ -102,27 +102,6 @@
 					"dat": "iFrameHeight" + "\t" + "iFrameWidth" + "\t" + "posTop" + "\t" + "posLeft" + "\n" + frameSize.height + "\t" + frameSize.width+ "\t" + frameSize.absTop+ "\t" + frameSize.absLeft + "\n"
 				});
 				return Promise.allSettled(prArr);
-				
-				// const p1 = browser.runtime.sendMessage({
-				// 	"action": "SaveImgArr",
-				// 	"urlId": urlId,
-				// 	"folders": ["pageImg", urlId], // NOTE: in Iframes we already have a clean urlId for saving -- just use it
-				// 	"dat": imgAsBase64Arr
-				// });
-				// const txtArrDatToSave = window.__convertResultsToTxtArr(varDat);
-				// // a sort of a hack - saving iframe's size in the parent document
-				// txtArrDatToSave.push({
-				// 	"name": "iframe.boundingbox.inparent",
-				// 	"dat": "iFrameHeight" + "\t" + "iFrameWidth" + "\t" + "posTop" + "\t" + "posLeft" + "\n" + frameSize.height + "\t" + frameSize.width+ "\t" + frameSize.absTop+ "\t" + frameSize.absLeft + "\n"
-				// });
-				// const p2 = browser.runtime.sendMessage({
-				// 	"action": "SaveTxtArr",
-				// 	"urlId": urlId,
-				// 	"dat": txtArrDatToSave,
-				// 	"folders": ["pageData", urlId], // NOTE: in Iframes we already have a clean urlId for saving -- just use it
-				// 	"type": "txt"
-				// });
-				// return Promise.allSettled([p1, p2]);
 			});
 		}
 	});
@@ -155,15 +134,6 @@
 			return window._restorePage(msg.scrambleMethod); // resolves when we are done and thus notifies the sender
 		}
 	});
-	
-	// // TODO: Join this internal window size together with parent's container checking -- remove after
-	// browser.runtime.onMessage.addListener((msg)=>{
-	// 	if(msg.action === "GetWindowSize"){
-	// 		const scrl = document.scrollingElement;
-	// 		const winSize = Math.min(window.innerHeight * window.innerWidth, scrl.scrollWidth * scrl.scrollHeight);
-	// 		return Promise.resolve(Object.assign(msg, {winSize: winSize}));
-	// 	}
-	// });
 	
 	// arrives after an Iframe is checked to be visible -- I move it to an earlier point, and join together with FrameId-query handling
 	browser.runtime.onMessage.addListener((msg, sender, respF)=> {

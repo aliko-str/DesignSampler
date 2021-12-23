@@ -702,6 +702,7 @@ function doPostPrevisitWork(settings, jobProgress, pageMods, portToApp) {
 					});
 				});
 			}
+			
 			const iFramesLoadedReqListener = (msg, sender) => {
 				if (msg.action === "HaveIFramesLoaded?" && aTab !== undefined && aTab.id === sender.tab.id) {
 					var iFrArr;
@@ -809,12 +810,19 @@ function doPostPrevisitWork(settings, jobProgress, pageMods, portToApp) {
 						"action": "haveYourTabId",
 						"tabId": aTab.id,
 						"urlId": aUrlObj.url,
-						settings: settings,
-						pageModF: pageMods[aUrlObj.url].toString()
+						settings: settings
 					});
 				}
 			};
 			msgHandlerArr.push(tabIdListener);
+			// 3.1 - Separate handlers for pageMods -- they are needed very early
+			const pageModsListener = (msg, sender)=>{
+				if(msg.action === "GiveMePageMods" && aTab !== undefined && aTab.id === sender.tab.id){
+					return Promise.resolve({"action": "HaveYourPageMods", pageModF: pageMods[aUrlObj.url].toString()});
+				}
+				return false;
+			};
+			msgHandlerArr.push(pageModsListener);
 			// 4 - Handle tab closing - if it closes before we had the data, the URL should be removed, since smth bad happened, like to response -- Including 404 and 500 cases
 			const handleTabClose = (closedTabId) => {
 				if (aTab === undefined) {
