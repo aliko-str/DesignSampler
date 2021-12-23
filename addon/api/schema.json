@@ -1,0 +1,48 @@
+[
+	{
+		"namespace": "gTab",
+		"functions": [
+			{
+				"name": "startResizingBrowserTabsTo",
+				"type": "function",
+				"description": "Resizes gBrowser for each newly created tab.",
+				"async": false,
+				"parameters": [
+					{
+						"name": "width",
+						"type": "integer",
+						"description": "Desired browser width."
+          }, {
+						"name": "height",
+						"type": "integer",
+						"description": "Desired browser height"
+					}
+        ]
+      },
+			{
+				"name": "makeTabFullHeight",
+				"type": "function",
+				"description": "Resizes a tab up to the full height of the page loaded in it.",
+				"async": false,
+				"parameters": [
+					{
+						"name": "tabLabelId",
+						"type": "string",
+						"description": "Label/title assigned to a tab -- should be assigned as a page title before manipulation"
+          }, {
+						"name": "h",
+						"type": "integer",
+						"description": "Height to resize to"
+					}
+        ]
+      }
+			, {
+				"name": "stopResizingBrowserTabsTo",
+				"type": "function",
+				"description": "Stop resizing new global tabs/windows to our larger-than-screen sizes",
+				"async": false,
+				"parameters": []
+			}
+    ]
+  }
+]

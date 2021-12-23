@@ -1,0 +1,17 @@
+{
+	"name": "ScreenGrab.v.0.0.1",
+	"title": "ScreenGrab.v.0.0.1",
+	"id": "hithere@google.com",
+	"description": "a basic add-on to capture screenshots and collect readability info",
+	"author": "",
+	"license": "MPL 2.0",
+	"version": "0.0.1",
+	"main": "lib/main.js",
+	"devDependencies": {
+		"eslint": "^7.14.0",
+		"eslint-config-standard": "^16.0.2",
+		"eslint-plugin-import": "^2.22.1",
+		"eslint-plugin-node": "^11.1.0",
+		"eslint-plugin-promise": "^4.2.1"
+	}
+}

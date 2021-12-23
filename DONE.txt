@@ -1,0 +1,31 @@
+
+DONE TODO: Account for overflowHidden and position/size -- in DomProcessing -- check position/size, look through ancestors and check their overflow and size, check ancestor position <-- Adjust BBox for all; 
+DONE TODO: Adjust BBox also for the final position/size relative to the window
+
+
+TODO: Measure white space only for the entire page as pageSize-contentSize <-- Overlay elements on a matrix and check what is still 0 <-- Exclude bgCol from overlaying
+
+NOTE: Should we still record padding/margin? It's not the same as poor content distribution <-- Record the totals and ratio of content to whiteSpace <-- only for elements with either direct content or with padding/margin set 
+
+
+TODO: DONE: whitespace: remove shadows; replace all characters with 9608
+	2 methods: black bg for wrapping spans; VS replacing with black characters
+	replace images with black bg divs - otherwise images may contain white pixels
+	replace all colorfull bg and lowSD bg images with white bg
+	color all controls, including links, with black
+	set semi-transparent overlays to non-transparent white -- they create white space
+	
+TODO: add <input> texts to analyses? Or at least collect them -- inputs don't have text childNodes
+
+TODO: estimate useless white space: total white space - margins/padding <-- Also count the size of <hr> <== Replace margins/paddings with borders and do BW as for full WhiteSpace <== "br",
+
+TODO: total length of borders?  <-- Use borderBottomWidth etc. <-- otherwise computed styles don't really say if a border exists
+
+TODO: record relevant text values - not calculate them <-- we'll decide what to do with lineHeight:auto later
+
+TODO: Do not count Padding for controls - their useful space is already accounted for in BW manipuation; <<== But do count Margin
+
+
+TODO: Wrap orphan textNodes in styless spans ==> save a two-screenshot byte-wise diff. to ensure all preserved.
+
+TODO: check if I hide/change elements with JQuery's CSS <-- we should preserve the old value when restoring, otherwise some things are broken

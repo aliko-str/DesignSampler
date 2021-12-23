@@ -1,0 +1,65 @@
+/*I only have this file because I can't now be bothered to put my form in an iframe - this would require implementing two-way communication, which is just too much nonsense for a tiny fucking form... */
+
+.previsit-form {
+	min-width: 520px !important;
+	min-height: 250px !important;
+	width: 550px;
+	height: 330px;
+	position: fixed !important;
+	top: 0;
+	left: 0;
+	z-index: 999999 !important;
+	background: white !important;
+	overflow: auto !important;
+	resize: both !important;
+	padding: 10px !important;
+	font: 18px Times !important;
+	border: 1px solid gray !important;
+}
+
+.previsit-draggable-p {
+	width: 100% !important;
+	min-height: 30px !important;
+	padding: 5px !important;
+	background-color: lightgray !important;
+	color: black !important;
+	cursor: move !important;
+}
+
+.previsit-textarea {
+	padding-right: 0px !important;
+	font: 16px Times New Roman !important;
+	width: 100% !important;
+	min-height: 180px !important;
+	color: black !important;
+	display: block;
+	background-color: #f2f2f2 !important;
+}
+
+.previsit-unset {
+	all: unset !important;
+}
+
+.previsit-btn-wrap input {
+	cursor: pointer !important;
+	padding: 5px !important;
+	margin: 5px !important;
+	border: 1px solid gray !important;
+	border-radius: 5px !important;
+	background-color: dodgerblue;
+	font: 16px Times !important;
+	display: inline !important;
+	color: white !important;
+	font-weight: bold;
+	display: inline;
+}
+
+.previsit-warn {
+	background-color: red;
+	font-weight: bold;
+}
+
+/*
+.previsit-all {
+	font: 18px Times New Roman !important;
+}*/

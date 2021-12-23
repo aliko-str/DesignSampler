@@ -1,0 +1,13 @@
+http://www.volleyballindia.com		false	6000
+http://wrestlingfederationofindia.com		false	6000
+http://www.athletics.org.nz/		false	6000
+http://www.boxingnz.org.nz/		false	6000
+http://www.hockeynz.co.nz		false	6000
+http://www.handball.org.nz		false	6000
+http://www.judonz.org/		false	6000
+http://www.nzru.co.nz/		false	6000
+http://www.rowingnz.com		false	6000
+http://www.yachtingnz.org.nz		false	6000
+http://www.swimming.org.nz		false	6000
+http://www.taekwondonz.org.nz/		false	6000
+http://www.tennis.kiwi		false	6000

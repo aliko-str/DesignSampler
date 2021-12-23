@@ -1,0 +1,7 @@
+{
+	"name": "myFFaddon.batch.screenshot",
+	"description": "My addon for FF for taking batch screenshots and collecting webpage-related variables",
+	"path": "/Users/Aleksii/Projects/FF.v83.Addon.ScreenAndVars/messenger.js",
+	"type": "stdio",
+	"allowed_extensions": [ "primate.matters@gmail.com"]
+}

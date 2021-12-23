@@ -1,0 +1,45 @@
+{
+	"manifest_version": 2,
+	"name": "Batch Screenshot",
+	"description": "Takes screenshots of webpages and collects webpage-related variables",
+	"version": "0.1",
+
+	"browser_specific_settings": {
+		"gecko": {
+			"id": "primate.matters@gmail.com"
+		}
+	},
+
+	"background": {
+		"scripts": ["browser/br.htmlSave.js", "browser/br.main.js"],
+		"persistent": true
+	},
+	"experiment_apis": {
+		"gTab": {
+			"schema": "api/schema.json",
+			"parent": {
+				"scopes": ["addon_parent"],
+				"paths": [["gTab"]],
+				"script": "api/api.js"
+			}
+		}
+	},
+	"content_scripts": [{
+		"matches": ["<all_urls>"],
+		"js": ["client/htmlSaverScripts/content-fontface.js", "client/sharedScripts/jquery-3.5.1.js", "client/sharedScripts/load.control.js", "client/sharedScripts/helper.js", "client/sharedScripts/generic.pagemods.js", "client/sharedScripts/img.processing.js", "client/sharedScripts/css.processing.js", "client/sharedScripts/dom.processing.js", "client/sharedScripts/page.data.store.js", "client/sharedScripts/semantic.groups.js", "client/sharedScripts/scramble.js", "client/sharedScripts/cluster.prep.js", "client/sharedScripts/page.params.js", "client/mainScripts/iframeHandler.js", "client/mainScripts/main.iframe.js"],
+		"css": ["client/css/all.css"],
+		"run_at": "document_end",
+		"all_frames": true,
+		"match_about_blank": true
+	}],
+	"browser_action": {
+		"default_icon": {
+			"16": "icons/browser_action-16.png",
+			"32": "icons/browser_action-32.png"
+		},
+		"default_title": "Batch take screenshots",
+		"browser_style": true
+	},
+	"web_accessible_resources": ["client/images/bg.trsp.png", "client/images/bg.png", "client/images/bg.old.png", "client/htmlSaverScripts/shadowloader-compressed.js"],
+	"permissions": ["<all_urls>", "nativeMessaging", "tabs", "activeTab", "webNavigation", "storage", "webRequest", "webRequestBlocking"]
+}

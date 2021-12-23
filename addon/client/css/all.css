@@ -1,0 +1,23 @@
+html, body{
+	scrollbar-width: none !important;
+}
+
+span.__clean-span, span.__clean-span-for-svg {
+	background-color: initial !important; /* If we set inherit, it re-applies semitransparent colors, which is visible  */
+	/* NOTE: I should add the rest of styles here instead of setting them on Element.style */
+}
+
+span.__clean-span::after, span.__clean-span::before{
+	/* content: none !important;
+	background-image: none !important;
+	border: unset !important;
+	padding: 0  !important;
+	margin: 0  !important;
+	width: 0 !important;
+	height: 0  !important; */
+	display: none !important;
+}
+
+div.__invis-div{
+	display: none !important;
+}

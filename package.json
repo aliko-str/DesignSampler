@@ -1,0 +1,27 @@
+{
+	"name": "FF Addon Design Data Collection",
+	"version": "0.1.0",
+	"description": "Takes a list of URLs in, outputs a bunch of data, incl. screenshots, design feature measurements, modified screenshots for user studies, and save HTML",
+	"keywords": [
+		"Web Design Crawler", "FF Addon"
+	],
+	"author": {
+		"name": "Aliaksei Miniukovich",
+		"email": "a.minyukovich@gmail.com"
+	},
+	"homepage": "http://www.atw-lab.com/",
+	"engines": {
+		"node": ">= 16.0.0",
+		"npm": ">= 8.0.0"
+	},
+	"bin": {},
+	"scripts": {
+		"test": "echo \"Error: no test specified\" && exit 1"
+	},
+	"main": "main.js",
+	"dependencies": {
+		"underscore": "latest"
+	},
+	"devDependencies": {},
+	"license": "MIT"
+}
