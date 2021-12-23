@@ -155,16 +155,19 @@
 			// BELOW: Trying to stop WordPress animations without the nuclear option of overwriting Function.prototype.call/apply which are so beloved by lib devs
 			// "content_security_policy": "script-src 'self' 'unsafe-eval'; object-src 'self';",
 			const overwriteCSS2Prop = (propName, w)=>{
-				const tmplt = `Object.defineProperty(CSS2Properties.prototype, "${propName}", {set(a){
-					console.log("[PScript STUB] Not setting ${propName.toUpperCase()} style", (a || "undefined").toString());
-					${stopJsThrow}
-					// console.stack();
-					return "";
-				}});`;
+				const tmplt = `
+					Object.defineProperty(CSS2Properties.prototype, "${propName}", {set(a){
+						console.log("[PScript STUB] Not setting ${propName.toUpperCase()} style", (a || "undefined").toString());
+						${stopJsThrow}
+						// console.stack();
+						return "";
+					}});
+					console.log("OVERWRITING CSS2Properties.prototype prop: ${propName}");
+				`;
 				w.eval(tmplt);
 			};
 			// NUCLEAR option -- disabling setters on all CSS2Properties
-			const allCssProps2Disable = window.__getAllCssPropList();
+			const allCssProps2Disable = Object.keys(window.CSS2Properties.prototype); // window.__getAllCssPropList();
 			//const allCssProps2Disable = ["left", "display", "opacity", "transform", "MozTransform", "webkitTransform", "WebkitTransform"]
 			allCssProps2Disable.forEach(cssProp => {
 				overwriteCSS2Prop(cssProp, w);
