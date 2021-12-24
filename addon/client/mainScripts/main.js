@@ -139,7 +139,7 @@
 				// });
 				
 				return window.propagateFrVisReqsAsync().then(visFrInfoArr=>{
-					return {"action": "HaveYourIFrameVisibility", "visFrInfoArr": visFrInfoArr, "mainFrameUrl": window.location.href};
+					return {"action": "HaveYourIFrameVisibility", "visFrInfoArr": visFrInfoArr || [], "mainFrameUrl": window.location.href};
 				});
 				
 			}

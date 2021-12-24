@@ -630,7 +630,6 @@
 		// -2 - get needed collections
 		const cntrlsWithTextEls = window.domGetters.getTxtGr("cntrlOnly").add(window.domGetters.getCntrlGr("_cmpBtn")).toArray(); // needed for some obscure leading estimation
 		// -1 - styles we need to copy to match a div with img
-		// const stToCopy = ["opacity", "width", "height", "position", "top", "left", "right", "bottom", "z-index", "float", "display", "writing-mode", "direction", "border-bottom-color", "border-bottom-left-radius", "border-bottom-right-radius", "border-bottom-style", "border-bottom-width", "border-collapse", "border-left-color", "border-left-style", "border-left-width", "border-right-color", "border-right-style", "border-right-width", "border-spacing", "border-top-color", "border-top-left-radius", "border-top-right-radius", "border-top-style", "border-top-width", "margin-bottom", "margin-left", "margin-right", "margin-top", "padding-bottom", "padding-left", "padding-right", "padding-top", "vertical-align", "visibility", "box-sizing", "font-size", "transform", "transform-origin", "perspective", "perspective-origin"];
 		const stToCopy = ["top", "left", "right", "bottom"]
 			.map(x=>{
 				return [`${x}`, `border-${x}-color`, `border-${x}-style`, `border-${x}-width`, `margin-${x}`, `padding-${x}`];
@@ -673,6 +672,8 @@
 					}
 				}
 				stToEnf.backgroundImage = "none";
+				// ensuring that our divs aren't replaced with "content"
+				stToEnf.content = "none";
 				__enforceCSSVals(outerDiv, stToEnf);// ensure our div is properly positioned/sized
 				// 2 - make internal div occupy all of the space
 				var div;
@@ -686,7 +687,8 @@
 						"height": "100%",
 						"padding": "0",
 						"margin": "0",
-						"border-width": "0"
+						"border-width": "0",
+						"content": "none"
 					});
 					if(stToEnf.display === "table" || stToEnf.display === "inline-table"){ // to make sure "height": "100%" is respected
 						// IS it really a special case? Should use simply use "display:inherit" for all cases? Is it going to break something if I do?...

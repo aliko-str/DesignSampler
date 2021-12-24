@@ -2076,6 +2076,7 @@
 	
 	const {hideInvisFixedEls, unhideInvisFixedEls} = (()=>{
 		// Fixed elements that are moved outside viewport are never visible to the user, but appear on our full-page screenshots -- Hide them
+		const cssInjctr = new window.CssInjector();
 		var elsToHide, elsToShow;
 		return {
 			hideInvisFixedEls(){
@@ -2094,18 +2095,21 @@
 				if(elsToHide.length){
 					console.log("[ALTER] Hiding fixed Nodes outside the viewport, n: ", outsideViewportFixedEls.length, location.href);
 					outsideViewportFixedEls.forEach(el => console.log(window.__el2stringForDiagnostics(el)));
-					window.__setCSSPropJqArr(elsToHide, "visibility", "hidden", "important");
+					elsToHide.forEach(el => cssInjctr._injectCss1Element(el, "", {"visibility": "hidden !important"}));
+					// window.__setCSSPropJqArr(elsToHide, "visibility", "hidden", "important");
 					if(elsToShow.length){
-						window.__setCSSPropJqArr(elsToShow, "visibility", "visible", "important");
+						elsToHide.forEach(el => cssInjctr._injectCss1Element(el, "", {"visibility": "visible"}));
+						// window.__setCSSPropJqArr(elsToShow, "visibility", "visible", "important");
 					}
 				}
 			},
 			unhideInvisFixedEls(){
-				if(elsToHide && elsToShow){
-					window.__restoreCSSPropJqArr(elsToHide.concat(elsToShow), "visibility");
-				}
-				elsToHide = null;
-				elsToShow = null;
+				cssInjctr._removeAllCss();
+				// if(elsToHide && elsToShow){
+				// 	window.__restoreCSSPropJqArr(elsToHide.concat(elsToShow), "visibility");
+				// }
+				// elsToHide = null;
+				// elsToShow = null;
 			}
 		};
 	})();
