@@ -27,7 +27,7 @@
 					console.error("[PAGE_MODS] Page Modification Failed (but we continue): ", e);
 				}
 			})
-			.then(window._scrollDownAsync) 
+			.then(window._scrollDownAsync)
 			.then(window._scrollTopAsync)
 			// .then(window.stopMarqueeAsync)
 			.then(()=>window._alarmPr(350)) // Giving a bit of time for animations to run/start/apply + Scrolling Up/Down for JS-triggered scroll-dependent animations to run
@@ -40,11 +40,11 @@
 	}
 	
 	function addonMain(){
+		console.log("Main Content Script rolling, ", window.location.href);
 		applyPageModsAsync().then(handleIFrameLoadingAsync).then(mainWork);
 	}
 	
 	function handleIFrameLoadingAsync(){
-		console.log("Main Content Script rolling, ", window.location.href);
 		_listenForDocSizeQuestions();
 		var handleIFrameLoaded;
 		const allDonePr = new Promise(function(resolve, reject) {
@@ -129,8 +129,8 @@
 							return  {
 								height: ifrB.height,
 								width: ifrB.width,
-								absTop: ifrB.top + document.scrollingElement.scrollTop,
-								absLeft: ifrB.left + document.scrollingElement.scrollLeft,
+								absTop: ifrB.top + window.scrollY,
+								absLeft: ifrB.left + window.scrollX,
 								src: src,
 								machineFrameId: el.__machineFrameId
 							};
@@ -154,10 +154,10 @@
 		// changing page title to a unique ID -- needed for this tab detection
 		const oldTitle = document.title;
 		document.title = Math.round(Math.random() * 10000000);
-		console.log("[scrollHeight] Before:", document.scrollingElement.scrollHeight, "window.innerHeight:", window.innerHeight);
+		console.log("[scrollHeight] Before:", window.getScrlEl().scrollHeight, "window.innerHeight:", window.innerHeight);
 		browser.runtime.sendMessage({
 			"action": "giveMeTabId",
-			"pageScrollHeight": document.scrollingElement.scrollHeight,
+			"pageScrollHeight": window.getScrlEl().scrollHeight,
 			"pageTitleId": document.title
 		}).then(function (respObj) {
 			console.assert(respObj.action === "haveYourTabId");
@@ -220,15 +220,16 @@
 						"urlId": urlId
 					}).then(()=>{
 						// iframes are done, so let's do screenshotting to see if we broke Design by changing DOM
-						return window.prepDomForDataExtractionAsync(true).then(({accuDiff, diffCnvs})=>{
-							return browser.runtime.sendMessage({
-								"action": "SaveImg",
-								"urlId": urlId,
-								"folders": ["visDiffAfterDomManip"],
-								"name": accuDiff + "_" + window._urlToHost(urlId),
-								"dat": window.__cnvs2DataUrl(diffCnvs)
+						return window.prepDomForDataExtractionAsync(true)
+							.then(({accuDiff, diffCnvs})=>{
+								return browser.runtime.sendMessage({
+									"action": "SaveImg",
+									"urlId": urlId,
+									"folders": ["visDiffAfterDomManip"],
+									"name": accuDiff + "_" + window._urlToHost(urlId),
+									"dat": window.__cnvs2DataUrl(diffCnvs)
+								});
 							});
-						});
 					});
 				}
 				return Promise.resolve(); // we won't be collecting data, so don't bother changing anything
@@ -433,9 +434,9 @@
 			if(e.data.action === "TellMeDocSize"){
 				// console.log("DOC SIZE requested");
 				const dat = {
-					// width: document.scrollingElement.scrollWidth,
+					// width: window.getScrlEl().scrollWidth,
 					width: window.__getSaneDocScrollWidth(),
-					height: document.scrollingElement.scrollHeight,
+					height: window.getScrlEl().scrollHeight,
 					action: "HaveYourDocSize"
 				};
 				e.source.postMessage(dat, "*");

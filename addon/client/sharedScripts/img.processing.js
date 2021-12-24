@@ -41,7 +41,7 @@
 
 	function getSize(ifFullLength) {
 		// Badly named F -- it's supposed to prep a sizeObj for a full-page screenshot
-		console.assert(document.scrollingElement.scrollHeight < MAX_SCREENSHOT_LENGTH, "The webpage is way too long -- expect errors --> we shouldn't probably take this webpage; its full length is:", document.scrollingElement.scrollHeight, "While we only allow: ", MAX_SCREENSHOT_LENGTH);
+		console.assert(window.getScrlEl().scrollHeight < MAX_SCREENSHOT_LENGTH, "The webpage is way too long -- expect errors --> we shouldn't probably take this webpage; its full length is:", window.getScrlEl().scrollHeight, "While we only allow: ", MAX_SCREENSHOT_LENGTH);
 		const sizeObj = {
 			x: 0,
 			y: 0,
@@ -52,11 +52,13 @@
 		if (ifFullLength) {
 			let zoomedSizeLimit = Math.floor(MAX_SCREENSHOT_LENGTH / window.devicePixelRatio);
 			sizeObj.w = Math.min(window.__getSaneDocScrollWidth(), zoomedSizeLimit);
-			// sizeObj.w = Math.min(document.scrollingElement.scrollWidth, zoomedSizeLimit);
-			sizeObj.h = Math.min(document.scrollingElement.scrollHeight, zoomedSizeLimit);
+			// sizeObj.w = Math.min(window.getScrlEl().scrollWidth, zoomedSizeLimit);
+			sizeObj.h = Math.min(window.getScrlEl().scrollHeight, zoomedSizeLimit);
 		} else {
-			sizeObj.w = document.scrollingElement.clientWidth;
-			sizeObj.h = document.scrollingElement.clientHeight;
+			// sizeObj.w = window.getScrlEl().clientWidth;
+			// sizeObj.h = window.getScrlEl().clientHeight;
+			sizeObj.w = window.__getSaneDocScrollWidth();//window.innerWidth;
+			sizeObj.h = window.innerHeight;
 		}
 		return sizeObj;
 	}
@@ -403,8 +405,8 @@
 	
 	function __cleanAndRoundBBoxes(bbox){
 		const bCpy = window.__cpyBBox(bbox);
-		console.assert(bbox.left >= 0 && bbox.top >= 0 && bbox.right <= window.__getSaneDocScrollWidth() && bbox.bottom <= document.scrollingElement.scrollHeight, "BBox is (partially) outside of the scrollingElement, bbox:", bbox, " scrollWidth/Height", window.__getSaneDocScrollWidth(), document.scrollingElement.scrollHeight);
-		// console.assert(bbox.left >= 0 && bbox.top >= 0 && bbox.right <= document.scrollingElement.scrollWidth && bbox.bottom <= document.scrollingElement.scrollHeight, "BBox is (partially) outside of the scrollingElement, bbox:", bbox, " scrollWidth/Height", document.scrollingElement.scrollWidth, document.scrollingElement.scrollHeight);
+		console.assert(bbox.left >= 0 && bbox.top >= 0 && bbox.right <= window.__getSaneDocScrollWidth() && bbox.bottom <= window.getScrlEl().scrollHeight, "BBox is (partially) outside of the scrollingElement, bbox:", bbox, " scrollWidth/Height", window.__getSaneDocScrollWidth(), window.getScrlEl().scrollHeight);
+		// console.assert(bbox.left >= 0 && bbox.top >= 0 && bbox.right <= window.getScrlEl().scrollWidth && bbox.bottom <= window.getScrlEl().scrollHeight, "BBox is (partially) outside of the scrollingElement, bbox:", bbox, " scrollWidth/Height", window.getScrlEl().scrollWidth, window.getScrlEl().scrollHeight);
 		// expand slightly a bbox - if we can't do that, the assert above will fail, notifying us
 		bCpy.top = bCpy.y = Math.floor(bCpy.top);
 		bCpy.left = bCpy.x = Math.floor(bCpy.left);

@@ -449,14 +449,14 @@
 		jqFixedAreas.toArray().filter(el=>el._stickyPosition === "bottom").forEach((el, i) => {
 			const st = window.getComputedStyle(el);
 			if(st["position"] === "fixed"){
-				const moveBy = document.scrollingElement.scrollHeight - window.innerHeight;
+				const moveBy = window.getScrlEl().scrollHeight - window.innerHeight;
 				const newT = el._origBBox.top + moveBy;
 				const newB = (window.innerHeight - el._origBBox.bottom) - moveBy;
-				const oldH = document.scrollingElement.scrollHeight;
+				const oldH = window.getScrlEl().scrollHeight;
 				window.__enforceCSSVals(el, {top: newT + "px", bottom: newB + "px"});
 				console.warn("[ALTER] Moving bottom-window item down the page, newT", newT, ", newB", newB, window.__el2stringForDiagnostics(el));
-				if(oldH !== document.scrollingElement.scrollHeight){
-					console.error("Page H changed after moving a bottom-window fixed area, oldH: ", oldH, "new H: ", document.scrollingElement.scrollHeight);
+				if(oldH !== window.getScrlEl().scrollHeight){
+					console.error("Page H changed after moving a bottom-window fixed area, oldH: ", oldH, "new H: ", window.getScrlEl().scrollHeight);
 				}
 			} // if sticky, ignore for now - I'm not sure how to handle them...
 		});
@@ -666,8 +666,8 @@
 		x,
 		y
 	}) {
-		return x >= 0 && x < window.__getSaneDocScrollWidth() && y >= 0 && y < document.scrollingElement.scrollHeight;
-		// return x >= 0 && x < document.scrollingElement.scrollWidth && y >= 0 && y < document.scrollingElement.scrollHeight;
+		return x >= 0 && x < window.__getSaneDocScrollWidth() && y >= 0 && y < window.getScrlEl().scrollHeight;
+		// return x >= 0 && x < window.getScrlEl().scrollWidth && y >= 0 && y < window.getScrlEl().scrollHeight;
 	}
 
 	function getElementWithBorder(jqCntrl) {
@@ -1185,7 +1185,7 @@
 				// handling a special case of flexbox + <br>
 				__handleFlexBr(aControlEl, nonTxtChildEls);
 				// actual replacement
-				const _preH = document.scrollingElement.scrollHeight;
+				const _preH = window.getScrlEl().scrollHeight;
 				// checking if white-space should be not removed, even if it's zero-sized
 				const ifKeepWhSpace = ___checkIfWhSpaceShouldBeAlwaysKept(aControlEl);
 				// ensuring end-of-line white spaces aren't zero-sized --- otherwise we sometimes have text shifts when we remove it
@@ -1194,7 +1194,7 @@
 				aControlEl.style.setProperty("white-space", "nowrap", "important"); // puts all in 1 line -- no end-of-line zeroing
 				// replacing
 				txtChildEls.forEach((el, i) => {
-					// const _origHeight = document.scrollingElement.scrollHeight;
+					// const _origHeight = window.getScrlEl().scrollHeight;
 					if (!ifKeepWhSpace && !el.nodeValue.trim().length && __isTxtNodeZeroSize(el)) {
 						// this an empty, whitespace text node --> remove it
 						el.remove();
@@ -1209,9 +1209,9 @@
 						});
 					}
 					// NOTE: only enable when investigating
-					// if(_origHeight !== document.scrollingElement.scrollHeight){
+					// if(_origHeight !== window.getScrlEl().scrollHeight){
 					// 	debugger;
-					// 	console.error("scrollingElement.scrollHeight has changed.", _origHeight, document.scrollingElement.scrollHeight, window.__el2stringForDiagnostics(aControlEl));
+					// 	console.error("scrollingElement.scrollHeight has changed.", _origHeight, window.getScrlEl().scrollHeight, window.__el2stringForDiagnostics(aControlEl));
 					// }
 				});
 				// cancelling out our changes to CSS white space handling
@@ -1220,9 +1220,9 @@
 				if (txtChildEls.length && nonTxtChildEls.length) { // if there was smth to be changed/affected
 					nonTxtChildEls.forEach((el, i) => ___revertStyleChanges(el, nonTxtChildElStyles[i], nonTxtChildElPseudoStyles[i]));
 				}
-				if (_preH !== document.scrollingElement.scrollHeight) {
+				if (_preH !== window.getScrlEl().scrollHeight) {
 					debugger;
-					console.error("scrollingElement.scrollHeight has changed.", _preH, document.scrollingElement.scrollHeight, window.__el2stringForDiagnostics(aControlEl));
+					console.error("scrollingElement.scrollHeight has changed.", _preH, window.getScrlEl().scrollHeight, window.__el2stringForDiagnostics(aControlEl));
 				}
 				return aControlEl;
 			},
@@ -1301,7 +1301,7 @@
 			const b = window._getAbsBoundingRectAdjForParentOverflow(el, true);
 			const largerThanAPixel = Math.max(b.height, 0) * Math.max(b.width, 0) > 2; // so we avoid pixels
 			const hasSampleableBody = b.height >= 1 && b.width >= 1; // sometimes width/height are .99 or so, so it's less than a pixel to sample from a canvas
-			const withinWindow = b.left < (window.__getSaneDocScrollWidth() - 3) && b.top < (document.scrollingElement.scrollHeight - 3); // because right/bottom are the outer boundaries <-- rects start from 0s, but don't include right/bottom coords // NOTE: -3 cause I'm ok with tiny things cropped out
+			const withinWindow = b.left < (window.__getSaneDocScrollWidth() - 3) && b.top < (window.getScrlEl().scrollHeight - 3); // because right/bottom are the outer boundaries <-- rects start from 0s, but don't include right/bottom coords // NOTE: -3 cause I'm ok with tiny things cropped out
 			// if(el.tagName && el.tagName.toLowerCase() === "div" && el.classList.contains("slide-out-div")){
 			// 	const b2 = window._getAbsBoundingRectAdjForParentOverflow(el, true, false, "normal", {logClippingParents: true});
 			// 	console.log("[reCAPTCHA] adjusted BBox:", JSON.stringify(b), "ORIG bbox: ", JSON.stringify(el.getBoundingClientRect()), "RE ADJ: ", JSON.stringify(b2));
@@ -1400,8 +1400,8 @@
 					rng.selectNode(txtNode);
 					const b = rng.getBoundingClientRect();
 					// FIXME: This doens't account for overflow possibly hiding shifted text -- we only check if it's inside the window				
-					return b.right > 0 && b.left < window.__getSaneDocScrollWidth() && b.height && b.bottom > 0 && b.top < document.scrollingElement.scrollHeight;
-					// return b.right > 0 && b.left < document.scrollingElement.scrollWidth && b.height && b.bottom > 0 && b.top < document.scrollingElement.scrollHeight;
+					return b.right > 0 && b.left < window.__getSaneDocScrollWidth() && b.height && b.bottom > 0 && b.top < window.getScrlEl().scrollHeight;
+					// return b.right > 0 && b.left < window.getScrlEl().scrollWidth && b.height && b.bottom > 0 && b.top < window.getScrlEl().scrollHeight;
 				});
 			});
 		return jqAllVis;
@@ -1444,7 +1444,7 @@
 			// note: I don't know why designers do that to me....
 			const indent = parseFloat(window.getComputedStyle(el)["text-indent"]);
 			return indent > -window.__getSaneDocScrollWidth() && indent < window.__getSaneDocScrollWidth();
-			// return indent > -document.scrollingElement.scrollWidth && indent < document.scrollingElement.scrollWidth;
+			// return indent > -window.getScrlEl().scrollWidth && indent < window.getScrlEl().scrollWidth;
 		}).filter((i, el) => {
 			const b = window._getInnerBBox(el);
 			return b.width > 0 && b.height > 0; // this should work for the insides of controls, even if they are floated etc.
@@ -2063,7 +2063,7 @@
 						console.log("DONE PREPPING", location.href);
 						resolve(outRes);
 						// return outRes;
-					}, 100);
+					}, 300);
 				});
 			}	
 		};

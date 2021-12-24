@@ -325,16 +325,16 @@
 					return false; // already checked above
 				}
 				const b = window._getInnerBBox(grEl);
-				return b.height >= document.scrollingElement.scrollHeight * 0.9 && b.width >= window.__getSaneDocScrollWidth() * 0.9;
-				// return b.height >= document.scrollingElement.scrollHeight * 0.9 && b.width >= document.scrollingElement.scrollWidth * 0.9;
+				return b.height >= window.getScrlEl().scrollHeight * 0.9 && b.width >= window.__getSaneDocScrollWidth() * 0.9;
+				// return b.height >= window.getScrlEl().scrollHeight * 0.9 && b.width >= window.getScrlEl().scrollWidth * 0.9;
 			});
 			resObj["fullWindGrElIds"] = fullWindGrArr.length?fullWindGrArr.map(x=>x._id).join("__"):"NA";
 			resObj["fullDocGrElIds"] = fullDocGrArr.length?fullDocGrArr.map(x=>x._id).join("__"):"NA";
 			// throw in scrollWidth/height
 			resObj["docScrollWidth"] = window.__getSaneDocScrollWidth();
-			resObj["docScrollWidthNotSane"] = document.scrollingElement.scrollWidth;
-			// resObj["docScrollWidth"] = document.scrollingElement.scrollWidth;
-			resObj["docScrollHeight"] = document.scrollingElement.scrollHeight;
+			resObj["docScrollWidthNotSane"] = window.getScrlEl().scrollWidth;
+			// resObj["docScrollWidth"] = window.getScrlEl().scrollWidth;
+			resObj["docScrollHeight"] = window.getScrlEl().scrollHeight;
 			return resObj;
 		});
 	}
@@ -860,8 +860,8 @@
 							});
 							// create a placeholder array representing our page
 							const pageWidth = window.__getSaneDocScrollWidth();
-							// // const pageWidth = document.scrollingElement.scrollWidth;
-							// const pageSize = pageWidth * document.scrollingElement.scrollHeight;
+							// // const pageWidth = window.getScrlEl().scrollWidth;
+							// const pageSize = pageWidth * window.getScrlEl().scrollHeight;
 							// const _tOldBegin = Date.now(); // TIME
 							// const pageAsFlatArr = (new Int16Array(pageSize)).fill(-1 * adjustedBBoxes.length); // filling with neg values so anything outside parent's innerBBox is <= 0
 							// // creating a window for imprinting rects -- parent's innerBBox - with values === 0
@@ -879,7 +879,7 @@
 							// const whSpOldMeth = __minZero(flexWhiteSp);
 							// const _tOldEnd = Date.now(); // TIME
 							// const _tCnvsBegin = Date.now(); // TIME
-							const whSpCanvasMeth = window.countFlexWhiteSpace(pageWidth, document.scrollingElement.scrollHeight, pInBBox, adjustedBBoxes, descBBoxArr); // 20 times faster than the Old method <-- also accounts for non-round coordiante
+							const whSpCanvasMeth = window.countFlexWhiteSpace(pageWidth, window.getScrlEl().scrollHeight, pInBBox, adjustedBBoxes, descBBoxArr); // 20 times faster than the Old method <-- also accounts for non-round coordiante
 							// const _tCnvsEnd = Date.now(); // TIME
 							// console.log("[FLEX] White space: whSpCanvasMeth", whSpCanvasMeth, "Time: ", (_tCnvsEnd-_tCnvsBegin), "whSpOldMeth: ", whSpOldMeth, "Time:", (_tOldEnd-_tOldBegin));
 							// console.assert(whSpOldMeth === whSpCanvasMeth, "Old and Canvas methods give diff Wh Sp estimates", window.location.href);
@@ -1345,7 +1345,7 @@
 		}
 		var res = "NA";
 		if(!charArr.length){
-			console.warn("We were unable to measure width in characters, width: ", width, " bodyWidth:", document.body.scrollWidth, "styles:", st2cpy, window.location.href);
+			console.warn("We were unable to measure width in characters, width: ", width, " bodyWidth:", document.body.scrollWidth, "styles:", JSON.stringify(st2cpy), window.location.href);
 			debugger;
 		}else{
 			res = span.textContent.length;

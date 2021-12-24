@@ -24,9 +24,7 @@
 		absTop: "not set",
 		absLeft: "not set"
 	};
-	if (!jQuery) {
-		throw new Error("We'd want jQuery loaded");
-	}
+
 	// tmp fool check Message Listener
 	browser.runtime.onMessage.addListener((msg, sender, respF)=>{
 		if(msg.urlId !== urlId && ["ProcessIFrameParams", "ScrambleIFrame", "RestoreIFrame"].includes(msg.action)){
@@ -46,6 +44,7 @@
 		});
 	}
 	
+	// TODO: replace with _alarmPr
 	function tmpPromiseDelay(delay = 5000){
 		return new Promise(function(resolve, reject) {
 			window.setTimeout(resolve, delay);
@@ -146,8 +145,9 @@
 			console.log("IFrame's content script is loaded and got tab and url ids, ", urlId);
 			respF({"action": "receivedMyTabId_iframe", urlId: urlId});
 			// putting frameSize in scrollingElement -- so we can adjust bboxes down to this
-			document.scrollingElement._thisFrameHeight = frameSize.height;
-			document.scrollingElement._thisFrameWidth = frameSize.width;
+			window.getScrlEl()._thisFrameHeight = frameSize.height;
+			window.getScrlEl()._thisFrameWidth = frameSize.width;
+			
 		}
 	});
 	
@@ -160,10 +160,10 @@
 	window.addEventListener("message", function handleMachineIdRequests (e){
 		if(e.data.action === "TellPapaYourMachineId"){
 			console.assert(machineFrameId !== undefined, "Iframe machineFrameId requested before the iframe has received it.", window.location.href);
-			const scrl = document.scrollingElement;
+			const scrl = window.getScrlEl();
 			const winSize = Math.min(window.innerHeight * window.innerWidth, scrl.scrollWidth * scrl.scrollHeight);
 			const dat = {
-				// width: document.scrollingElement.scrollWidth,
+				// width: window.getScrlEl().scrollWidth,
 				machineFrameId: machineFrameId,
 				winSize: winSize, // Also sending the iframe window size -- Parent Window needs it at this moment anyway
 				msgId: e.data.msgId, // so we don't have to chain promises to know who send what

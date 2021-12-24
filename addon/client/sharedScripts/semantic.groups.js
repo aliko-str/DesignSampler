@@ -9,10 +9,10 @@
 	const MAX_FOOTER_TXT_LENGTH = MAX_HEADER_TXT_LENGTH * 1.5; // 1.5 times headers -- cause all the small print legal info etc.
 	const MAX_TITLE_NUMBER2CHAR_RATIO = 0.1; // 10%
 	const MAX_CONTAINER_TITLE_WIDTH_MISMATCH = 0.1; // a title should occupy all of of parent's width, but we allow for 10% fuzziness
-	const MAX_HEADER_BOTTOM_COORD = Math.max(255, Math.min(window.innerWidth, window.innerHeight) * 0.25); // window.document.scrollingElement.scrollWidth * 0.25; // quite arbitrary; we presume headers' height should scale with the window
-	const MAX_FOOTER_TOP_COORD = ()=> document.scrollingElement.scrollHeight - Math.max(document.scrollingElement.scrollHeight * 0.2, MAX_HEADER_BOTTOM_COORD); // because scrollHeight may change after document fully (async) loaded - and scripts are run before that
+	const MAX_HEADER_BOTTOM_COORD = Math.max(255, Math.min(window.innerWidth, window.innerHeight) * 0.25); // window.window.getScrlEl().scrollWidth * 0.25; // quite arbitrary; we presume headers' height should scale with the window
+	const MAX_FOOTER_TOP_COORD = ()=> window.getScrlEl().scrollHeight - Math.max(window.getScrlEl().scrollHeight * 0.2, MAX_HEADER_BOTTOM_COORD); // because scrollHeight may change after document fully (async) loaded - and scripts are run before that
 	const MAX_HEADER_CANDIDATE_BOTTOM_COORD = MAX_HEADER_BOTTOM_COORD * 2;
-	const MAX_FOOTER_CANDIDATE_TOP_COORD = ()=> document.scrollingElement.scrollHeight - Math.max(document.scrollingElement.scrollHeight * 0.2, MAX_HEADER_BOTTOM_COORD) * 2;
+	const MAX_FOOTER_CANDIDATE_TOP_COORD = ()=> window.getScrlEl().scrollHeight - Math.max(window.getScrlEl().scrollHeight * 0.2, MAX_HEADER_BOTTOM_COORD) * 2;
 	
 	// const MIN_HEADER_HEIGHT = MAX_HEADER_BOTTOM_COORD * 0.5;
 	
@@ -846,7 +846,7 @@
 		// 		return bbox.y;
 		// 	}
 		// 	return a;
-		// }, window.document.scrollingElement.scrollHeight);
+		// }, window.window.getScrlEl().scrollHeight);
 		// const topLeftMostImgI = imgBBoxes.reduce((a, bbox, i)=>{
 		// 	if(bbox.y < (topY + 10)){ // allow 10 pixels of tolerance - arbitrary; 
 		// 		a.push({i: i, bbox: bbox});
@@ -865,7 +865,7 @@
 				return bbox.y;
 			}
 			return a;
-		}, window.document.scrollingElement.scrollHeight);
+		}, window.window.getScrlEl().scrollHeight);
 		const topLeftMostImgI = imgBBoxes.reduce((a, bbox, i)=>{
 			if(bbox.y < (topY + 10)){ // allow 10 pixels of tolerance - arbitrary; 
 				a.push({i: i, bbox: bbox});

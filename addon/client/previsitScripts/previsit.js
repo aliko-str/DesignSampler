@@ -8,10 +8,10 @@
 	var hasLoaded = false;
 
 	function scrollDownUp(cb) {
-		const scrlEl = document.scrollingElement || document.documentElement;
-		console.log("Current scroll: ", scrlEl.scrollTop, " Window height: ", scrlEl.scrollHeight);
-		if (scrlEl.scrollTop < (scrlEl.scrollHeight - window.innerHeight)) {
-			window.scrollTo(0, scrlEl.scrollTop + window.innerHeight);
+		const scrlEl = window.getScrlEl();//window.getScrlEl() || document.documentElement;
+		console.log("Current scroll: ", window.scrollY, " Window height: ", scrlEl.scrollHeight);
+		if (window.scrollY < (scrlEl.scrollHeight - window.innerHeight)) {
+			window.scrollTo(0, window.scrollY + window.innerHeight);
 			window.setTimeout(function () {
 				scrollDownUp(cb);
 			}, 150);

@@ -18,9 +18,9 @@
 		const commonCookieContainerSelectors = ["#onetrust-banner-sdk", "#onetrust-consent-sdk", ".cc-window.cc-banner.cc-bottom", "#cookie-bar, #cookie-law-info-bar, #cookie-notice", ".cookie-policy.cookie-policy--open", "#__tealiumGDPRecModal"].join(",");
 		document.querySelectorAll(commonCookieContainerSelectors).forEach(el=>el.remove());
 		// Generic Overlays
-		const commonOverlaySelectors = [".pum-overlay", ".overlay_11", "#boxpopup0", "#boxpopup1", "#boxpopup2", "#boxpopup3", "#boxpopup", ".md-overlay"];
+		const commonOverlaySelectors = [".pum-overlay", ".overlay_11", "#boxpopup0", "#boxpopup1", "#boxpopup2", "#boxpopup3", "#boxpopup", ".md-overlay", "#myModal", ".modal-backdrop"];
 		document.querySelectorAll(commonOverlaySelectors).forEach(el=>el.remove());
-		const commonNoScrollClasses = ["pum-open-overlay"];
+		const commonNoScrollClasses = ["pum-open-overlay", "modal-open"];
 		commonNoScrollClasses.forEach(c => {
 			document.documentElement.classList.remove(c);
 			document.body.classList.remove(c);

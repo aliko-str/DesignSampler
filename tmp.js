@@ -82,7 +82,7 @@
 // if(pageConsistsOfThinRows && footers.length > 1){
 // 	// OPTIMIZE: DO the same check as for headers
 // 	// Choose the bottom-most footer
-// 	footers = footers.filter(el=>window._getFloatProofBBox(el).bottom > (window.document.scrollingElement.scrollHeight - MIN_HEADER_HEIGHT));
+// 	footers = footers.filter(el=>window._getFloatProofBBox(el).bottom > (window.window.getScrlEl().scrollHeight - MIN_HEADER_HEIGHT));
 // 
 // 	// footers = [footers.reduce((a, el)=>{
 // 	// 	// if(a.getBoundingClientRect().top < el.getBoundingClientRect().top){

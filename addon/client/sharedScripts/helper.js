@@ -255,9 +255,9 @@
 		const wBbox = {
 			top: 0,
 			left: 0,
-			bottom: document.scrollingElement.scrollHeight,
+			bottom: window.getScrlEl().scrollHeight,
 			right: window.__getSaneDocScrollWidth()
-			// right: document.scrollingElement.scrollWidth
+			// right: window.getScrlEl().scrollWidth
 		};
 		// 5.1 - Extra bit for "fixed" -- clipping relative to viewport
 		if(containerType === "fixed"){
@@ -265,10 +265,10 @@
 			wBbox.right = window.innerWidth;
 		}
 		// 5.2 - For iframes -- clip bbox to the actually visible part in the parent document
-		if (document.scrollingElement._thisFrameHeight !== undefined) {
+		if (window.getScrlEl()._thisFrameHeight !== undefined) {
 			Object.assign(wBbox, {
-				bottom: document.scrollingElement._thisFrameHeight,
-				right: document.scrollingElement._thisFrameWidth
+				bottom: window.getScrlEl()._thisFrameHeight,
+				right: window.getScrlEl()._thisFrameWidth
 			});
 		}
 		bbox = __clipBBoxToParent(bbox, wBbox, ifEnforceParentBox);
@@ -354,15 +354,15 @@
 	// 	const wBbox = {
 	// 		top: 0,
 	// 		left: 0,
-	// 		bottom: document.scrollingElement.scrollHeight,
+	// 		bottom: window.getScrlEl().scrollHeight,
 	// 		right: window.__getSaneDocScrollWidth()
-	// 		// right: document.scrollingElement.scrollWidth
+	// 		// right: window.getScrlEl().scrollWidth
 	// 	};
 	// 	// 5.1 - For iframes -- clip bbox to the actually visible part in the parent document
-	// 	if (document.scrollingElement._thisFrameHeight !== undefined) {
+	// 	if (window.getScrlEl()._thisFrameHeight !== undefined) {
 	// 		Object.assign(wBbox, {
-	// 			bottom: document.scrollingElement._thisFrameHeight,
-	// 			right: document.scrollingElement._thisFrameWidth
+	// 			bottom: window.getScrlEl()._thisFrameHeight,
+	// 			right: window.getScrlEl()._thisFrameWidth
 	// 		});
 	// 	}
 	// 	bbox = __clipBBoxToParent(bbox, wBbox, ifEnforceParentBox);
@@ -779,8 +779,8 @@
 		};
 		let zoomedSizeLimit = Math.floor(window.MAX_SCREENSHOT_LENGTH / window.devicePixelRatio);
 		sizeObj.width = sizeObj.right = Math.min(window.__getSaneDocScrollWidth(), zoomedSizeLimit);
-		// sizeObj.width = sizeObj.right = Math.min(document.scrollingElement.scrollWidth, zoomedSizeLimit);
-		sizeObj.height = sizeObj.bottom = Math.min(document.scrollingElement.scrollHeight, zoomedSizeLimit);
+		// sizeObj.width = sizeObj.right = Math.min(window.getScrlEl().scrollWidth, zoomedSizeLimit);
+		sizeObj.height = sizeObj.bottom = Math.min(window.getScrlEl().scrollHeight, zoomedSizeLimit);
 		return sizeObj;
 	}
 
@@ -925,8 +925,8 @@
 	
 	function __getSaneDocScrollWidth(){
 		// F for cases of giant X overflow being hidden
-		const cw = document.scrollingElement.clientWidth;
-		const sw = document.scrollingElement.scrollWidth;
+		const cw = window.getScrlEl().clientWidth;
+		const sw = window.getScrlEl().scrollWidth;
 		return sw < cw * 1.5? sw: cw;
 	}
 

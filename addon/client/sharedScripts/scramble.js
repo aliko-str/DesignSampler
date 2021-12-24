@@ -720,9 +720,9 @@
 				// No, actually we won't copy children - none of the graphical elements are supposed to have children, and we don't want to show fallback error messages, as in <video>
 				return getBgImgColPr.then(()=>{
 					// 5 - Replace
-					const ph = document.scrollingElement.scrollHeight;
+					const ph = window.getScrlEl().scrollHeight;
 					el2rep.replaceWith(outerDiv);
-					if(ph !== document.scrollingElement.scrollHeight){
+					if(ph !== window.getScrlEl().scrollHeight){
 						// trying to revert potential changes to siblings due to replacement
 						const siblings = Array
 							.from(outerDiv.parentElement.querySelectorAll("*")) // changes may also apply due to nth-child and nth-of-type <-- so selecting all, not just siblings
@@ -820,8 +820,8 @@
 	function __textOrNoText(ph, div, el, outerDiv, _stCpy){
 		// _stCpy is a copy of the replaced element styles
 		// some rubbish tricks -- because I don't fully understand how line-height is estimated for what
-		const hDiff = Math.abs(ph - document.scrollingElement.scrollHeight);
-		const isItWorse = ()=>hDiff < Math.abs(ph - document.scrollingElement.scrollHeight);
+		const hDiff = Math.abs(ph - window.getScrlEl().scrollHeight);
+		const isItWorse = ()=>hDiff < Math.abs(ph - window.getScrlEl().scrollHeight);
 		const pSt2Restore = [];
 		if(hDiff){
 			// I give up on determining what cases should/shouldn't contain text -- just try to reverse it here
@@ -841,7 +841,7 @@
 				}
 			}
 			// try enforcing font-size and line-height on parentElement <-- if parent is a block element, this should work if the replaced element had larger values than the parent
-			if(ph !== document.scrollingElement.scrollHeight){
+			if(ph !== window.getScrlEl().scrollHeight){
 				const pSt = window.getComputedStyle(outerDiv.parentElement);
 				const _origElLineH = parseFloat(_stCpy["line-height"]);
 				const _pLineH = parseFloat(pSt["line-height"]);
@@ -856,7 +856,7 @@
 					}
 				}	
 			}
-			if(ph !== document.scrollingElement.scrollHeight){
+			if(ph !== window.getScrlEl().scrollHeight){
 				// some more tricks -- try different vertical align
 				const initAlign = getComputedStyle(outerDiv)["vertical-align"];
 				outerDiv.style.setProperty("vertical-align", "bottom", "important");
@@ -867,13 +867,13 @@
 					}
 				}
 			}
-			if(ph !== document.scrollingElement.scrollHeight){
+			if(ph !== window.getScrlEl().scrollHeight){
 				// some cycling through vertical alignments on the parent
 				const _oldStObj = ___getCssVals(outerDiv.parentElement, "vertical-align");
 				const possibleVAlignVals = ["top", "middle", "baseline", "bottom", "sub", "super", "text-bottom", "text-top"];
 				const _minHDiffI = possibleVAlignVals.map(vAlignVal=>{
 					__enforceCSSVals(outerDiv.parentElement, {"vertical-align": vAlignVal});
-					return Math.abs(ph - document.scrollingElement.scrollHeight);
+					return Math.abs(ph - window.getScrlEl().scrollHeight);
 				}).reduce((a, x, i, arr)=>{
 					return (x < arr[a])?i:a;
 				}, 0);
@@ -884,7 +884,7 @@
 					pSt2Restore.push(_oldStObj);
 				}
 			}
-			if(ph !== document.scrollingElement.scrollHeight){
+			if(ph !== window.getScrlEl().scrollHeight){
 				debugger;
 				console.error("Element scramble caused page height change, ", window.__el2stringForDiagnostics(el));
 			}
@@ -1338,28 +1338,28 @@
 		_restoreFStore[restFName] = {};
 		// 2 - Modify
 		// 2.1 - General DOM/Page modifications (neither of the major groups of elements...)
-		var _pH = document.scrollingElement.scrollHeight;
+		var _pH = window.getScrlEl().scrollHeight;
 		var prms = _generalScrambleModsAsync(variant).then(genModsRestoreF=>{
-			console.assert(_pH === document.scrollingElement.scrollHeight, "1 Page height changed after _generalScrambleModsAsync, from", _pH, "to", document.scrollingElement.scrollHeight, location.href);
+			console.assert(_pH === window.getScrlEl().scrollHeight, "1 Page height changed after _generalScrambleModsAsync, from", _pH, "to", window.getScrlEl().scrollHeight, location.href);
 			console.assert(genModsRestoreF && typeof genModsRestoreF === 'function', "We didn't pass on a function to restore DOM after _generalScrambleModsAsync", window.location.href);
 			_restoreFStore[restFName].gen = genModsRestoreF;
 		}).then(()=>{
 			// 2.2 - texts
-			_pH = document.scrollingElement.scrollHeight;
+			_pH = window.getScrlEl().scrollHeight;
 			return scrambleTextAsync(variant);
 		}).then((txtRestoreF)=>{
 			console.assert(txtRestoreF && typeof txtRestoreF === 'function', "We didn't pass on a function to restore DOM after scrambleTextAsync", window.location.href);
 			_restoreFStore[restFName].txt = txtRestoreF;
-			console.assert(_pH === document.scrollingElement.scrollHeight, "2 Page height changed after scrambleText, from", _pH, "to", document.scrollingElement.scrollHeight, location.href);
-			if(_pH !== document.scrollingElement.scrollHeight){
+			console.assert(_pH === window.getScrlEl().scrollHeight, "2 Page height changed after scrambleText, from", _pH, "to", window.getScrlEl().scrollHeight, location.href);
+			if(_pH !== window.getScrlEl().scrollHeight){
 				debugger;
 			}
 		}).then(()=>{
 			// 2.3 - images
-			_pH = document.scrollingElement.scrollHeight;
+			_pH = window.getScrlEl().scrollHeight;
 			return scrambleImg(variant, _urlId);
 		}).then((restoreF) => {
-			console.assert(_pH === document.scrollingElement.scrollHeight, "3 Page height changed after scrambleImg, from", _pH, "to", document.scrollingElement.scrollHeight, location.href);
+			console.assert(_pH === window.getScrlEl().scrollHeight, "3 Page height changed after scrambleImg, from", _pH, "to", window.getScrlEl().scrollHeight, location.href);
 			console.assert(restoreF && typeof restoreF === 'function', "We didn't pass on a function to restore DOM after scrambleImg", window.location.href);
 			_restoreFStore[restFName].img = restoreF;
 		}); // Returning a Promise
@@ -1368,9 +1368,9 @@
 		if(variant.cntrl !== undefined){
 			prms = prms.then(()=>{
 				// utilize variant.cntrl <== should be a trivial check, just to have a similar structure to other scramble functions
-				_pH = document.scrollingElement.scrollHeight;
+				_pH = window.getScrlEl().scrollHeight;
 				return _blackOutControlsAsync(variant).then(cntrlRestoreF=>{
-					console.assert(_pH === document.scrollingElement.scrollHeight, "3 Page height changed after _blackOutControlsAsync, from", _pH, "to", document.scrollingElement.scrollHeight, location.href);
+					console.assert(_pH === window.getScrlEl().scrollHeight, "3 Page height changed after _blackOutControlsAsync, from", _pH, "to", window.getScrlEl().scrollHeight, location.href);
 					_restoreFStore[restFName].cntrl = cntrlRestoreF;
 				});
 			});

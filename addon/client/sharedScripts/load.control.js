@@ -7,6 +7,28 @@
 	function _withNatCode(f) {
 		return f.toString().indexOf("[native code]") > -1;
 	}
+	
+	const getPageLoadedPr = (()=>{
+		var pr;
+		const defaultTOutDelay = 6000;
+		const tStart = Date.now();
+		if (document.readyState === "complete") {
+			pr = Promise.resolve();
+		} else {
+			pr = new Promise(function(resolve, reject) {
+				window.addEventListener("load", resolve);
+			});
+		}
+		return (tOutDelay = undefined, tOutWarnF = ()=>{})=>{
+			if(tOutDelay !== undefined){
+				tOutDelay = defaultTOutDelay;
+			}
+			// NOTE: this part was intended to handle non-loading (infinite load) pages, but it no longer does - we inject this script at "document_end", which means after "load" ==> We should handle non-loads in br.main.js
+			const realDelay = Math.max(0, tOutDelay - (Date.now() - tStart));
+			// const realDelay = tOutDelay;
+			return Promise.race([pr, _alarmPr(realDelay).then(tOutWarnF)]);
+		};
+	})();
 
 	function _modCSPMeta(){
 		// Not sure it works -- couldn't test it
@@ -162,7 +184,6 @@
 						// console.stack();
 						return "";
 					}});
-					console.log("OVERWRITING CSS2Properties.prototype prop: ${propName}");
 				`;
 				w.eval(tmplt);
 			};
@@ -263,14 +284,45 @@
 		});
 	};
 	
-	window.waitForAllImagesToLoad = function(cb){
-		window.setTimeout(()=>{
-			_waitForAllImagesToLoad(cb);
-		}, 100); // small timeout - otherwise many images aren't found for some reason
+	// Checking for Quirks mode and linking scrollingElement to documentElement if needed
+	const getScrlEl = (()=>{
+		// var scrlEl = window.getScrlEl();
+		var scrlEl = "scrollingElement";
+		getPageLoadedPr().then(()=>{
+			if(window.top === window && location.href.indexOf("about:") > -1){
+				return; // this is a default page -- no point checking
+			}
+			if(document.compatMode === "BackCompat"){
+				console.log("[EARLY] %c Quirks mode detected." + window.location.href, "color:darkred;");
+				if(!document[scrlEl]){
+					scrlEl = "documentElement";
+				}
+				// scrlEl = scrlEl || document.documentElement;
+			}
+		});
+		return ()=>{
+			return document[scrlEl] || document.documentElement; // so it's always non-null
+		};
+	})();
+	
+	// window.waitForAllImagesToLoad = function(cb){
+	// 	window.setTimeout(()=>{
+	// 		_waitForAllImagesToLoad(cb);
+	// 	}, 100); // small timeout - otherwise many images aren't found for some reason
+	// };
+	
+	window.waitForAllImagesToLoadAsync = function(){
+		return new Promise(function(resolve, reject) {
+			window.setTimeout(()=>{
+				_waitForAllImagesToLoad(resolve);
+			}, 100); // small timeout - otherwise many images aren't found for some reason
+		});
 	};
 	
 	// window.stopMarqueeAsync = stopMarqueeAsync;
 	window._alarmPr = _alarmPr;
+	window.getScrlEl = getScrlEl;
 	window.pauseVideoAudio = pauseVideoAudio;
 	window.stopAllAnimations = stopAllAnimations;
+	window.getPageLoadedPr = getPageLoadedPr;
 })();

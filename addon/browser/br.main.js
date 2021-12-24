@@ -820,7 +820,7 @@ function doPostPrevisitWork(settings, jobProgress, pageMods, portToApp) {
 				if(msg.action === "GiveMePageMods" && aTab !== undefined && aTab.id === sender.tab.id){
 					return Promise.resolve({"action": "HaveYourPageMods", pageModF: pageMods[aUrlObj.url].toString()});
 				}
-				return false;
+				// return false;
 			};
 			msgHandlerArr.push(pageModsListener);
 			// 4 - Handle tab closing - if it closes before we had the data, the URL should be removed, since smth bad happened, like to response -- Including 404 and 500 cases

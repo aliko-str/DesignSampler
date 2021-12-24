@@ -27,7 +27,7 @@
 
 	function _renderWarnings(jqRoot){
 		const warnEl = "<span class='previsit-warn'></span>";
-		const doc = document.scrollingElement || document.documentElement;
+		const doc = window.getScrlEl();//window.getScrlEl() || document.documentElement;
 		if(doc.scrollHeight > MAX_PAGE_LENGTH){
 			const tooLongWarning = $(warnEl);
 			tooLongWarning.text("Long Page: " + doc.scrollHeight + "px. Exclude?");
