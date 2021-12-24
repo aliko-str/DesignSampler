@@ -607,12 +607,6 @@ function doPostPrevisitWork(settings, jobProgress, pageMods, portToApp) {
 						return browser.webNavigation.getAllFrames({
 							tabId: aTab.id
 						}).then((newFrArr)=>{
-							// newFrArr.forEach(newFr=>{ // No longer needed -- I rely on FrameId now instead of Urls
-							// 	const oldFrObj = workableIFrameArr.find(oldFr=>oldFr.frameId === newFr.frameId);
-							// 	if(oldFrObj !== undefined){
-							// 		oldFrObj.url = newFr.url;
-							// 	}
-							// });
 							// tmp diagnostics
 							const _nonloadedIframes = newFrArr.filter(ifr=>ifr.frameId).filter(ifr=> workableIFrameArr.every(oldFr=>oldFr.frameId!==ifr.frameId));
 							if(_nonloadedIframes.length){
@@ -633,29 +627,69 @@ function doPostPrevisitWork(settings, jobProgress, pageMods, portToApp) {
 						});
 					}
 					function __handleOneFrLoaded(_tabId, _frameId, _frameUrl){
-						browser.tabs.sendMessage(_tabId, {
-							"action": "haveYouLoaded_iframe"
-						}, {
-							frameId: _frameId
-						}).then(function(msg){
-							console.assert(msg.action === "IFrameLoaded", "A frame should respond with a 'IFrameLoaded' msg action to the haveYouLoaded_iframe request, but instead it said:", msg.action, "url:", msg.url, "msg: ", msg);
-							workableIFrameArr.push({frameId: _frameId, url: _frameUrl});
-							// nIFrames--;
-							// if (!nIFrames && !alreadyResolved) {
-							// 	alreadyResolved = true;
-							// 	console.log("ALL FRAMES LOADED, not timed out");
-							// 	resolve(workableIFrameArr);
-							// }
-						}).catch(e=>{
-							console.warn("IFrame failed to respond -- possibly no longer exists:", e);
-						}).finally(()=>{
-							nIFrames--;
-							if (!nIFrames && !alreadyResolved) {
-								alreadyResolved = true;
-								console.log("ALL FRAMES LOADED, not timed out");
-								resolve(workableIFrameArr);
-							}
-						});
+						return window.ensureIFrameRunContentScriptAsync(_tabId, _frameId)
+							.then(()=>{
+								return browser.tabs.sendMessage(_tabId, {
+									"action": "haveYouLoaded_iframe"
+								}, {
+									frameId: _frameId
+								});
+							})
+							.then(function(msg){
+								console.assert(msg.action === "IFrameLoaded", "A frame should respond with a 'IFrameLoaded' msg action to the haveYouLoaded_iframe request, but instead it said:", msg.action, "url:", msg.url, "msg: ", msg);
+								workableIFrameArr.push({frameId: _frameId, url: _frameUrl});
+							})
+							.catch(e=>{
+								console.warn("IFrame failed to respond -- possibly no longer exists And/Or Couldn't manually inject a script:", e);
+							})
+							.finally(()=>{
+								nIFrames--;
+								if (!nIFrames && !alreadyResolved) {
+									alreadyResolved = true;
+									// console.log("ALL FRAMES LOADED, not timed out");
+									resolve(workableIFrameArr);
+								}	
+							});
+						
+						// return browser.tabs
+						// 	.sendMessage(_tabId, {
+						// 		"action": "haveYouLoaded_iframe"
+						// 	}, {
+						// 		frameId: _frameId
+						// 	})
+						// 	.then(function(msg){
+						// 		console.assert(msg.action === "IFrameLoaded", "A frame should respond with a 'IFrameLoaded' msg action to the haveYouLoaded_iframe request, but instead it said:", msg.action, "url:", msg.url, "msg: ", msg);
+						// 		workableIFrameArr.push({frameId: _frameId, url: _frameUrl});
+						// 	})
+						// 	.catch(e=>{
+						// 		if(!secondTry){
+						// 			// trying to recover -- xml documents (translated in html) don't have scripts loaded in them automatically
+						// 			console.log("%cTRYING to recover -- manually injecting scripts in an iframe", "color:orange;");
+						// 			const jsArr = browser.runtime.getManifest()["content_scripts"][0]["js"];
+						// 			const cssArr = browser.runtime.getManifest()["content_scripts"][0]["css"];
+						// 			return _execScripts(_tabId, jsArr, "document_end", _frameId)
+						// 				.then(()=>{
+						// 					// injecting all Css files -- even though we have only 1 now
+						// 					return Promise.all(cssArr.map(cssF=>{
+						// 						return browser.tabs.insertCSS(_tabId, {frameId: _frameId, file: cssF, runAt: "document_end"});
+						// 					}));
+						// 				})
+						// 				.then(__handleOneFrLoaded(_tabId, _frameId, _frameUrl, true));
+						// 		}
+						// 		console.warn("IFrame failed to respond -- possibly no longer exists:", e);
+						// 	})
+						// 	.catch(e=>console.error("[IFRAMEs] Couldn't manually inject a script", e))
+						// 	.finally(()=>{
+						// 		if(!secondTry){
+						// 			debugger;
+						// 			nIFrames--;
+						// 			if (!nIFrames && !alreadyResolved) {
+						// 				alreadyResolved = true;
+						// 				// console.log("ALL FRAMES LOADED, not timed out");
+						// 				resolve(workableIFrameArr);
+						// 			}	
+						// 		}
+						// 	});
 					}
 					browser.webNavigation.getAllFrames({
 						tabId: aTab.id
@@ -721,9 +755,7 @@ function doPostPrevisitWork(settings, jobProgress, pageMods, portToApp) {
 							// no iframes to process - just skip to the next step
 							return Promise.resolve();
 						}
-						if (respMsg.action !== "HaveYourIFrameVisibility") {
-							throw new Error("We can't be here - it can only respond with a specific msg action");
-						}
+						console.assert(respMsg.action === "HaveYourIFrameVisibility");
 						const {
 							visFrInfoArr,
 							mainFrameUrl

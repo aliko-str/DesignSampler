@@ -12,16 +12,19 @@
 		var pr;
 		const defaultTOutDelay = 6000;
 		const tStart = Date.now();
-		if (document.readyState === "complete") {
-			pr = Promise.resolve();
-		} else {
-			pr = new Promise(function(resolve, reject) {
-				window.addEventListener("load", ()=>{
-					resolve();
+		const __set = ()=>{
+			if (document.readyState === "complete") {
+				pr = Promise.resolve();
+			} else {
+				pr = new Promise(function(resolve, reject) {
+					window.addEventListener("load", ()=>{
+						resolve();
+					});
 				});
-			});
-		}
-		return (tOutDelay = undefined, tOutWarnF = ()=>{})=>{
+			}	
+		};
+		__set();
+		return (tOutDelay = undefined, tOutWarnF = ()=>{}, __reset = false)=>{
 			if(tOutDelay !== undefined){
 				tOutDelay = defaultTOutDelay;
 			}

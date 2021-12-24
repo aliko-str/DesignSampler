@@ -244,20 +244,23 @@
 	}
 	
 	const {__getAllCssPropList, removeDefaultSpanCss} = (()=>{
-		var ref, refNoPrefixed, defCssObj;
+		var ref, defCssObj, refNoPrefixed;
+		const initF = ()=>{
+			const sp = document.createElement("span");
+			document.body.appendChild(sp);
+			const st = window.getComputedStyle(sp);
+			ref = [...st];
+			defCssObj = Object.fromEntries(ref.map(k=>[k, st[k]]));
+			// console.assert(ref.length, "No default styles/property names.. Why?", location.href);
+			sp.remove();
+			refNoPrefixed = ref.filter(_p=>{
+				const p = _p.toLowerCase();
+				return p.indexOf("moz") === -1 && p.indexOf("webkit") === -1;
+			});
+		};
 		toggleCssStyling("off");
-		const sp = document.createElement("span");
-		document.documentElement.appendChild(sp);
-		const st = window.getComputedStyle(sp);
-		defCssObj = Object.fromEntries([...st].map(k=>[k, st[k]]));
-		const stNames = [...st];
-		sp.remove();
+		initF();
 		toggleCssStyling("on");
-		ref = stNames;
-		refNoPrefixed = ref.filter(_p=>{
-			const p = _p.toLowerCase();
-			return p.indexOf("moz") === -1 && p.indexOf("webkit") === -1;
-		});
 		return {
 			removeDefaultSpanCss(cssObj){
 				return stripIdenticalCss(cssObj, defCssObj);
@@ -267,10 +270,14 @@
 				// );
 			},
 			__getAllCssPropList(settings = {excludePrefixed: false}){
-				if(!settings.excludePrefixed){
-					return ref;
+				if(!ref.length){
+					// this iframe wasn't appended to Document yet --> trying to re-init props, though without style disabling
+					initF();
 				}
-				return refNoPrefixed;
+				if(!settings.excludePrefixed){
+					return ref.slice();
+				}
+				return refNoPrefixed.slice();
 			}};
 	})();
 	

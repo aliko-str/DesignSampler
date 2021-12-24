@@ -11,7 +11,7 @@
 	},
 
 	"background": {
-		"scripts": ["browser/br.htmlSave.js", "browser/br.main.js"],
+		"scripts": ["browser/br.htmlSave.js", "browser/br.main.js", "browser/br.iframe.communication.js"],
 		"persistent": true
 	},
 	"experiment_apis": {

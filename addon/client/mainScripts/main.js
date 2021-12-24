@@ -137,7 +137,7 @@
 				// 		});
 				// 	return {"action": "HaveYourIFrameVisibility", "visFrInfoArr": visFrInfoArr, "mainFrameUrl": window.location.href};
 				// });
-				
+				debugger;
 				return window.propagateFrVisReqsAsync().then(visFrInfoArr=>{
 					return {"action": "HaveYourIFrameVisibility", "visFrInfoArr": visFrInfoArr || [], "mainFrameUrl": window.location.href};
 				});

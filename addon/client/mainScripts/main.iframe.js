@@ -11,7 +11,7 @@
 		console.log("Avoiding running an iframes' script in the main window", window.location.href);
 		return;
 	}
-	console.log("Running main.iframe.js in a frame: ", window.location.href);
+	console.log("%cRunning main.iframe.js in a frame: " + window.location.href, "color:lightblue;font-weight:bolder;");
 	
 	var urlId = "NOT SET URL ID";
 	var tabId = "NOT SET TAB ID";
@@ -157,27 +157,64 @@
 		machineFrameId = msg.machineFrameId;
 	});
 	
-	window.addEventListener("message", function handleMachineIdRequests (e){
-		if(e.data.action === "TellPapaYourMachineId" && e.source === window.parent){
-			console.assert(machineFrameId !== undefined, "Iframe machineFrameId requested before the iframe has received it.", window.location.href);
-			const scrl = window.getScrlEl();
-			const winSize = Math.min(window.innerHeight * window.innerWidth, scrl.scrollWidth * scrl.scrollHeight);
-			const dat = {
-				// width: window.getScrlEl().scrollWidth,
-				machineFrameId: machineFrameId,
-				winSize: winSize, // Also sending the iframe window size -- Parent Window needs it at this moment anyway
-				msgId: e.data.msgId, // so we don't have to chain promises to know who send what
-				action: "HaveYourMachineId"
-			};
-			window.removeEventListener("message", handleMachineIdRequests); // clean-up
-			window.propagateFrVisReqsAsync().then(subResArr=>{
-				if(subResArr){
-					dat.__subFrResArr = subResArr;
+	// For some reason Some IFrames discard event listeners unless there is a small delay -- no idea how they do it or if this is a bug ==> Here is a workaround
+	function dumbHackInit(){
+		if(document.body.innerHTML){
+			// just continue as normal...
+			attachPapaListeners();
+		}else{
+			// document.write may still be writing -- give it a bit of time and reset eventHandlers
+			var __nTries = 0;
+			const MAX_TRIES = 5;
+			var __intrvId2 = setInterval(()=>{
+				if(document.body.innerHTML || __nTries >= MAX_TRIES){
+					if(document.body.dataset["smartsuppId"]){
+						console.log("%c __nTries to initialize events for an empty-body iframe: " + __nTries, "color:orange;");
+					}
+					window.clearInterval(__intrvId2);
+					attachPapaListeners();
+					window.getPageLoadedPr(undefined, ()=>{}, true); // Resetting if needed
 				}
-				e.source.postMessage(dat, "*");
-			});
+			}, 100);
+		}	
+	}
+	
+	dumbHackInit();
+	
+	function attachPapaListeners(){
+		// This F is just a wrapper for the stupid hack right above
+		window.addEventListener("message", function handleMachineIdRequests (e){
+			if(e.data.action === "TellPapaYourMachineId" && e.source === window.parent){
+				console.assert(machineFrameId !== undefined, "Iframe machineFrameId requested before the iframe has received it.", window.location.href);
+				const scrl = window.getScrlEl();
+				const winSize = Math.min(window.innerHeight * window.innerWidth, scrl.scrollWidth * scrl.scrollHeight);
+				const dat = {
+					// width: window.getScrlEl().scrollWidth,
+					machineFrameId: machineFrameId,
+					winSize: winSize, // Also sending the iframe window size -- Parent Window needs it at this moment anyway
+					msgId: e.data.msgId, // so we don't have to chain promises to know who send what
+					action: "HaveYourMachineId"
+				};
+				window.removeEventListener("message", handleMachineIdRequests); // clean-up
+				window.propagateFrVisReqsAsync().then(subResArr=>{
+					if(subResArr){
+						dat.__subFrResArr = subResArr;
+					}
+					// console.log("%c RECEIVED TellPapaYourMachineId REPLY from subframes in: " + location.href + "DAT: " + JSON.stringify(dat), "color:pink;");
+					e.source.postMessage(dat, "*");
+				});
+			}
+		});
+	}
+	
+	// Recovery/RE-insertion portion
+	browser.runtime.onMessage.addListener(msg=>{
+		if(msg.action === "ping"){
+			return Promise.resolve({action: "pong"});
 		}
 	});
+	// console.error("MAKING IFRAME PINGABLE");
+	browser.runtime.sendMessage({"action": "pingable"});
 
 })();
 

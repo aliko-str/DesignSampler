@@ -1,4 +1,4 @@
-
+/* eslint-env browser */
 
 (()=>{
 	function askSubFr4WinSizes(visIframesArr){
@@ -27,7 +27,7 @@
 				ifrEl.contentWindow.postMessage({action: "TellPapaYourMachineId", msgId: msgId}, "*");
 			});
 		});
-		return Promise.all(prArr).then(()=>{
+		return Promise.allSettled(prArr).then(()=>{
 			window.dispatchEvent(new Event("StartEventHandling")); // In case some of the rendering isn't finished?...
 			abortCntrlArr.forEach(x => x.abort()); // removing listeners for HaveYourMachineId
 			return visIframesArr;

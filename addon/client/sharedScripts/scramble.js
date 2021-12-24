@@ -649,6 +649,9 @@
 				var el2rep = (settings.coverInternPadding)?__unwrapInlineContainer(x.el):x.el;
 				// const st = window.getComputedStyle(el2rep);
 				const st = window.getPreComputedStyles(el2rep);
+				if(st["height"] === undefined){
+					debugger;
+				}
 				// get styles to apply to an external div/placeholder
 				const _stCpy = __cssValsToObj(st, window.__getAllCssPropList());
 				var stToEnf = __cssValsToObj(st, stToCopy); //__cssValsToObj(st, [...st]);

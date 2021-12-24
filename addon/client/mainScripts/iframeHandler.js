@@ -6,10 +6,10 @@
 (function () {
 	// avoid running for the main window
 	if(window.top === window){
-		console.log("Avoiding running iframeHandler.js in the main window");
+		// console.log("Avoiding running iframeHandler.js in the main window");
 		return;
 	}
-	console.log("Running iframeHandler.js in a frame: ", window.location.href);
+	// console.log("Running iframeHandler.js in a frame: ", window.location.href);
 
 	const scriptLoadedTimeout = 6000;
 	const delayForScriptsToRun = 5000;
