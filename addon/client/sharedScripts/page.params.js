@@ -1336,6 +1336,7 @@
 		const span = window.__makeCleanSpan();
 		const st2cpy = window.__cssValsToObj(styleObj2Cpy, span.__inheritedProps);
 		st2cpy.display = "block"; // enforcing this, so it occupies the whole page width
+		st2cpy.whiteSpace = "nowrap"; // otherwise it just wraps and never reaches the full width of its container
 		window.__enforceCSSVals(span, st2cpy);
 		// keep adding characters until exceed 'width'
 		document.body.appendChild(span);
