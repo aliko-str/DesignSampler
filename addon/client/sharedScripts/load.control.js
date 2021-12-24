@@ -16,7 +16,9 @@
 			pr = Promise.resolve();
 		} else {
 			pr = new Promise(function(resolve, reject) {
-				window.addEventListener("load", resolve);
+				window.addEventListener("load", ()=>{
+					resolve();
+				});
 			});
 		}
 		return (tOutDelay = undefined, tOutWarnF = ()=>{})=>{
@@ -26,7 +28,11 @@
 			// NOTE: this part was intended to handle non-loading (infinite load) pages, but it no longer does - we inject this script at "document_end", which means after "load" ==> We should handle non-loads in br.main.js
 			const realDelay = Math.max(0, tOutDelay - (Date.now() - tStart));
 			// const realDelay = tOutDelay;
-			return Promise.race([pr, _alarmPr(realDelay).then(tOutWarnF)]);
+			return Promise
+				.race([pr, _alarmPr(realDelay).then(()=>{ return {tmdOut: true}; })])
+				.then((x)=>{
+					if(x && x.tmdOut){ tOutWarnF(); };
+				});
 		};
 	})();
 
@@ -293,8 +299,8 @@
 				return; // this is a default page -- no point checking
 			}
 			if(document.compatMode === "BackCompat"){
-				console.log("[EARLY] %c Quirks mode detected." + window.location.href, "color:darkred;");
 				if(!document[scrlEl]){
+					console.log("[EARLY] %c Quirks mode detected with scrollingElement undefined." + window.location.href, "color:darkred;");
 					scrlEl = "documentElement";
 				}
 				// scrlEl = scrlEl || document.documentElement;

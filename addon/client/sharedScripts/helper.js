@@ -284,7 +284,7 @@
 			window.scrollTo({top: 0, left: 0, behavior: "instant"});
 		}
 		const b = el.getBoundingClientRect();
-		return b.bottom <= 0 || b.right <= 0 || b.top > window.innerHeight || b.left > window.innerWidth;
+		return b.bottom <= 0 || b.right <= 0 || b.top >= window.innerHeight || b.left >= window.innerWidth;
 	}
 
 	// function _getAbsBoundingRectAdjForParentOverflow(el, ifEnforceParentBox = true, ifForceRefresh = false, boxType = "normal") {

@@ -158,7 +158,7 @@
 	});
 	
 	window.addEventListener("message", function handleMachineIdRequests (e){
-		if(e.data.action === "TellPapaYourMachineId"){
+		if(e.data.action === "TellPapaYourMachineId" && e.source === window.parent){
 			console.assert(machineFrameId !== undefined, "Iframe machineFrameId requested before the iframe has received it.", window.location.href);
 			const scrl = window.getScrlEl();
 			const winSize = Math.min(window.innerHeight * window.innerWidth, scrl.scrollWidth * scrl.scrollHeight);
@@ -169,8 +169,13 @@
 				msgId: e.data.msgId, // so we don't have to chain promises to know who send what
 				action: "HaveYourMachineId"
 			};
-			e.source.postMessage(dat, "*");
 			window.removeEventListener("message", handleMachineIdRequests); // clean-up
+			window.propagateFrVisReqsAsync().then(subResArr=>{
+				if(subResArr){
+					dat.__subFrResArr = subResArr;
+				}
+				e.source.postMessage(dat, "*");
+			});
 		}
 	});
 

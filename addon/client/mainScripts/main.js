@@ -78,65 +78,70 @@
 		});
 		
 		browser.runtime.onMessage.addListener(handleIFrameLoaded);
-		const MIN_VIS_IFRAME_SIZE = 25; // pixels, adsense sometimes uses 4 by 4, so we should fit in
-		const EMPTY_SRC = "about:blank"; //"[EMPTY_SRC_IFRAME]"; //getAllFrames returns about:blank for empty src, so we set it here to have a match
+
 		browser.runtime.onMessage.addListener((msg, sender)=>{
 			// NOTE: this message must be sent to a specific TAB only - we don't check urlId here, since we don't have it yet
 			if(msg.action === "GiveMeIFrameVisibility"){ // we only check visibility superficially
-				// const allIFrameUrls = $("iframe").toArray().map(x=>(x.src || EMPTY_SRC));
-				// Getting a Sub-set of visible iframes
-				var jqVisIframes = window.domGetters.getAllVis().filter("iframe");
-				// Asking each visible iframe for their machine Ids + internal window sizes
-				const abortCntrlArr = []; // so we can remove eventListeners without calling removeEventListener within itself -- Just to try smth new
-				window.dispatchEvent(new Event("StopEventHandling")); // Temporarly stoppping so our frame-window communication triggers nothing
-				const prArr = jqVisIframes.toArray().map((ifrEl, i)=>{
-					return new Promise(function(resolve, reject) {
-						const msgId = Math.round(Math.random() * 10000);
-						let _done = false;
-						abortCntrlArr.push(new AbortController());
-						window.setTimeout(()=>{
-							if(!_done){
-								console.error("IFrame failed to respond to TellPapaYourMachineId; It'll be treated as an 'invisible' iframe", window.__el2stringForDiagnostics(ifrEl));
-								reject();
-							}
-						}, 1000);//diagnostics
-						window.addEventListener("message", (e)=>{
-							if(e.data.action === "HaveYourMachineId" && e.data.msgId === msgId){
-								ifrEl.__machineFrameId = e.data.machineFrameId;
-								ifrEl.__internalWinSize = e.data.winSize;
-								_done = true;
-								resolve();
-							}
-						}, "*", {signal: abortCntrlArr[i].signal});
-						ifrEl.contentWindow.postMessage({action: "TellPapaYourMachineId", msgId: msgId}, "*");
-					});
-				});
-				return Promise.all(prArr).then(()=>{
-					window.dispatchEvent(new Event("StartEventHandling")); // In case some of the rendering isn't finished?...
-					abortCntrlArr.forEach(x => x.abort()); // removing listeners for HaveYourMachineId
-					const visFrInfoArr = jqVisIframes
-						.filter((i, el)=>el.__machineFrameId !== undefined)
-						.filter((i, el)=>{
-							console.assert(el.__internalWinSize !== undefined);
-							return el.__internalWinSize > MIN_VIS_IFRAME_SIZE;
-						})
-						.filter((i, el)=>{
-							const ifrB = window._getAbsBoundingRectAdjForParentOverflow(el, true);
-							return Math.max(ifrB.height, 0) * Math.max(ifrB.width, 0) > MIN_VIS_IFRAME_SIZE; //getAllVis should really take care of this, but it doesn't happen sometimes (when devTools are open)
-						}).toArray().map(el=>{
-							const ifrB = window._getAbsBoundingRectAdjForParentOverflow(el, true);
-							const src = el.src || EMPTY_SRC;
-							return  {
-								height: ifrB.height,
-								width: ifrB.width,
-								absTop: ifrB.top + window.scrollY,
-								absLeft: ifrB.left + window.scrollX,
-								src: src,
-								machineFrameId: el.__machineFrameId
-							};
-						});
+				
+				// // const allIFrameUrls = $("iframe").toArray().map(x=>(x.src || EMPTY_SRC));
+				// // Getting a Sub-set of visible iframes
+				// var jqVisIframes = window.domGetters.getAllVis().filter("iframe");
+				// // Asking each visible iframe for their machine Ids + internal window sizes
+				// const abortCntrlArr = []; // so we can remove eventListeners without calling removeEventListener within itself -- Just to try smth new
+				// window.dispatchEvent(new Event("StopEventHandling")); // Temporarly stoppping so our frame-window communication triggers nothing
+				// const prArr = jqVisIframes.toArray().map((ifrEl, i)=>{
+				// 	return new Promise(function(resolve, reject) {
+				// 		const msgId = Math.round(Math.random() * 10000);
+				// 		let _done = false;
+				// 		abortCntrlArr.push(new AbortController());
+				// 		window.setTimeout(()=>{
+				// 			if(!_done){
+				// 				console.error("IFrame failed to respond to TellPapaYourMachineId; It'll be treated as an 'invisible' iframe", window.__el2stringForDiagnostics(ifrEl));
+				// 				reject();
+				// 			}
+				// 		}, 1000);//diagnostics
+				// 		window.addEventListener("message", (e)=>{
+				// 			if(e.data.action === "HaveYourMachineId" && e.data.msgId === msgId){
+				// 				ifrEl.__machineFrameId = e.data.machineFrameId;
+				// 				ifrEl.__internalWinSize = e.data.winSize;
+				// 				_done = true;
+				// 				resolve();
+				// 			}
+				// 		}, "*", {signal: abortCntrlArr[i].signal});
+				// 		ifrEl.contentWindow.postMessage({action: "TellPapaYourMachineId", msgId: msgId}, "*");
+				// 	});
+				// });
+				// return Promise.all(prArr).then(()=>{
+				// 	window.dispatchEvent(new Event("StartEventHandling")); // In case some of the rendering isn't finished?...
+				// 	abortCntrlArr.forEach(x => x.abort()); // removing listeners for HaveYourMachineId
+				// 	const visFrInfoArr = jqVisIframes
+				// 		.filter((i, el)=>el.__machineFrameId !== undefined)
+				// 		.filter((i, el)=>{
+				// 			console.assert(el.__internalWinSize !== undefined);
+				// 			return el.__internalWinSize > window.MIN_VIS_IFRAME_SIZE;
+				// 		})
+				// 		.filter((i, el)=>{
+				// 			const ifrB = window._getAbsBoundingRectAdjForParentOverflow(el, true);
+				// 			return Math.max(ifrB.height, 0) * Math.max(ifrB.width, 0) > window.MIN_VIS_IFRAME_SIZE; //getAllVis should really take care of this, but it doesn't happen sometimes (when devTools are open)
+				// 		}).toArray().map(el=>{
+				// 			const ifrB = window._getAbsBoundingRectAdjForParentOverflow(el, true);
+				// 			const src = el.src || window.EMPTY_SRC;
+				// 			return  {
+				// 				height: ifrB.height,
+				// 				width: ifrB.width,
+				// 				absTop: ifrB.top + window.scrollY,
+				// 				absLeft: ifrB.left + window.scrollX,
+				// 				src: src,
+				// 				machineFrameId: el.__machineFrameId
+				// 			};
+				// 		});
+				// 	return {"action": "HaveYourIFrameVisibility", "visFrInfoArr": visFrInfoArr, "mainFrameUrl": window.location.href};
+				// });
+				
+				return window.propagateFrVisReqsAsync().then(visFrInfoArr=>{
 					return {"action": "HaveYourIFrameVisibility", "visFrInfoArr": visFrInfoArr, "mainFrameUrl": window.location.href};
 				});
+				
 			}
 		});
 		browser.runtime.sendMessage({"action": "HaveIFramesLoaded?"});
@@ -167,41 +172,6 @@
 			tabId = respObj.tabId;
 			urlId = respObj.urlId;
 			settings = respObj.settings;
-			// window.__glSettings = settings; // never used yet
-			// try {
-			// 	pageModF = eval("(" + respObj.pageModF + ")");
-			// 	if (!pageModF || typeof pageModF !== "function") {
-			// 		throw new Error("Passed pageModF isn't a function: " + respObj.pageModF);
-			// 	}
-			// } catch (err) {
-			// 	if (settings.debug) {
-			// 		throw err;
-			// 	}
-			// 	console.error(err);
-			// }
-			// // Enabling Page-Script events --> because some of our pageMods rely on "click" event handlers
-			// window.dispatchEvent(new Event("StartEventHandling"));
-			// try {
-			// 	pageModF(jQuery, window.CssInjector._injectStringCss);
-			// 	window.__ssGenericPageMod();
-			// } catch (e) {
-			// 	if (settings.debug) {
-			// 		throw e;
-			// 	}
-			// 	console.error(urlId, " Page Modification Failed (but we continue): ", e);
-			// }
-		}).then(()=>{
-			// // Giving a bit of time for animations to run/start/apply + Scrolling Up/Down for JS-triggered scroll-dependent animations to run
-			// return window._scrollDownAsync()
-			// 	.then(window._scrollTopAsync)
-			// 	// .then(window.stopMarqueeAsync)
-			// 	.then(()=>window._alarmPr(350))
-			// 	.then(()=>{
-			// 		// Page Mods and Animation Freezing 
-			// 		window.__pageContextGenericMods();
-			// 		window.stopAllAnimations(); // Everything is frozen in place after this F - no changed to DOM from page scripts
-			// 	})
-			// 	.then(()=>window._alarmPr(450)); // So stopped animations/transitions finalize... Hope 450 is enough
 		}).then(()=>{
 			// Run it all - Promises used for async
 			const p0 = (!settings.screenshotsNeeded) ? Promise.resolve() : (browser.runtime.sendMessage({

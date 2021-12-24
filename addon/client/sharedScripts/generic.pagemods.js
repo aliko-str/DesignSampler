@@ -38,10 +38,11 @@
 		// Some other things that I couldn't figure out how to dea with
 		// Jquery nicescroll -- no idea how they do scrolling - not with css for sure
 		const w = window.wrappedJSObject;
-		if(w.$ && w.$.nicescroll){
+		const jqLib = w.$ || w.jQuery;
+		if(jqLib && jqLib.nicescroll){
 			console.warn("[GEN PAGE MODs] Issue: niceScroll detected --> Removing it", location.href);
 			try{
-				w.$(w.document.documentElement).niceScroll().remove(); // We can no longer use selectors because we've disabled them <-- Maybe I should only keep manipulations disabled
+				jqLib(w.document.documentElement).niceScroll().remove(); // We can no longer use selectors because we've disabled them <-- Maybe I should only keep manipulations disabled
 			}catch(e){
 				console.error("niceScroll error", e);
 			}

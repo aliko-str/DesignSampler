@@ -974,9 +974,14 @@
 		const jqContentImg = jqRest.filter((i, el)=>{
 			return el.__pseudoHasImg === true || window.getComputedStyle(el)["content"].indexOf("url(") > -1;
 		});
+		// const jqNativeContentImg = jqRest.filter((i, el)=>{
+		// 	// Detecting cases of "content: url..." on divs etc.
+		// 	return el.__pseudoHasImg !== true && window.getComputedStyle(el)["content"].indexOf("url(") > -1;
+		// });
 		jqContentImg.toArray().forEach(el => {
 			if(!el.classList.contains("__clean-span")){
-				console.warn("[UNUSUAL] Found an element with image content -- not our span.__clean-span with an extracted pseudo element image.", window.__el2stringForDiagnostics(el));
+				console.log("%c[UNUSUAL] Found an element with image content -- not our span.__clean-span with an extracted pseudo element image." + window.__el2stringForDiagnostics(el), "color:red;");
+				debugger;
 			}
 		});
 		// 1 - Categorize non-bg graphic
