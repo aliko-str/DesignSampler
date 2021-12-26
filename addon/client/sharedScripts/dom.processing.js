@@ -968,7 +968,7 @@
 		});
 		const jqAllGraph = __filterElementsNoParentMatch(jqAllVis, _tagSets.media, false);
 		// 0 - Add graphical pseudo elements
-		const jqPseudoGraph = _detectPseudoElIcons();
+		const jqPseudoGraph = _detectPseudoElIcons(jqAllVis);
 		// 0.1 - [NEW] Add main graphics extracted from pseudo elements <-- I keep them in clean spans
 		// NOTE: let's hope we never encounter actual elements with "content"
 		const jqRest = __filterElementsNoParentMatch(jqAllVis, _tagSets.media, true);
@@ -1320,10 +1320,10 @@
 		return jqAllVis;
 	}
 
-	function _detectPseudoElIcons() {
+	function _detectPseudoElIcons(jqAllVis) {
 		// 0 - Filter out Nodes that are content
 		const tags = new Set([..._tagSets.controls, ..._tagSets.styledAsControls, ..._tagSets.media, ..._tagSets.invisible, "iframe"]);
-		const jqNonContent = __filterElementsNoParentMatch(jqG.getAllVis(), tags, true);
+		const jqNonContent = __filterElementsNoParentMatch(jqAllVis, tags, true);
 		// 1 - find all elements with no element children <-- we can only save parent's NODE as a reference, pseudo elements can't be saved/referenced with js
 		const jqNoChildrenEls = jqNonContent.filter((i, el) => {
 			return !el.children.length;
@@ -1345,7 +1345,8 @@
 			return (psdCntB || psdCntA);
 		});
 		// 4 - Adding spans with symbols that were pseudoElements before Dom prep
-		return jqNodesWithPseudoContent.add($("span").filter((i, el)=>el.__wasPseudoEl));
+		const formerPseudoEls = jqAllVis.filter($("span").filter((i, el)=>el.__wasPseudoEl));
+		return jqNodesWithPseudoContent.add(formerPseudoEls);
 	}
 
 	function __testPseudoContentForIcons(el, pseudo = "::before", preCmpCnt = null) {
