@@ -1844,19 +1844,25 @@
 					const mrqSt = window.__cssValsToObj(window.getComputedStyle(mrq), window.__getAllCssPropList());
 					mrq.childNodes.forEach(subNode => {
 						const clone = subNode.cloneNode(true);
-						if(subNode.nodeType === document.ELEMENT_NODE){
-							clone._id = window._getElId(subNode);
-						}
+						// if(subNode.nodeType === document.ELEMENT_NODE){
+						// 	clone._id = window._getElId(subNode);
+						// }
 						div.appendChild(clone);
+					});
+					// re-attach our generated ids to the cloned children
+					const mrqDescendants = Array.from(mrq.querySelectorAll("*")).map(el=>{
+						el._id = el.dataset.elGenId;
+						console.assert(el._id);
+						return el;
 					});
 					mrq.replaceWith(div);
 					const divStToEnf = window.stripIdenticalCss(mrqSt, window.getComputedStyle(div));
 					Object.assign(divStToEnf, {"overflow": "hidden", "overflowX": "hidden", "overflowY": "hidden"});
 					window.__enforceCSSVals(div, divStToEnf);
-					window.revert2PreCompStyles(Array.from(div.children), "UIFrozen");
+					window.revert2PreCompStyles(mrqDescendants, "UIFrozen");
 					marqueeDivPairs.push({mrq: mrq, div: div});
 					// making sure that div has at least some text <-- so line-height is respected on the parent
-					const hasVisTxtNodes = Array.from(div.children).some(x=>x.nodeType === document.TEXT_NODE);
+					const hasVisTxtNodes = div.innerText.trim().length;//Array.from(div.childNodes).some(x=>x.nodeType === document.TEXT_NODE);
 					if(!hasVisTxtNodes){
 						const span = window.__makeCleanSpan();
 						span.innerText = ".";
