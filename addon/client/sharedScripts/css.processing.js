@@ -281,6 +281,47 @@
 			}};
 	})();
 	
+	function recordNoStylingCssAsync(){
+		window.toggleCssStyling("off");
+		$(":visible").toArray().forEach(el => {
+			const st = window.getComputedStyle(el);
+			el._noStylingCmpCSS = window.__cssValsToObj(st, window.__getAllCssPropList({excludePrefixed: false}));
+		});
+		// when we apply styles again, animations start playing --> wait for them to finish
+		const animationEndPr = new Promise(function(animResolve, animReject) {
+			let __animCounter = 0;
+			let __resolved = false;
+			const __listenAnimStartF = (e)=>__animCounter++; // ; console.log(e.target); console.log(window.getComputedStyle(e.target).animationDuration); }
+			const animEndEvents = ["animationend", "animationiteration", "onanimationcancel"];
+			const __listenAnimEndF = ()=>{
+				__animCounter--;
+				if(__animCounter <= 0){
+					document.removeEventListener("animationstart", __listenAnimStartF);
+					animEndEvents.forEach(eName => document.removeEventListener(eName, __listenAnimEndF));
+					__resolved = true;
+					animResolve();
+				}
+			};
+			document.addEventListener("animationstart", __listenAnimStartF);
+			animEndEvents.forEach(eName => document.addEventListener(eName, __listenAnimEndF));
+			// checking if any animations started at all
+			window.setTimeout(()=>{
+				if(!__resolved && !__animCounter){
+					__listenAnimEndF(); // clean-up + resolve
+				}
+				console.log("NUMBER OF RUNNING ANIMATIONS", __animCounter);
+			}, 300); // a bit of time for animations to start
+		});
+		window.toggleCssStyling("on");
+		return Promise
+			.race([animationEndPr, window._alarmPr(1700).then(()=>({timedout: true}))])
+			.then((res)=>{
+				if(res && res.timedout){
+					console.log("[ANIMATIONS] %cDidn't finish before a timeout => continuing anyway" + location.href, "color:turquoise");
+				}
+			});
+	}
+	
 	window.findElsStyledByOrder = findElsStyledByOrder;
 	window.findElsStyledOnHover = findElsStyledOnHover;
 	
@@ -288,4 +329,5 @@
 	window.removeDefaultSpanCss = removeDefaultSpanCss;
 	window.toggleCssStyling = toggleCssStyling;
 	window.stripIdenticalCss = stripIdenticalCss;
+	window.recordNoStylingCssAsync = recordNoStylingCssAsync;
 })();

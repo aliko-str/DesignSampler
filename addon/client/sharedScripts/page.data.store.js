@@ -92,9 +92,11 @@
 			.forEach(el => {
 				const oldSt = getPreComputedStyles(el, timepoint);
 				const newSt = window.getComputedStyle(el);
-				const changedStyles = window.__getAllCssPropList({excludePrefixed: false}).filter(st => newSt[st] !== oldSt[st]).filter(x=>!doNotTrackProps.includes(x));
-				if (changedStyles.length) {
-					const stObj2Enforce = Object.fromEntries(changedStyles.map(st => [st, oldSt[st]]));
+				// const changedStyles = window.__getAllCssPropList({excludePrefixed: false}).filter(st => newSt[st] !== oldSt[st]).filter(x=>!doNotTrackProps.includes(x));
+				const stObj2Enforce = window.stripIdenticalCss(oldSt, newSt);
+				doNotTrackProps.forEach(p => delete stObj2Enforce[p]);
+				if (Object.keys(stObj2Enforce).length) {
+					// const stObj2Enforce = Object.fromEntries(changedStyles.map(st => [st, oldSt[st]]));
 					cssInjctr._injectCss1Element(el, "", stObj2Enforce); // This should have enough specificity to overwrite the effects of changed siblings
 					console.log("[STYLE] Reverting style to pre-computed values. Timepoint:", timepoint, window.__el2stringForDiagnostics(el), stObj2Enforce);
 				}

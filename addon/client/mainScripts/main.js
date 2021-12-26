@@ -41,7 +41,10 @@
 	
 	function addonMain(){
 		console.log("Main Content Script rolling, ", window.location.href);
-		applyPageModsAsync().then(handleIFrameLoadingAsync).then(mainWork);
+		window.recordNoStylingCssAsync()
+			.then(applyPageModsAsync)
+			.then(handleIFrameLoadingAsync)
+			.then(mainWork);
 	}
 	
 	function handleIFrameLoadingAsync(){
@@ -54,25 +57,47 @@
 					// for some reason "smooth" scrolling sometimes doesn't render/does nothing --> use instant just to be sure all coord matching works
 					window.scrollTo({top: 0, left: 0, behavior: "instant"});
 					// Recording allPrimitivesCmpStylesNoStyling <== Putting it here because we may need to record allPrimitivesCmpStylesNoStyling and we can't toggle styling without some animations snapping back in "default" state, which is often hidden/invisible
-					window.toggleCssStyling("off");
-					$(":visible").toArray().forEach(el => {
-						const st = window.getComputedStyle(el);
-						el._noStylingCmpCSS = window.__cssValsToObj(st, window.__getAllCssPropList({excludePrefixed: false}));
-					});
-					window.toggleCssStyling("on");
 					resolve();
-					// main();
-					// // Giving a bit of time for animations to run/start/apply + Scrolling Up/Down for JS-triggered scroll-dependent animations to run
-					// window._scrollDownAsync()
-					// 	.then(window._scrollTopAsync)
-					// 	.then(()=>window._alarmPr(350))
-					// 	.then(()=>{
-					// 		// Page Mods and Animation Freezing 
-					// 		window.__pageContextGenericMods();
-					// 		window.stopAllAnimations(); // Everything is frozen in place after this F - no changed to DOM from page scripts
-					// 		// continue with our work
-					// 		main();
-					// 	});
+					// debugger;
+					// window.toggleCssStyling("off");
+					// $(":visible").toArray().forEach(el => {
+					// 	const st = window.getComputedStyle(el);
+					// 	el._noStylingCmpCSS = window.__cssValsToObj(st, window.__getAllCssPropList({excludePrefixed: false}));
+					// });
+					// // when we apply styles again, animations start playing --> wait for them to finish
+					// const animationEndPr = new Promise(function(animResolve, animReject) {
+					// 	let __animCounter = 0;
+					// 	let __resolved = false;
+					// 	const __listenAnimStartF = ()=>__animCounter++;
+					// 	const animEndEvents = ["animationend", "animationiteration", "onanimationcancel"];
+					// 	const __listenAnimEndF = ()=>{
+					// 		__animCounter--;
+					// 		if(__animCounter <= 0){
+					// 			document.removeEventListener("animationstart", __listenAnimStartF);
+					// 			animEndEvents.forEach(eName => document.removeEventListener(eName, __listenAnimEndF));
+					// 			__resolved = true;
+					// 			animResolve();
+					// 		}
+					// 	};
+					// 	document.addEventListener("animationstart", __listenAnimStartF);
+					// 	animEndEvents.forEach(eName => document.addEventListener(eName, __listenAnimEndF));
+					// 	// checking if any animations started at all
+					// 	window.setTimeout(()=>{
+					// 		if(!__resolved && !__animCounter){
+					// 			__listenAnimEndF(); // clean-up + resolve
+					// 		}
+					// 	}, 300); // a bit of time for animations to start
+					// });
+					// window.toggleCssStyling("on");
+					// Promise
+					// 	.race([animationEndPr, window._alarmPr(1500).then(()=>({timedout: true}))])
+					// 	.then((res)=>{
+					// 		if(res && res.timedout){
+					// 			console.log("[ANIMATIONS] %cDidn't finish before a timeout => continuing anyway" + location.href, "color:turquoise");
+					// 			debugger;
+					// 		}
+					// 	})
+					// 	.then(resolve);
 				}
 			};
 		});
@@ -82,62 +107,6 @@
 		browser.runtime.onMessage.addListener((msg, sender)=>{
 			// NOTE: this message must be sent to a specific TAB only - we don't check urlId here, since we don't have it yet
 			if(msg.action === "GiveMeIFrameVisibility"){ // we only check visibility superficially
-				
-				// // const allIFrameUrls = $("iframe").toArray().map(x=>(x.src || EMPTY_SRC));
-				// // Getting a Sub-set of visible iframes
-				// var jqVisIframes = window.domGetters.getAllVis().filter("iframe");
-				// // Asking each visible iframe for their machine Ids + internal window sizes
-				// const abortCntrlArr = []; // so we can remove eventListeners without calling removeEventListener within itself -- Just to try smth new
-				// window.dispatchEvent(new Event("StopEventHandling")); // Temporarly stoppping so our frame-window communication triggers nothing
-				// const prArr = jqVisIframes.toArray().map((ifrEl, i)=>{
-				// 	return new Promise(function(resolve, reject) {
-				// 		const msgId = Math.round(Math.random() * 10000);
-				// 		let _done = false;
-				// 		abortCntrlArr.push(new AbortController());
-				// 		window.setTimeout(()=>{
-				// 			if(!_done){
-				// 				console.error("IFrame failed to respond to TellPapaYourMachineId; It'll be treated as an 'invisible' iframe", window.__el2stringForDiagnostics(ifrEl));
-				// 				reject();
-				// 			}
-				// 		}, 1000);//diagnostics
-				// 		window.addEventListener("message", (e)=>{
-				// 			if(e.data.action === "HaveYourMachineId" && e.data.msgId === msgId){
-				// 				ifrEl.__machineFrameId = e.data.machineFrameId;
-				// 				ifrEl.__internalWinSize = e.data.winSize;
-				// 				_done = true;
-				// 				resolve();
-				// 			}
-				// 		}, "*", {signal: abortCntrlArr[i].signal});
-				// 		ifrEl.contentWindow.postMessage({action: "TellPapaYourMachineId", msgId: msgId}, "*");
-				// 	});
-				// });
-				// return Promise.all(prArr).then(()=>{
-				// 	window.dispatchEvent(new Event("StartEventHandling")); // In case some of the rendering isn't finished?...
-				// 	abortCntrlArr.forEach(x => x.abort()); // removing listeners for HaveYourMachineId
-				// 	const visFrInfoArr = jqVisIframes
-				// 		.filter((i, el)=>el.__machineFrameId !== undefined)
-				// 		.filter((i, el)=>{
-				// 			console.assert(el.__internalWinSize !== undefined);
-				// 			return el.__internalWinSize > window.MIN_VIS_IFRAME_SIZE;
-				// 		})
-				// 		.filter((i, el)=>{
-				// 			const ifrB = window._getAbsBoundingRectAdjForParentOverflow(el, true);
-				// 			return Math.max(ifrB.height, 0) * Math.max(ifrB.width, 0) > window.MIN_VIS_IFRAME_SIZE; //getAllVis should really take care of this, but it doesn't happen sometimes (when devTools are open)
-				// 		}).toArray().map(el=>{
-				// 			const ifrB = window._getAbsBoundingRectAdjForParentOverflow(el, true);
-				// 			const src = el.src || window.EMPTY_SRC;
-				// 			return  {
-				// 				height: ifrB.height,
-				// 				width: ifrB.width,
-				// 				absTop: ifrB.top + window.scrollY,
-				// 				absLeft: ifrB.left + window.scrollX,
-				// 				src: src,
-				// 				machineFrameId: el.__machineFrameId
-				// 			};
-				// 		});
-				// 	return {"action": "HaveYourIFrameVisibility", "visFrInfoArr": visFrInfoArr, "mainFrameUrl": window.location.href};
-				// });
-				debugger;
 				return window.propagateFrVisReqsAsync().then(visFrInfoArr=>{
 					return {"action": "HaveYourIFrameVisibility", "visFrInfoArr": visFrInfoArr || [], "mainFrameUrl": window.location.href};
 				});

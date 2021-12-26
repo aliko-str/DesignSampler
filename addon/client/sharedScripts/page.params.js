@@ -1128,9 +1128,9 @@
 			// temporarely set it ch units
 			const newWSpacingVal = parseFloat(wSpacing) / 100 * PERC_2_CH_RATIO;
 			console.assert(!isNaN(newWSpacingVal), "Not a number word-spacing value?..", st.wordSpacing, window.__el2stringForDiagnostics(el));
-			window.__setCSSPropJqArr([el], "word-spacing", newWSpacingVal + "ch", "important");
+			const chId = window.__setCSSPropJqArr([el], "word-spacing", newWSpacingVal + "ch", "important");
 			wSpacing = st.getPropertyValue("word-spacing"); // we don't have to re-compute computedStyle - it's a live object
-			window.__restoreCSSPropJqArr([el], "word-spacing");
+			window.__restoreCSSPropJqArr([el], "word-spacing", chId);
 		}
 		wSpacing = parseFloat(wSpacing);
 		console.assert(!isNaN(wSpacing), "Computed Word spacing is not a number! Unexpected for FF! st.wordSpacing: ", st.wordSpacing, window.__el2stringForDiagnostics(el));
@@ -1554,15 +1554,15 @@
 			__wrapBlockElContentsInSpan(txtNode);
 			const _chld = Array.from(txtNode.childNodes);
 			bbox  = __getInnerBBoxForNodeCollection(_chld);
-			window.__setCSSPropJqArr(_chld, "display", "inline-block", "important");
+			const chId = window.__setCSSPropJqArr(_chld, "display", "inline-block", "important");
 			blockBBox = __getInnerBBoxForNodeCollection(_chld);
-			window.__restoreCSSPropJqArr(_chld, "display");
+			window.__restoreCSSPropJqArr(_chld, "display", chId);
 			__unwrapBlockElContentsFromSpans(txtNode);
 		}else{
 			bbox = window._getInnerBBox(txtNode);
-			window.__setCSSPropJqArr([txtNode], "display", "inline-block", "important");
+			const chId = window.__setCSSPropJqArr([txtNode], "display", "inline-block", "important");
 			blockBBox = window._getInnerBBox(txtNode);
-			window.__restoreCSSPropJqArr([txtNode], "display");
+			window.__restoreCSSPropJqArr([txtNode], "display", chId);
 		}
 		// We need to add line-heigh in any case -- because we always get bboxes for inline elemements <-- No, we replace this with choosing a larger-height bbox between inline and block bboxes <-- inline elements only partially respect line-height
 		// enlargeByY += _getBtwLineSpace(txtNode, st);
@@ -1641,9 +1641,9 @@
 		bbox = span.getBoundingClientRect();
 		if(bbox.height <= 0 || bbox.width <= 0){
 			// For some fonts measurements fail -- no idea why
-			window.__setCSSPropJqArr([span], "font-family", "Times", "important");
+			const chId = window.__setCSSPropJqArr([span], "font-family", "Times", "important");
 			bbox = window.__cpyBBox(span.getBoundingClientRect());
-			window.__restoreCSSPropJqArr([span], "font-family");
+			window.__restoreCSSPropJqArr([span], "font-family", chId);
 			if(bbox.height <= 0 || bbox.width <= 0){
 				console.warn("Zero-sized text. Debug. Returning element's bbox instead of its text's bbox.", window.__el2stringForDiagnostics(el));
 				debugger;

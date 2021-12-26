@@ -417,7 +417,7 @@
 		const cssProps2Enforce = window.__cssValsToObj(window.getComputedStyle(anImgEl), cssVisProps);
 		const bannerSiblings = maybeBannerSiblings.filter(otherGrEl=>{
 			// b.1 - Copy anImgEl's visibility props onto otherGrEl
-			window.__enforceManyCSSPropOnElArr([otherGrEl], cssProps2Enforce);
+			const _cssChId = window.__enforceManyCSSPropOnElArr([otherGrEl], cssProps2Enforce);
 			// b.2 - Swap imgEl and otherImgEl places
 			otherGrEl.replaceWith(tmpSpan);
 			anImgEl.replaceWith(otherGrEl);
@@ -427,7 +427,7 @@
 			// b.4 - Restore everything
 			otherGrEl.replaceWith(anImgEl);
 			tmpSpan.replaceWith(otherGrEl);
-			window.__restoreManyCSSPropOnElArr([otherGrEl], cssVisProps);
+			window.__restoreManyCSSPropOnElArr([otherGrEl], cssVisProps, _cssChId);
 			// b.3 - Compare bboxes
 			const thr = 5; // pixels. If difference in bbox edges is larger than this, we count the 2 bboxes as different
 			return window._cmpBBoxes(imgBBox, newBBox, thr); // are 2 bboxes the same?

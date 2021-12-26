@@ -959,7 +959,6 @@
 	}
 
 	function _categorizeGraphicsNew(jqAllVis) {
-		debugger;
 		const __markZeroSize = (elObjArr, ifBg = false) => elObjArr.forEach(elObj => {
 			if (elObj.b.height < 1 || elObj.b.width < 1) {
 				console.warn("A (near) zero-sized bounding box after adjusting for parent overflow: ", JSON.stringify(elObj.b), window.location.href);
@@ -991,12 +990,14 @@
 			var noAdjB = el.getBoundingClientRect();
 			if (el.__pseudoType !== undefined) {
 				// we should set letterSpacing and lineHeight to defaults -- so we get a correct bbox; because glyphs are affected by text features/properties, and so are their bboxes
-				window.__setCSSPropJqArr([el], "line-height", "1", "important");
-				window.__setCSSPropJqArr([el], "letter-spacing", "0", "important");
+				const chId = window.__enforceManyCSSPropOnElArr([el], {"line-height": "1", "letter-spacing": "0"});
+				// window.__setCSSPropJqArr([el], "line-height", "1", "important");
+				// window.__setCSSPropJqArr([el], "letter-spacing", "0", "important");
 				b = window._getAbsBoundingRectAdjForParentOverflow(el);
 				noAdjB = el.getBoundingClientRect();
-				window.__restoreCSSPropJqArr([el], "line-height");
-				window.__restoreCSSPropJqArr([el], "letter-spacing");
+				window.__restoreManyCSSPropOnElArr([el], ["line-height", "letter-spacing"], chId);
+				// window.__restoreCSSPropJqArr([el], "line-height");
+				// window.__restoreCSSPropJqArr([el], "letter-spacing");
 			}
 			var type;
 			if (el.__pseudoType === "glyph") {
@@ -1052,6 +1053,7 @@
 						return Promise.resolve();
 					}
 					// else obtain a canvas
+					
 					return __cnvsOneByOne(graphObj, _jqOverlays).then(graphObj => {
 						// and maybe even finish BG categorizations
 						if (graphTypes.isItBg(graphObj.type)) {
@@ -1488,15 +1490,20 @@
 		// preps DOM for manipulating elements instantaneously -- needed for, e.g., removing overlays before screenshotting some elements
 		var _jqAllVis; // = $(":visible"); // keep a reference
 		var state = "off";
+		var chId;
 		return function(onOff = "on", settings = {
 			refresh: false
 		}) {
 			console.assert(onOff === "on" || onOff === "off");
-			if (state === onOff) {
+			if (state === onOff && !settings.refresh) {
 				return; // do nothing, it's already the right way
 			}
-			if (settings.refresh) {
-				_jqAllVis = undefined;
+			if (settings.refresh && _jqAllVis !== undefined && onOff === "on") {
+				// toggling newly created elements + adding them in ref collection
+				const newJqVis = $(":visible").not(_jqAllVis);
+				window.__enforceManyCSSPropOnElArr(newJqVis, {"animation-play-state": "paused", "transition": "all 0s 0s"}, chId);
+				_jqAllVis = _jqAllVis.add(newJqVis);
+				return;
 			}
 			if (_jqAllVis === undefined) {
 				_jqAllVis = $(":visible"); // creating a collection during the 1st call <-- Otherwise it's created when scripts are loaded, which is often before some elements are visible/loaded
@@ -1508,19 +1515,18 @@
 				_jqAllVis.toArray().forEach(el => {
 					if(!el._origCmpCSS){
 						const st = window.getComputedStyle(el);
-						const pL = ["transition-property", "transition-duration", "transition-timing-function", "transition-delay", "animation-play-state"];
+						const pL = ["transition-property", "transition-duration", "transition-timing-function", "transition-delay", "animation-play-state", "transition"];
 						el._origCmpCSS = window.__cssValsToObj(st, pL);	
 					}
 				});
 				// Some animations are needed for elements to appear visible at the start -- pausing instead of removing
-				window.__enforceManyCSSPropOnElArr(_jqAllVis, {"animation-play-state": "paused", "transition": "all 0s 0s"});				
-				// window.__setCSSPropJqArr(_jqAllVis, "animation-play-state", "paused", "important");
-				// window.__setCSSPropJqArr(_jqAllVis, "transition", "all 0s 0s", "important");
+				console.assert(chId === undefined, "Double-assigning changeId.", location.href); // checking if we double-set this css
+				chId = window.__enforceManyCSSPropOnElArr(_jqAllVis, {"animation-play-state": "paused", "transition": "all 0s 0s"});
 			} else {
-				window.__restoreManyCSSPropOnElArr(_jqAllVis, ["animation-play-state", "transition"]);
-				// window.__restoreCSSPropJqArr(_jqAllVis, "animation-play-state");
-				// window.__restoreCSSPropJqArr(_jqAllVis, "transition");
+				window.__restoreManyCSSPropOnElArr(_jqAllVis, ["animation-play-state", "transition"], chId);
+				chId = undefined;
 			}
+			state = onOff;
 		};
 	}
 
@@ -1539,31 +1545,33 @@
 		jqOverlays = jqOverlays || _findAllPositionedEls();
 		var jqElsToHide = _findCoveringOverlays(el, jqOverlays);
 		jqElsToHide = jqElsToHide.add(jqElsToHide.find(":visible"));
-		var txtElsToHide;
+		var txtElsToHide, chIdChild;
 		if (hideChildren) {
 			const _elDesc = $(el).find(":visible");
 			jqElsToHide = jqElsToHide.add(_elDesc); // el's inside elements - when it's about a bg element
 			txtElsToHide = [el].concat(_elDesc.toArray());
-			window.__setCSSPropJqArr(txtElsToHide, "color", "transparent", "important"); // hide texts inside an element
+			chIdChild = window.__setCSSPropJqArr(txtElsToHide, "color", "transparent", "important"); // hide texts inside an element
 		}
 		// make sure transitions/animations are instantaneous // fool check
 		if (jqElsToHide.length) {
-			const tmpEl = jqElsToHide.toArray().find(x => x["_oldVal_transition"] === undefined);
+			const tmpEl = jqElsToHide.toArray().find(x => {
+				return !Object.keys(x["_oldVals"]["transition"]).length;
+			});
 			if (tmpEl !== undefined) {
 				console.error("We forgot to zero transitions/animations --> do it upstream, ", window.__el2stringForDiagnostics(tmpEl)); // we can't use assert -- it requires tmpEl in any case as an input, which we don't have if all is ok
 				debugger;
 			}
 		}
 		// hide interfering elements
-		window.__setCSSPropJqArr(jqElsToHide, "visibility", "hidden", "important");
-		window.__setCSSPropJqArr(jqElsToHide, "opacity", "0", "important");
+		const chId = window.__setCSSPropJqArr(jqElsToHide, "visibility", "hidden", "important");
+		window.__setCSSPropJqArr(jqElsToHide, "opacity", "0", "important", chId);
 		// get a canvas
 		const canvas = (whiteBg) ? _el2canvasWhiteBG(el, bbox) : window.screenPart2Canvas(bbox);
 		// restore everything
-		window.__restoreCSSPropJqArr(jqElsToHide, "visibility");
-		window.__restoreCSSPropJqArr(jqElsToHide, "opacity");
+		window.__restoreCSSPropJqArr(jqElsToHide, "visibility", chId);
+		window.__restoreCSSPropJqArr(jqElsToHide, "opacity", chId);
 		if (hideChildren) {
-			window.__restoreCSSPropJqArr(txtElsToHide, "color");
+			window.__restoreCSSPropJqArr(txtElsToHide, "color", chIdChild);
 		}
 		// return 
 		return canvas;
@@ -1572,27 +1580,6 @@
 	function _el2canvasWhiteBgNoOverlaysAsync(el, bbox, hideChildren = true, _jqOverlays) {
 		const whiteBg = true;
 		return _el2canvasNoOverlaysAsync(el, bbox, hideChildren, _jqOverlays, whiteBg);
-		// var jqElsToHide = window._findCoveringOverlays(el, _jqOverlays);
-		// jqElsToHide = jqElsToHide.add(jqElsToHide.find(":visible"));
-		// if(hideChildren){
-		// 	jqElsToHide = jqElsToHide.add($(el).find(":visible")); // el's inside elements - when it's about a bg element
-		// 	window.__setCSSPropJqArr([el], "color", "transparent", "important"); // hide texts inside an element
-		// }
-		// // make sure transitions/animations are instantaneous // fool check
-		// jqElsToHide.length && console.assert(jqElsToHide[0]["_oldVal_transition"] !== undefined, "We forgot to zero transitions/animations --> do it upstream, ", window.location.href, "el:", jqElsToHide[0].tagName, "outerhtml:", jqElsToHide[0].outerHTML);
-		// // hide interfering elements
-		// window.__setCSSPropJqArr(jqElsToHide, "visibility", "hidden", "important");
-		// window.__setCSSPropJqArr(jqElsToHide, "opacity", "0", "important");
-		// // get a canvas
-		// const canvas = _el2canvasWhiteBG(el, bbox);
-		// // restore everything
-		// window.__restoreCSSPropJqArr(jqElsToHide, "visibility");
-		// window.__restoreCSSPropJqArr(jqElsToHide, "opacity");
-		// if(hideChildren){
-		// 	window.__restoreCSSPropJqArr([el], "color");
-		// }
-		// // return 
-		// return canvas;
 	}
 
 	function _el2canvasWhiteBG(el, bbox) {
@@ -1601,11 +1588,11 @@
 		const bgC = window.getComputedStyle(el).backgroundColor;
 		if (bgC === "rgba(0, 0, 0, 0)" || bgC.indexOf("0)") > -1) {
 			// 2 - add a non-transparent background to the element - needed for correct avgColor we're screenshotting an overlay
-			window.__setCSSPropJqArr([el], "background-color", "rgba(0, 0, 0, 0.7)", "important");
+			const chId = window.__setCSSPropJqArr([el], "background-color", "rgba(0, 0, 0, 0.7)", "important");
 			// This partially-transp bg is a trade-off - it allows for a fairly accurate VC analysis if there was a messy bg, and also shows a bit what was actually underneath
 			let canvas = window.screenPart2Canvas(bbox);
 			// 3 - restore the element orig bg
-			window.__restoreCSSPropJqArr([el], "background-color");
+			window.__restoreCSSPropJqArr([el], "background-color", chId);
 			return canvas;
 		}
 		return window.screenPart2Canvas(bbox);
@@ -1671,9 +1658,9 @@
 		const toleranceThr = 5; // UInt8 difference across 3 channels
 		const bbox = window._getAbsBoundingRectAdjForParentOverflow(overEl, true);
 		const cnvs1 = window.screenPart2Canvas(bbox);
-		window.__setCSSPropJqArr([overEl], "opacity", "0", "important");
+		const chId = window.__setCSSPropJqArr([overEl], "opacity", "0", "important");
 		const cnvs2 = window.screenPart2Canvas(bbox);
-		window.__restoreCSSPropJqArr([overEl], "opacity");
+		window.__restoreCSSPropJqArr([overEl], "opacity", chId);
 		const {
 			canvasesAreSame
 		} = window.getCnvsDiff(cnvs1, cnvs2, toleranceThr, {
@@ -1833,25 +1820,36 @@
 	}
 	
 	const {_marquee2div, _restoreMarquee} = (()=>{
+		// const __cloneNodeF = (node)=>{
+		// 	const clone = node.cloneNode(true);
+		// 	if(node.nodeType === document.ELEMENT_NODE){
+		// 		// clone["_oldVals"] = Object.assign({}, node["_oldVals"]);
+		// 		clone._id = clone.dataset.elGenId;
+		// 		console.assert(clone._id);
+		// 	}
+		// 	return clone;
+		// };
 		const marqueeDivPairs = [];
 		return {
 			_marquee2div(){
-				document.querySelectorAll("marquee").forEach(mrq => {
+				$("marquee:visible").toArray().forEach(mrq => {
 					const hasVisNodes = Array.from(mrq.childNodes).some(x=>(x.nodeType === document.TEXT_NODE &&  x.nodeValue.trim().length) || x.nodeType === document.ELEMENT_NODE);
 					if(!hasVisNodes){
 						return; // no point replacing - this marquee has no content to scroll anyway
 					}
-					const div = document.createElement("div");
+					// const div = document.createElement("div");
+					const div = window.__makeCleanDiv();
 					const mrqSt = window.__cssValsToObj(window.getComputedStyle(mrq), window.__getAllCssPropList());
 					mrq.childNodes.forEach(subNode => {
 						const clone = subNode.cloneNode(true);
+						// const clone = __cloneNodeF(subNode);
 						// if(subNode.nodeType === document.ELEMENT_NODE){
 						// 	clone._id = window._getElId(subNode);
 						// }
 						div.appendChild(clone);
 					});
-					// re-attach our generated ids to the cloned children
-					const mrqDescendants = Array.from(mrq.querySelectorAll("*")).map(el=>{
+					// re-attach our generated ids to the cloned children -- all of them, not just direct children
+					const mrqClonedDescendants = Array.from(div.querySelectorAll("*")).map(el=>{
 						el._id = el.dataset.elGenId;
 						console.assert(el._id);
 						return el;
@@ -1860,7 +1858,8 @@
 					const divStToEnf = window.stripIdenticalCss(mrqSt, window.getComputedStyle(div));
 					Object.assign(divStToEnf, {"overflow": "hidden", "overflowX": "hidden", "overflowY": "hidden"});
 					window.__enforceCSSVals(div, divStToEnf);
-					window.revert2PreCompStyles(mrqDescendants, "UIFrozen");
+					debugger;
+					window.revert2PreCompStyles(mrqClonedDescendants, "UIFrozen");
 					marqueeDivPairs.push({mrq: mrq, div: div});
 					// making sure that div has at least some text <-- so line-height is respected on the parent
 					const hasVisTxtNodes = div.innerText.trim().length;//Array.from(div.childNodes).some(x=>x.nodeType === document.TEXT_NODE);

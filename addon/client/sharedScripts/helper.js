@@ -498,7 +498,15 @@
 		["width", "height", "position", "min-width", "min-height", "filter", "background-image", "top", "left", "bottom", "right", "opacity", "display", "float"].forEach((prop) => {
 			span.style.setProperty(prop, "initial", "important");
 		});
+		window.__enforceManyCSSPropOnElArr([span], {"animation-play-state": "paused", "transition": "all 0s 0s"});
 		return span;
+	}
+	
+	function __makeCleanDiv(){
+		const div = document.createElement("div");
+		// we don't care about restoring these props -- this div is meant to be removed from DOM before HTML saving
+		window.__enforceManyCSSPropOnElArr([div], {"animation-play-state": "paused", "transition": "all 0s 0s"});
+		return div;
 	}
 	
 	function __makeInvisDiv(){
@@ -634,58 +642,6 @@
 		return legend + strToSave;
 	};
 
-	// NOTE: no longer used, probably
-	// window.__convertResultsToTxtArr = function(varDat) {
-	// 	const txtStore = [];
-	// 	txtStore.push({
-	// 		"name": "text.samples",
-	// 		dat: window.__objArr2TabTable(varDat.sampleTexts)
-	// 	});
-	// 	txtStore.push({
-	// 		"name": "textContext",
-	// 		dat: window.__objArr2TabTable(varDat.textAmounts)
-	// 	});
-	// 	Object.keys(varDat.txtGroups).forEach(groupName => {
-	// 		txtStore.push({
-	// 			"name": "txtGroup." + groupName,
-	// 			dat: window.__objArr2TabTable(varDat.txtGroups[groupName])
-	// 		});
-	// 	});
-	// 	// txtStore.push({
-	// 	// 	"name": "textamount.pertype",
-	// 	// 	dat: window.__objArr2TabTable(varDat.textAmounts.perType)
-	// 	// });
-	// 	txtStore.push({
-	// 		"name": "image.data",
-	// 		dat: window.__objArr2TabTable(varDat.imageDataArr)
-	// 	});
-	// 	txtStore.push({
-	// 		"name": "page.level.data",
-	// 		dat: window.__objArr2TabTable([varDat.pageLevelM]) // making it an array
-	// 	});
-	// 
-	// 	// TODO: update - we record params for each element
-	// 
-	// 	for (let _keys = Object.keys(varDat.allTextFeatures), i = _keys.length; i--;) {
-	// 		txtStore.push({
-	// 			"name": _keys[i] + ".all",
-	// 			dat: window.__objArr2TabTable(varDat.allTextFeatures[_keys[i]])
-	// 		});
-	// 	}
-	// 	for (let _keys = Object.keys(varDat.mainTextFeatures), i = _keys.length; i--;) {
-	// 		txtStore.push({
-	// 			"name": _keys[i] + ".maintext",
-	// 			dat: window.__objArr2TabTable(varDat.mainTextFeatures[_keys[i]])
-	// 		});
-	// 	}
-	// 	for (let _keys = Object.keys(varDat.controlElFeatures), i = _keys.length; i--;) {
-	// 		txtStore.push({
-	// 			"name": _keys[i] + ".controls",
-	// 			dat: window.__objArr2TabTable(varDat.controlElFeatures[_keys[i]])
-	// 		});
-	// 	}
-	// 	return txtStore;
-	// };
 
 	function __setTxtRecurs(anEl, newTxtVal) {
 		// Intended to be used to detect if an element contains a single line of text
@@ -784,41 +740,65 @@
 		return sizeObj;
 	}
 
-	function __setCSSPropJqArr(jqObj, prop, val, imp = "") { // val can be a function or string
+	function __setCSSPropJqArr(jqObj, prop, val, imp = "", _changeId = undefined) { // val can be a function or string
 		const arr = (typeof jqObj.toArray === 'function') ? jqObj.toArray() : jqObj;
+		const changeId = _changeId || "ch" + Math.round(Math.random() * 10000000);
+		console.assert(!imp || imp === "important");
 		arr.forEach((el) => {
-			// not over-writing the original values if exist
-			if (el["_oldVal_" + prop] === undefined) {
-				el["_oldVal_" + prop] = el.style.getPropertyValue(prop);
+			if(el["_oldVals"] === undefined){
+				el["_oldVals"] = {};
+				// el["_oldImps"] = {};
 			}
-			if (el["_oldImp_" + prop] === undefined) {
-				el["_oldImp_" + prop] = el.style.getPropertyPriority(prop);
+			if(el["_oldVals"][prop] === undefined){
+				el["_oldVals"][prop] = {};
 			}
+			console.assert(el["_oldVals"][prop][changeId] === undefined); // we forgot to clean it or we have a duplicate id?
+			el["_oldVals"][prop][changeId] = {val: el.style.getPropertyValue(prop), imp: el.style.getPropertyPriority(prop)};
+			// // not over-writing the original values if exist
+			// if (el["_oldVal_" + prop] === undefined) {
+			// 	el["_oldVal_" + prop] = el.style.getPropertyValue(prop);
+			// }
+			// if (el["_oldImp_" + prop] === undefined) {
+			// 	el["_oldImp_" + prop] = el.style.getPropertyPriority(prop);
+			// }
+			// el.style[prop] = ((typeof val === 'function') ? val(el) : val) + imp;
 			el.style.setProperty(prop, (typeof val === 'function') ? val(el) : val, imp);
+			el["_latestChangeCssId"] = changeId;
 		});
+		return changeId;
 	}
 
-	function __restoreCSSPropJqArr(jqObj, prop) { // If an original-page element has been modified by us, and we want to restore it back to original
+	function __restoreCSSPropJqArr(jqObj, prop, _changeId = undefined) { // If an original-page element has been modified by us, and we want to restore it back to original
 		const arr = (typeof jqObj.toArray === 'function') ? jqObj.toArray() : jqObj;
 		arr.forEach((el) => {
-			let oldVal = el["_oldVal_" + prop] || "";
-			let oldImp = el["_oldImp_" + prop] || "";
-			el.style.setProperty(prop, oldVal, oldImp);
-			// internal clean-up -- fewer things to see during debug
-			delete el["_oldVal_" + prop];
-			delete el["_oldImp_" + prop];
+			const changeId = _changeId || el["_latestChangeCssId"];
+			if(el["_oldVals"] === undefined || el["_oldVals"][prop] === undefined || el["_oldVals"][prop][changeId] === undefined){
+				debugger;
+				return console.log("%c[__restoreCSSPropJqArr] Trying to restore a piece of CSS that wasn't set, prop: " + prop + " changeId: " + changeId + window.__el2stringForDiagnostics(el), "color:darkred;");
+			}
+			el.style.setProperty(prop, el["_oldVals"][prop][changeId].val, el["_oldVals"][prop][changeId].imp);
+			// el.style[prop] = el["_oldVals"][prop][changeId];
+			delete el["_oldVals"][prop][changeId];
+			// let oldVal = el["_oldVal_" + prop] || "";
+			// let oldImp = el["_oldImp_" + prop] || "";
+			// el.style.setProperty(prop, oldVal, oldImp);
+			// // internal clean-up -- fewer things to see during debug
+			// delete el["_oldVal_" + prop];
+			// delete el["_oldImp_" + prop];
 		});
 	}
 
-	function __enforceManyCSSPropOnElArr(elArr, cssPropObj) {
+	function __enforceManyCSSPropOnElArr(elArr, cssPropObj, _changeId = undefined) {
 		//cssPropObj can be created with window.__cssValsToObj from scramble.js
+		const changeId = _changeId || "ch" + Math.round(Math.random() * 10000000); // so we keep a reference to the old styles
 		Object.keys(cssPropObj).forEach((k, i) => {
-			__setCSSPropJqArr(elArr, k, cssPropObj[k], "important");
+			__setCSSPropJqArr(elArr, k, cssPropObj[k], "important", changeId);
 		});
+		return changeId;
 	}
 
-	function __restoreManyCSSPropOnElArr(elArr, cssPropArr) {
-		cssPropArr.forEach(prop => __restoreCSSPropJqArr(elArr, prop));
+	function __restoreManyCSSPropOnElArr(elArr, cssPropArr, changeId) {
+		cssPropArr.forEach(prop => __restoreCSSPropJqArr(elArr, prop, changeId));
 	}
 
 	function _cmpBBoxes(b1, b2, thr = 5) {
@@ -834,7 +814,7 @@
 			const st = window.getComputedStyle(el);
 			// NOTE: if flow-root solution doesn't work, we can try with overflow:hidden -- should have the same effect on floats
 			if (st["display"] !== "none") {
-				window.__setCSSPropJqArr([el], "display", "flow-root", "important");
+				const _cssChId = window.__setCSSPropJqArr([el], "display", "flow-root", "important");
 				const tmpBbox = el.getBoundingClientRect();
 				bbox.height = tmpBbox.height;
 				bbox.bottom = tmpBbox.bottom;
@@ -843,7 +823,7 @@
 				// if (bbox.height > 0) {
 				// 	console.warn("Found element enlarged by flow-root --> check it out", window.__el2stringForDiagnostics(el));
 				// }
-				window.__restoreCSSPropJqArr([el], "display");
+				window.__restoreCSSPropJqArr([el], "display", _cssChId);
 			}
 		}
 		return bbox;
@@ -903,25 +883,6 @@
 		}
 		// // NOTE: I'm not implementing one-by-one removal of added rules -- I don't see a use for it now
 	}
-
-	// const {_injectCss, _removeAllCss} = (function() {
-	// 	// for cases when I can't use elements' style, e.g., for pseudoElements
-	// 	const styleEl = document.createElement("style");
-	// 	const sheet = document.head.appendChild(styleEl).sheet;
-	// 	return {
-	// 		_injectCss: function(selector, cssObj) {
-	// 			const propText = Object.entries(cssObj).map(kv => kv.join(":")).join(";");
-	// 			// const propText = Object.keys(cssObj).map(function (p) {
-	// 			//     return p + ":" + (p === "content" ? "'" + cssObj[p] + "'" : cssObj[p]);
-	// 			// }).join(";");
-	// 			sheet.insertRule(selector + "{" + propText + "}", sheet.cssRules.length);
-	// 		},
-	// 		_removeAllCss: function() {
-	// 			styleEl.remove();
-	// 		}
-	// 		// // NOTE: I'm not implementing one-by-one removal of added rules -- I don't see a use for it now
-	// 	};
-	// })();
 	
 	function __getSaneDocScrollWidth(){
 		// F for cases of giant X overflow being hidden
@@ -941,6 +902,7 @@
 	window._getFloatProofBBox = _getFloatProofBBox;
 	window._getTextNodeBBox = _getTextNodeBBox;
 	window.__makeCleanSpan = __makeCleanSpan;
+	window.__makeCleanDiv = __makeCleanDiv;
 	window.__makeInvisDiv = __makeInvisDiv;
 	window.__setTxtRecurs = __setTxtRecurs;
 	window.__restoreTxtRecurs = __restoreTxtRecurs;

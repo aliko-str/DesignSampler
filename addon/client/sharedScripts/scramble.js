@@ -504,7 +504,8 @@
 		const divZ = Math.max(window._getZIndexAsArr(el)); // We just choose the largest - it's enough to ensure that the element is covered 
 		// We won't recreate the entire Z-index chain, since we hope that it'd only address a tiny fraction of overlapping-element-with-overlapping-z-values cases // <== No need for +1, since we'll add divs to the end of document
 		// 4 - Create and Configure a div to cover an element
-		const div = document.createElement("div");
+		// const div = document.createElement("div");
+		const div = window.__makeCleanDiv();
 		div.style.setProperty("z-index", divZ, "important");
 		div.style.setProperty("position", "absolute", "important");
 		div.style.setProperty("top", adjDivRect.top + "px", "important");
@@ -644,7 +645,8 @@
 		// 1 - Cover with Divs
 		const allGraphPresPr = allGraphRes.reduce((p, x) => {
 			return p.then(()=>{
-				const outerDiv = document.createElement("div");
+				// const outerDiv = document.createElement("div");
+				const outerDiv = window.__makeCleanDiv();
 				outerDiv._thisIsAReplacedDiv = true;
 				var el2rep = (settings.coverInternPadding)?__unwrapInlineContainer(x.el):x.el;
 				// const st = window.getComputedStyle(el2rep);
@@ -683,7 +685,8 @@
 				if(settings.coverInternPadding){
 					div = outerDiv; // we'll paint the outer div
 				}else{
-					div = document.createElement("div");
+					// div = document.createElement("div");
+					const div = window.__makeCleanDiv();
 					div._thisIsAReplacedDiv = true;
 					__enforceCSSVals(div, {
 						"width": "100%",
@@ -1240,14 +1243,18 @@
 						return !el.__pseudoType;
 					});
 					jqBgColSetRef = jqBgColSet.not(jqAllPrims); // preserve the reference 
-					window.__setCSSPropJqArr(jqBgColSetRef, "background-image", "none", "important");
+					const colSetElArr = jqBgColSetRef.toArray();
+					// window.__setCSSPropJqArr(jqBgColSetRef, "background-image", "none", "important");
 					// Utilizing the alpha channel in el.__bgRGBcol for background-color
-					jqBgColSetRef.toArray().forEach(el => {
+					colSetElArr.forEach(el => {
+						elsToRestore.push(___getCssVals(el, ["background-image", "background-color"]));
 						// const c = window.getPreComputedStyles(el)["background-color"];
 						const c = window.getComputedStyle(el)["background-color"];
 						// NEW: if a bg element is relatively small, count it as content, not bg
 						const looksLikeAThing = window.__isItUI(el);
-						window.__setCSSPropJqArr([el], "background-color", _col2BlackButPreserveAlpha(c, {whitenInstead: !looksLikeAThing, avoidDefaultTransparent: true}), "important");
+						const newBgC = _col2BlackButPreserveAlpha(c, {whitenInstead: !looksLikeAThing, avoidDefaultTransparent: true});
+						__enforceCSSVals(el, {"background-image": "none", "background-color": newBgC});
+						// window.__setCSSPropJqArr([el], "background-color", newBgC, "important");
 					});
 					// window.__setCSSPropJqArr(jqBgColSetRef, "background-color", "white", "important");
 					// if brd and bgCol are the same, they aren't counted as brd, and thus, not altered --> get bg els not in brdcoll; check which borders are set; blacken them
@@ -1255,8 +1262,11 @@
 					// FIXME: only set border colors for non-empty borders -- not sure if this can cause trouble
 					["border-top-color", "border-left-color", "border-right-color", "border-bottom-color"].forEach((brdProp, i) => {
 						jqSameBrdBgEls.toArray().forEach(el => {
+							elsToRestore.push(___getCssVals(el, [brdProp]));
 							const c = window.getComputedStyle(el)[brdProp];
-							window.__setCSSPropJqArr([el], brdProp, _col2BlackButPreserveAlpha(c, {whitenInstead: true}), "important");
+							const newC = _col2BlackButPreserveAlpha(c, {whitenInstead: true});
+							__enforceCSSVals(el, Object.fromEntries([[brdProp, newC]]));
+							// window.__setCSSPropJqArr([el], brdProp, _col2BlackButPreserveAlpha(c, {whitenInstead: true}), "important");
 						});
 						// window.__setCSSPropJqArr(jqSameBrdBgEls, brdProp, _col2BlackButPreserveAlpha({whitenInstead: true}), "important");
 					});
