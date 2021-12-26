@@ -19,6 +19,7 @@
 		Array.from(document.querySelectorAll("*")).forEach(el => {
 			if(!el._id){
 				el._id = _generateId();
+				el.dataset.elGenId = el._id;
 			}
 		});
 	}
@@ -27,19 +28,31 @@
 		if (el._id === undefined) {
 			console.warn("Found an element without an assigned _id, el:", window.__el2stringForDiagnostics(el));
 			el._id = window._generateId();
+			el.dataset.elGenId = el._id;
 		}
 		return el._id;
 	}
 	
 	const {getPreComputedStyles, hasPreComputedStyles} = (()=>{
 		// returns getComputedStyle calculated once per element at some point, e.g., after we froze animations <-- Needed during replacement during Scramble
-		var cmpStStore = {};
+		const cmpStStore = {};
+		const pseudo2record = [":before", ":after"];
+		const _makeIdF = (el, pseudoKey = null)=>{
+			return window._getElId(el)+(pseudoKey?pseudoKey.replace("::", ":"):"");
+		};
 		const _recordStyles = (timepoint)=>{
 			// initializing cmpStStore
-			const stIdPairs = Array.from(document.querySelectorAll("*")).map(el=>{
-				const st = window.getComputedStyle(el);
-				return [window._getElId(el), window.__cssValsToObj(st, window.__getAllCssPropList())];
-			});
+			const stIdPairs = pseudo2record
+				.concat([null]) // so we record real element styles
+				.map(pseudoType=>{
+					return Array.from(document.querySelectorAll("*")).map(el=>{
+						const st = window.getComputedStyle(el, pseudoType);
+						if(pseudoType && st["content"] === "none"){
+							return [];
+						}
+						return [_makeIdF(el, pseudoType), window.__cssValsToObj(st, window.__getAllCssPropList())];
+					});
+				}).flat(1);
 			cmpStStore[timepoint] = Object.fromEntries(stIdPairs);
 		};
 		document.documentElement.addEventListener("UIFrozen", (e)=>{
@@ -51,26 +64,24 @@
 			_recordStyles("DOMPrepped");
 		}, false);
 		return {
-			getPreComputedStyles(el, timepoint = "DOMPrepped"){
+			getPreComputedStyles(el, timepoint = "DOMPrepped", pseudoType = null){
 			// if cmpStStore isn't initialized, let it fall.
 				if(!cmpStStore[timepoint]){
 					throw "Initialize cmpStStore. Timepoint: " + timepoint;
 				}
-				const elId = window._getElId(el);
+				const elId = _makeIdF(el, pseudoType);
 				if(!cmpStStore[timepoint][elId]){
 					console.error("cmpStStore for ", elId, "not initialized for timepoint", timepoint, " ==> computing styles now, but debug.", window.__el2stringForDiagnostics(el));
-					const st = window.getComputedStyle(el);
+					const st = window.getComputedStyle(el, pseudoType);
 					cmpStStore[timepoint][elId] = window.__cssValsToObj(st, window.__getAllCssPropList());
 				}
 				return cmpStStore[timepoint][elId];
 			},
-			hasPreComputedStyles(el, timepoint = "DOMPrepped"){
-				return cmpStStore[timepoint] && window._getElId(el) in cmpStStore[timepoint];
+			hasPreComputedStyles(el, timepoint = "DOMPrepped", pseudoType = null){
+				return cmpStStore[timepoint] && _makeIdF(el, pseudoType) in cmpStStore[timepoint];
 			}
 		};
 	})();
-	
-	// TODO: implement the same F for pseudo-elements
 	
 	// TODO: use this F in dom preparation instead of an internal solution in __wrapTextNodesInSpans/_detachPseudoElements
 	function revert2PreCompStyles(elArr, timepoint = "DOMPrepped"){

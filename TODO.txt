@@ -120,6 +120,8 @@ EXTRA TODO:
 		w) Revert style changes to siblings during overlay removal for screenshotting
 		x) Extract pseudoElement texts in spans -- for processing <-- it does happen
 		y) Make __setCSSPropJqArr more robust to being called several times on the same prop <-- keep a random ID for each call/restoration
+		z) Replace our ancestorTracing algo with Range.commonAncestorContainer
+		a1) Replace our overlapComparing algo with Range.intersectsNode
 
 
 TODO: decide if use all primitives as seeds for root search; or just a fraction <-- depending on performance costs

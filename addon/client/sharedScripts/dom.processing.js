@@ -959,6 +959,7 @@
 	}
 
 	function _categorizeGraphicsNew(jqAllVis) {
+		debugger;
 		const __markZeroSize = (elObjArr, ifBg = false) => elObjArr.forEach(elObj => {
 			if (elObj.b.height < 1 || elObj.b.width < 1) {
 				console.warn("A (near) zero-sized bounding box after adjusting for parent overflow: ", JSON.stringify(elObj.b), window.location.href);
@@ -1549,6 +1550,7 @@
 			const tmpEl = jqElsToHide.toArray().find(x => x["_oldVal_transition"] === undefined);
 			if (tmpEl !== undefined) {
 				console.error("We forgot to zero transitions/animations --> do it upstream, ", window.__el2stringForDiagnostics(tmpEl)); // we can't use assert -- it requires tmpEl in any case as an input, which we don't have if all is ok
+				debugger;
 			}
 		}
 		// hide interfering elements
@@ -1893,11 +1895,6 @@
 							// st["content"].indexOf("url(") > -1
 							if (st["background-image"].indexOf("url(") > -1 || (hasContent && hasRealChildren)) {
 								// we have a background image -- do replacement
-								// const w = parseFloat(st["width"]);
-								// const h = parseFloat(st["height"]);
-								// // we don't have any other way of getting size of pseudo elements - if they are auto, skip this el
-								// if (!isNaN(w) && !isNaN(h) && w >= 1 && h >= 1) {
-								// WHY did I check size before?... 
 								// 0 - Make span
 								const span = window.__makeCleanSpan();
 								// 1 - Textual content doesn't show up in non-PseudoElements --> insert it as strings in clean spans
@@ -1912,7 +1909,8 @@
 								el[addF](span);
 								addedElements.push(span);
 								// 3 - copy up styles on an empty span
-								const stToEnf = window.stripIdenticalCss(st, window.getComputedStyle(span));
+								const oldSt = window.getPreComputedStyles(el, "UIFrozen", pseudoKey);
+								const stToEnf = window.stripIdenticalCss(oldSt, window.getComputedStyle(span));
 								// const stToEnf = window.__cssValsToObj(st, window.__getAllCssPropList());
 								// 3.1 - NEW extra -- SVG contents don't scale properly --> keep them as pseudoElements
 								if(st["content"].indexOf(".svg") > -1 || st["content"].indexOf("</svg>") > -1){

@@ -1330,31 +1330,35 @@
 		return __measureWidthInChar(bbox.width, window.getComputedStyle(nodes2fontSizesObj[mostCommonSize]));
 	}
 
-	function __measureWidthInChar(width, styleObj2Cpy){
-		// OPTIMIZE: create a span only once, not every time we measure width
-		// make a span with Text properties identical to the targetObj
-		const span = window.__makeCleanSpan();
-		const st2cpy = window.__cssValsToObj(styleObj2Cpy, span.__inheritedProps);
-		st2cpy.display = "block"; // enforcing this, so it occupies the whole page width
-		st2cpy.whiteSpace = "nowrap"; // otherwise it just wraps and never reaches the full width of its container
-		window.__enforceCSSVals(span, st2cpy);
-		// keep adding characters until exceed 'width'
-		document.body.appendChild(span);
-		const charArr = Array.from(ciceroText);
-		while(span.getBoundingClientRect().width < width && charArr.length){
-			span.textContent += charArr.shift();
-		}
-		var res = "NA";
-		if(!charArr.length){
-			console.warn("We were unable to measure width in characters, width: ", width, " bodyWidth:", document.body.scrollWidth, "styles:", JSON.stringify(st2cpy), window.location.href);
-			debugger;
-		}else{
-			res = span.textContent.length;
-		}
-		// remove span
-		document.body.removeChild(span);
-		return res;
-	}
+	const __measureWidthInChar = (()=>{
+		const range = new Range(); // range because sometimes we need to measure width > bodyWidth
+		return function(width, styleObj2Cpy){
+			// OPTIMIZE: create a span only once, not every time we measure width
+			// make a span with Text properties identical to the targetObj
+			const span = window.__makeCleanSpan();
+			const st2cpy = window.__cssValsToObj(styleObj2Cpy, span.__inheritedProps);
+			st2cpy.display = "block"; // enforcing this, so it occupies the whole page width
+			st2cpy["white-space"] = "nowrap"; // otherwise it just wraps and never reaches the full width of its container
+			window.__enforceCSSVals(span, st2cpy);
+			// keep adding characters until exceed 'width'
+			document.body.appendChild(span);
+			const charArr = Array.from(ciceroText);
+			while(range.getBoundingClientRect().width < width && charArr.length){
+				span.textContent += charArr.shift();
+				range.selectNodeContents(span);
+			}
+			var res = "NA";
+			if(!charArr.length){
+				console.warn("We were unable to measure width in characters, width: ", width, " bodyWidth:", document.body.scrollWidth, "styles:", JSON.stringify(st2cpy), window.location.href);
+				debugger;
+			}else{
+				res = span.textContent.length;
+			}
+			// remove span
+			document.body.removeChild(span);
+			return res;
+		};
+	})();
 
 	function __wrapBlockElContentsInSpan(node){
 		node.childNodes.forEach(aTxtNode => {

@@ -138,8 +138,8 @@
 			const stopJsThrow = `
 				if(++window.___stubFCallCounter === 100){
 					try{
-						console.warn("[PScript STUB] too many calls to a Stub F", window.___stubFCallCounter, "==> Do smth to avoid slow-downs.");
-						console.warn("[PScript STUB] Overwriting console.log with a no-op to stop the message flood.");
+						console.log("%c[PScript STUB] too many calls to a Stub F", window.___stubFCallCounter, "==> Do smth to avoid slow-downs. For now, just no longer printing logs.", "color:pink;font-style:oblique;");
+						window.___stopLogs = true;
 						${removeNonNativeWinProps}
 						console.log = ()=>{};	
 					}catch (e){
@@ -160,7 +160,9 @@
 			// Just element selection isn't enough -- we need to ensure XHRs don't 'grow' webpages after we screenshot them
 			function stubPageF(className, fName, w, returnV = "null"){
 				w.eval(`${className}.prototype.${fName} = ()=>{
-					console.log("[PScript STUB]Page script tried to use an overwritten ${className} F, '${fName}', Doing nothing instead.", window.location.href);
+					if(!window.___stopLogs){
+						console.log("[PScript STUB]Page script tried to use an overwritten ${className} F, '${fName}', Doing nothing instead.", window.location.href);
+					}
 					${stopJsThrow}
 					return ${returnV};
 				}`);				
@@ -188,7 +190,9 @@
 			const overwriteCSS2Prop = (propName, w)=>{
 				const tmplt = `
 					Object.defineProperty(CSS2Properties.prototype, "${propName}", {set(a){
-						console.log("[PScript STUB] Not setting ${propName.toUpperCase()} style", (a || "undefined").toString());
+						if(!window.___stopLogs){
+							console.log("[PScript STUB] Not setting ${propName.toUpperCase()} style", (a || "undefined").toString());
+						}
 						${stopJsThrow}
 						// console.stack();
 						return "";
