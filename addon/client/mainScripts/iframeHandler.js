@@ -16,13 +16,15 @@
 	
 	browser.runtime.onMessage.addListener((msg)=>{
 		if(msg.action === "haveYouLoaded_iframe"){
-			return loadDonePr.then((_hasRun)=>{
-				return Promise.resolve({
-					"action": "IFrameLoaded",
-					"url": window.location.href,
-					"_hasRun": _hasRun
-				});
-			});	
+			return loadDonePr
+				.then(window.recordNoStylingCssAsync) // moving here cause we don't want these in Previsiting
+				.then(window.stopAllAnimations)
+				.then(()=>{
+					return Promise.resolve({
+						"action": "IFrameLoaded",
+						"url": window.location.href
+					});
+				});	
 		}
 	});
 	
@@ -33,9 +35,7 @@
 		.then(()=>{
 			return window._alarmPr(delayForScriptsToRun);
 		})
-		.then(window.waitForAllImagesToLoadAsync)
-		.then(window.recordNoStylingCssAsync)
-		.then(window.stopAllAnimations);
+		.then(window.waitForAllImagesToLoadAsync);
 
 })();
 
