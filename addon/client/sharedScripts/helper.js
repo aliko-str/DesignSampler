@@ -774,7 +774,7 @@
 			const changeId = _changeId || el["_latestChangeCssId"];
 			if(el["_oldVals"] === undefined || el["_oldVals"][prop] === undefined || el["_oldVals"][prop][changeId] === undefined){
 				debugger;
-				return console.log("%c[__restoreCSSPropJqArr] Trying to restore a piece of CSS that wasn't set, prop: " + prop + " changeId: " + changeId + window.__el2stringForDiagnostics(el), "color:darkred;");
+				return console.log("%c[__restoreCSSPropJqArr] Trying to restore a piece of CSS that wasn't set, prop: " + prop + " changeId: " + changeId + window.__el2stringForDiagnostics(el), "color:red;");
 			}
 			el.style.setProperty(prop, el["_oldVals"][prop][changeId].val, el["_oldVals"][prop][changeId].imp);
 			// el.style[prop] = el["_oldVals"][prop][changeId];

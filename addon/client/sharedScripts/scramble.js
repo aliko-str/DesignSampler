@@ -686,7 +686,7 @@
 					div = outerDiv; // we'll paint the outer div
 				}else{
 					// div = document.createElement("div");
-					const div = window.__makeCleanDiv();
+					div = window.__makeCleanDiv();
 					div._thisIsAReplacedDiv = true;
 					__enforceCSSVals(div, {
 						"width": "100%",
@@ -1247,7 +1247,7 @@
 					// window.__setCSSPropJqArr(jqBgColSetRef, "background-image", "none", "important");
 					// Utilizing the alpha channel in el.__bgRGBcol for background-color
 					colSetElArr.forEach(el => {
-						elsToRestore.push(___getCssVals(el, ["background-image", "background-color"]));
+						["background-image", "background-color"].forEach(prop => elsToRestore.push(___getCssVals(el, prop)));
 						// const c = window.getPreComputedStyles(el)["background-color"];
 						const c = window.getComputedStyle(el)["background-color"];
 						// NEW: if a bg element is relatively small, count it as content, not bg
@@ -1262,7 +1262,7 @@
 					// FIXME: only set border colors for non-empty borders -- not sure if this can cause trouble
 					["border-top-color", "border-left-color", "border-right-color", "border-bottom-color"].forEach((brdProp, i) => {
 						jqSameBrdBgEls.toArray().forEach(el => {
-							elsToRestore.push(___getCssVals(el, [brdProp]));
+							elsToRestore.push(___getCssVals(el, brdProp));
 							const c = window.getComputedStyle(el)[brdProp];
 							const newC = _col2BlackButPreserveAlpha(c, {whitenInstead: true});
 							__enforceCSSVals(el, Object.fromEntries([[brdProp, newC]]));
@@ -1316,10 +1316,10 @@
 			// 7 - Pass on a Restorer function
 			const pr6 = pr5.then((cssInjctr)=>{
 				return ()=>{
-					// window.__restoreCssVals(jqBgColSetRef, "background-image");
-					window.__restoreCSSPropJqArr(jqBgColSetRef, "background-image");
-					// window.__restoreCssVals(jqBgColSetRef, "background-color"); // this f doesn't exist
-					window.__restoreCSSPropJqArr(jqBgColSetRef, "background-color");
+					// // window.__restoreCssVals(jqBgColSetRef, "background-image");
+					// window.__restoreCSSPropJqArr(jqBgColSetRef, "background-image");
+					// // window.__restoreCssVals(jqBgColSetRef, "background-color"); // this f doesn't exist
+					// window.__restoreCSSPropJqArr(jqBgColSetRef, "background-color");
 					["border-top-color", "border-left-color", "border-right-color", "border-bottom-color"].forEach((brdProp, i) => {
 						window.__restoreCSSPropJqArr(jqSameBrdBgEls, brdProp);
 					});
