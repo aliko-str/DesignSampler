@@ -63,12 +63,17 @@
 			$("body").children(":not(#" + formId + ")").remove();
 			$("body").append(origBodyHtml);
 		};
+		const _getF = ()=>{
+			const txtAreatxt = $("#" + formId).find("textarea").val().replaceAll("$$", "document.querySelectorAll");
+			return new Function("$", "addCssF", txtAreatxt);
+		};
 		const jqOurForm = $(htmlForm);
 		_renderWarnings(jqOurForm);
 		jqOurForm.find("#" + validatePageBtnId).click(function (e) {
 			e.preventDefault();
-			const txtAreatxt = $("#" + formId).find("textarea").val();
-			const f = new Function("$", "addCssF", txtAreatxt);
+			// const txtAreatxt = $("#" + formId).find("textarea").val();
+			// const f = new Function("$", "addCssF", txtAreatxt);
+			const f = _getF();
 			_refreshF();
 			window.setTimeout(function () {
 				f($, window.CssInjector._injectStringCss);
@@ -78,8 +83,7 @@
 		jqOurForm.submit(function (e) {
 			// package data and send it to the tab
 			e.preventDefault();
-			const txtAreatxt = $("#" + formId).find("textarea").val();
-			const f = new Function("$", "addCssF", txtAreatxt);
+			const f = _getF();
 			console.log("Asking to save a script: ", f.toString(), " UrlID:", urlId);
 			browser.runtime.sendMessage({
 				"action": "savePrevisitF",

@@ -89,6 +89,8 @@ async function doAllTheWork(setUpData, port) {
 		});
 		_foolCheckAssigned = true;
 	}
+	// 0 - Preventing accidental clicks on browserAction
+	 browser.browserAction.disable();
 	// 1.1 - Set up globals
 	const settings = setUpData.settings;
 	var jobProgress = setUpData.jobProgress;
@@ -140,9 +142,11 @@ async function doAllTheWork(setUpData, port) {
 	port.postMessage({
 		action: "SetUpFinished"
 	}); // doesn't do anything - just talking to the App
-	// timers
+	// 1.4 timers // TODO: create a clean-up F for timers <-- remove handlers
 	listenForTimers(); // We should call it before any of the work loading
-	// 1.4 - Actual work
+	// 1.5 - Set up handling requests for iframe ids
+	const ifrIdCleanUpF = setUpIFrameIdQueryHandling();
+	// 2 - Actual work
 	if (settings.preVisitingNeeded) {
 		try {
 			await launchPagePrevisiting(jobProgress, port);
@@ -159,6 +163,8 @@ async function doAllTheWork(setUpData, port) {
 			// global clean-up
 			browser.gTab.stopResizingBrowserTabsTo();
 			browser.webRequest.onHeadersReceived.removeListener(_enableEvalModifCSP);
+			ifrIdCleanUpF();
+			browser.browserAction.enable();
 		});
 	}
 }
@@ -183,30 +189,6 @@ function prefixSrc(src, type) {
 	}
 	return "/client/" + path;
 }
-
-//function _createDatSaveHandler(action, portToApp, cb) {
-//	return (msg, sender, respF) => {
-//		if (msg.action === action) {
-//			if(msg.urlId === undefined){
-//				console.error("No urlId given when forwarding to the Messenger App --> bypassing, ", action);
-//				return false;
-//			}
-//			// and wait for a confirmation of the data handled
-//			const _waitForConf = (confMsg) => {
-//				if (confMsg.action === action + ".confirmed" && confMsg.data.urlId === msg.urlId) {
-//					respF(confMsg); // receive this MSG in content script
-//					portToApp.onMessage.removeListener(_waitForConf);
-//					cb && cb();
-//				}
-//			};
-//			portToApp.onMessage.addListener(_waitForConf);
-//			// forward data to the App
-//			portToApp.postMessage(msg);
-//			return true; // so the Content Script keeps waiting for respF to be called, instead of proceeding right away
-//		}
-//		return false;
-//	};
-//}
 
 function _createDatSaveHandler(action, portToApp) {
 	return (msg, sender, respF) => {
@@ -330,16 +312,13 @@ function doPostPrevisitWork(settings, jobProgress, pageMods, portToApp) {
 	// 2.1 - Set up R command forwarding/handlers
 	const rCommCleanUpF = createRRequestHandler("RequestRAction", portToApp);
 	
-	// 2.2 - Set up handling requests for iframe ids
-	const ifrIdCleanUpF = setUpIFrameIdQueryHandling();
-	
 	// 3 - A clean up f for global handlers <-- Not sure why I bother - just close the browser...
 	function glCleanUp(){
 		glMsgHandlerArr.forEach(handler=>{
 			browser.runtime.onMessage.removeListener(handler);
 		});
 		rCommCleanUpF();
-		ifrIdCleanUpF();
+		// ifrIdCleanUpF();
 	}
 
 	// a slimmed-down version of createOnePageProcessor for iFrames
@@ -1037,7 +1016,7 @@ function preVisitAPage(aUrlObj) {
 		// TODO: no urls to previsit left --> handle accordingly
 		throw new Error("Need a url to handle");
 	}
-	console.log("PREVISITING a page:", aUrlObj.url);
+	console.log("[PREVISITING] %c a page: " + aUrlObj.url, "color:yellowgreen;");
 	// 7 use webNavigation.onCompleted event to attach our script - it'll re-attach in the case of 301/2
 	var _tabId;
 	const handleOnComplete = (details) => {
