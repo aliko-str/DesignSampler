@@ -4,7 +4,7 @@
 
 (function () {
 	const scriptLoadedTimeout = 12000;
-	const delayFromScriptsToRun = 5500;
+	const delayFromScriptsToRun = 2500;
 	var hasLoaded = false;
 
 	function scrollDownUp(cb) {
@@ -83,6 +83,7 @@
 	};
 
 	function unloadTimeouts() {
+		// TODO: switch to load.control.js -- duplicate functionality
 		const subF = function (w) {
 			// NOTE: This may not work at all because FF doesn't give the same DOM objects to our Content Scripts --> Try cloning DOM instead
 			const highestTimeoutId = w.setTimeout(";");
@@ -97,17 +98,6 @@
 		subF(window);
 		console.log("unloadTimeouts has finished for the main window");
 		// NO point doing this unloading -- we automatically load the same load-control scripts for iframes as during the main phase
-		// const iframes = document.getElementsByTagName("iframe");
-		// for (let i = 0; i < iframes.length; i++) {
-		// 	if (iframes[i].src.indexOf("http") !== 0) {
-		// 		try {
-		// 			subF(iframes[i].contentWindow);
-		// 			console.log("unloadTimeouts done for A SubWindow");
-		// 		} catch (e) {
-		// 			console.error(e);
-		// 		}
-		// 	}
-		// }
 		window.stop();
 	};
 

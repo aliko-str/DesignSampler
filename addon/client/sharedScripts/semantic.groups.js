@@ -408,9 +408,12 @@
 	function _getBannerSibligns(anImgEl, allHiddenGrEls, ifrArr){
 		const cssVisProps = ["position", "top", "left", "bottom", "right", "visibility", "opacity", "display", "z-index"];
 		// a - same type/tagName
-		const maybeBannerSiblings = allHiddenGrEls.filter(hidGrEl=>{
-			return !ifrArr.some(ifr=>hidGrEl.contains(ifr)); // to avoid iframe swapping out of DOM and their reloading -- because of how we detect banners below
-		}).filter(hidGrEl=>hidGrEl.tagName.toLowerCase() === anImgEl.tagName.toLowerCase()); // only same type/tagName elements can be banner siblings <-- checking path-to-parent would filter them down to this anyway -- this also avoids misfires, i.e., when service elements (e.g., buttons as images) are found and tested for being banner siblings
+		const maybeBannerSiblings = allHiddenGrEls
+			.filter(hidGrEl=>{
+				return !ifrArr.some(ifr=>hidGrEl.contains(ifr)); // to avoid iframe swapping out of DOM and their reloading -- because of how we detect banners below
+			})
+			.filter(hidGrEl=>!hidGrEl.contains(anImgEl) && !anImgEl.contains(hidGrEl)) // can't be ancestor/descendant of the target element --> it's possible if a child element is taken out of rendering context (e.g., floats)
+			.filter(hidGrEl=>hidGrEl.tagName.toLowerCase() === anImgEl.tagName.toLowerCase()); // only same type/tagName elements can be banner siblings <-- checking path-to-parent would filter them down to this anyway -- this also avoids misfires, i.e., when service elements (e.g., buttons as images) are found and tested for being banner siblings
 		// b - same size -- replace and check bbox
 		const imgBBox = window._getFloatProofBBox(anImgEl); // window.__cpyBBox(anImgEl.getBoundingClientRect()); // any bbox detector would do - so let's use the fastest one (the native) // Clone it so it's not a live object
 		const tmpSpan = window.__makeCleanSpan(); // to keep a reference to the swapped elements' positions

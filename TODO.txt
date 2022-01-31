@@ -122,6 +122,7 @@ EXTRA TODO:
 		y) Make __setCSSPropJqArr more robust to being called several times on the same prop <-- keep a random ID for each call/restoration
 		z) Replace our ancestorTracing algo with Range.commonAncestorContainer
 		a1) Replace our overlapComparing algo with Range.intersectsNode
+		b1) Put previsitForm in an iframe <-- so it's not frozen by Page's event capturing and styles aren't broken
 
 
 TODO: decide if use all primitives as seeds for root search; or just a fraction <-- depending on performance costs
