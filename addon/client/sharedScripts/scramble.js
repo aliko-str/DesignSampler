@@ -1033,7 +1033,7 @@
 		return window.getGTypeArrAsync(grTypesToProcess).then(_grObjSet=>{
 			// Filter out elements that are no longer in DOM ==> Because we temporarely altered the DOM, e.g., because of computed Controls containing some graphics (and these are already replaced with <div>s)
 			const grObjSet = Object.fromEntries(Object.entries(_grObjSet).map(([grType, grArr], i)=>{
-				return [grType, grArr.filter(x=>document.body.contains(x.el))];
+				return [grType, grArr.filter(x=>document.documentElement.contains(x.el))];
 			}));
 			// converting collections of graphics Objects to 2 flat arrays - one for 'real' elements, the other for BG <--- It's ugly, but I feel too lazy to update/refactor things now ==> // OPTIMIZE: it
 			const allGraphRes = Object.keys(grObjSet).filter((grType)=>!window.graphTypes.isItBg(grType)).reduce((accu, grType)=>{

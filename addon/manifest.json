@@ -26,7 +26,7 @@
 	},
 	"content_scripts": [{
 		"matches": ["<all_urls>"],
-		"js": ["client/htmlSaverScripts/content-fontface.js", "client/sharedScripts/jquery-3.5.1.js", "client/sharedScripts/load.control.js", "client/sharedScripts/helper.js", "client/sharedScripts/generic.pagemods.js", "client/sharedScripts/cross.window.comm.js", "client/sharedScripts/img.processing.js", "client/sharedScripts/css.processing.js", "client/sharedScripts/dom.processing.js", "client/sharedScripts/page.data.store.js", "client/sharedScripts/semantic.groups.js", "client/sharedScripts/scramble.js", "client/sharedScripts/cluster.prep.js", "client/sharedScripts/page.params.js", "client/mainScripts/iframeHandler.js", "client/mainScripts/main.iframe.js"],
+		"js": ["client/htmlSaverScripts/content-fontface.js", "client/sharedScripts/jquery-3.5.1.js", "client/sharedScripts/load.control.js", "client/sharedScripts/helper.js", "client/sharedScripts/generic.pagemods.js", "client/sharedScripts/cross.window.comm.js", "client/sharedScripts/img.processing.js", "client/sharedScripts/css.processing.js", "client/sharedScripts/dom.processing.js", "client/sharedScripts/page.pre.processing.js", "client/sharedScripts/page.data.store.js", "client/sharedScripts/semantic.groups.js", "client/sharedScripts/scramble.js", "client/sharedScripts/cluster.prep.js", "client/sharedScripts/page.params.js", "client/mainScripts/iframeHandler.js", "client/mainScripts/main.iframe.js"],
 		"css": ["client/css/all.css"],
 		"run_at": "document_end",
 		"all_frames": true,

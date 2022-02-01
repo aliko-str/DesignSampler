@@ -123,6 +123,8 @@ EXTRA TODO:
 		z) Replace our ancestorTracing algo with Range.commonAncestorContainer
 		a1) Replace our overlapComparing algo with Range.intersectsNode
 		b1) Put previsitForm in an iframe <-- so it's not frozen by Page's event capturing and styles aren't broken
+		c1) Process pseudoElement with bgCol the same way as with bgImg <-- now they are simply not accounted for
+		d1) Selected <option> to be counted as text (also for Scrambling)
 
 
 TODO: decide if use all primitives as seeds for root search; or just a fraction <-- depending on performance costs
