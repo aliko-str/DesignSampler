@@ -84,7 +84,7 @@
 	})();
 	
 	// TODO: use this F in dom preparation instead of an internal solution in __wrapTextNodesInSpans/_detachPseudoElements
-	function revert2PreCompStyles(elArr, timepoint = "DOMPrepped"){
+	function revert2PreCompStyles(elArr, timepoint = "DOMPrepped", settings = {bruteForce: false}){
 		const cssInjctr = new window.CssInjector(); // I'll use a CSS injector - because by this point I don't remember what CSS I save/overwrite on top of what
 		const doNotTrackProps = ["transition", "animation-play-state", "block-size"];
 		elArr
@@ -94,6 +94,10 @@
 				const newSt = window.getComputedStyle(el);
 				// const changedStyles = window.__getAllCssPropList({excludePrefixed: false}).filter(st => newSt[st] !== oldSt[st]).filter(x=>!doNotTrackProps.includes(x));
 				const stObj2Enforce = window.stripIdenticalCss(oldSt, newSt);
+				if(settings.bruteForce){
+					// animation frames can only be overwitten with !important added
+					Object.assign(stObj2Enforce, window.__cssObj2Imp(stObj2Enforce));
+				}
 				doNotTrackProps.forEach(p => delete stObj2Enforce[p]);
 				if (Object.keys(stObj2Enforce).length) {
 					// const stObj2Enforce = Object.fromEntries(changedStyles.map(st => [st, oldSt[st]]));

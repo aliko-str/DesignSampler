@@ -1746,7 +1746,8 @@
 			}
 		}
 		// restoring the text node
-		span.replaceWith(node2repl);
+		// span.replaceWith(node2repl);
+		window.DOMutils.restoreElement(span, node2repl);
 		return window.__cpyBBox(bbox);
 		// if(el.childNodes.length === 0 || window._tagSets.controls.has(el.tagName.toLowerCase())){
 		// 	// this is a control <-- we can't embed a span inside it

@@ -428,7 +428,8 @@
 			// const newBBox = window.__cpyBBox(otherGrEl.getBoundingClientRect());
 			const newBBox = window._getFloatProofBBox(otherGrEl);
 			// b.4 - Restore everything
-			otherGrEl.replaceWith(anImgEl);
+			// otherGrEl.replaceWith(anImgEl);
+			window.DOMutils.restoreElement(otherGrEl, anImgEl);
 			tmpSpan.replaceWith(otherGrEl);
 			window.__restoreManyCSSPropOnElArr([otherGrEl], cssVisProps, _cssChId);
 			// b.3 - Compare bboxes

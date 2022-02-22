@@ -339,8 +339,17 @@
 		return res;
 	}
 	
+	function __cssObj2Imp(cssObj){
+		// adds "!important" to a style declaration object -- a convenience F
+		return Object
+			.fromEntries(Object
+				.entries(cssObj)
+				.map(([k, v])=>[k, v + " !important"]));
+	}
+	
 	window.__cssValsToObj = __cssValsToObj;
 	window.__enforceCSSVals = __enforceCSSVals;
+	window.__cssObj2Imp = __cssObj2Imp;
 	
 	window.findElsStyledByOrder = findElsStyledByOrder;
 	window.findElsStyledOnHover = findElsStyledOnHover;

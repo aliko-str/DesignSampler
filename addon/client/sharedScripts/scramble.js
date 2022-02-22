@@ -246,7 +246,8 @@
 				};
 				restoreTexts = ()=>{
 					txtNodeStore.forEach(pair => {
-						pair.span.replaceWith(pair.txt);
+						window.DOMutils.restoreElement(pair.span, pair.txt);
+						// pair.span.replaceWith(pair.txt);
 					});
 					__restoreCssVals(cssToRestore);
 				};
@@ -765,7 +766,8 @@
 			return function restoreDomF() {
 				//			console.log("Calling restoreDomF for placeholder images, divStore.length", divStore.length);
 				divStore.forEach(pair => {
-					pair.div.replaceWith(pair.repEl);
+					window.DOMutils.restoreElement(pair.div, pair.repEl);
+					// pair.div.replaceWith(pair.repEl);
 				});
 				__restoreCssVals(nodeBgStore);
 				psdRestoreF();

@@ -1,5 +1,6 @@
 /*eslint-env browser*/
 // All the ways to prepare a page for data extraction
+// TODO: switch to a more-generic window.DOMutils.restoreElement(placeholderEl, realElRef) instead of the native replaceWith 
 
 
 (()=>{
