@@ -39,48 +39,36 @@
 	];
 
 
-	function getSize(ifFullLength) {
+	function getPageScreenshotSize(ifFullLength) {
 		// Badly named F -- it's supposed to prep a sizeObj for a full-page screenshot
 		console.assert(window.getScrlEl().scrollHeight < MAX_SCREENSHOT_LENGTH, "The webpage is way too long -- expect errors --> we shouldn't probably take this webpage; its full length is:", window.getScrlEl().scrollHeight, "While we only allow: ", MAX_SCREENSHOT_LENGTH);
-		const sizeObj = {
-			x: 0,
-			y: 0,
-			t: 0,
-			l: 0,
-			z: window.devicePixelRatio
-		};
-		if (ifFullLength) {
-			let zoomedSizeLimit = Math.floor(MAX_SCREENSHOT_LENGTH / window.devicePixelRatio);
-			sizeObj.w = Math.min(window.__getSaneDocScrollWidth(), zoomedSizeLimit);
-			// sizeObj.w = Math.min(window.getScrlEl().scrollWidth, zoomedSizeLimit);
-			sizeObj.h = Math.min(window.getScrlEl().scrollHeight, zoomedSizeLimit);
-		} else {
-			// sizeObj.w = window.getScrlEl().clientWidth;
-			// sizeObj.h = window.getScrlEl().clientHeight;
-			sizeObj.w = window.__getSaneDocScrollWidth();//window.innerWidth;
-			sizeObj.h = window.innerHeight;
+		// const sizeObj = {
+		// 	x: 0,
+		// 	y: 0,
+		// 	t: 0,
+		// 	l: 0 //,
+		// 	// z: window.devicePixelRatio
+		// };
+		const sizeObj = Object.assign({x: 0, y: 0, t: 0, l: 0}, window.getFullPageBBox());
+		if (!ifFullLength) {
+			sizeObj.height = window.innerHeight;
 		}
+		sizeObj.h = (sizeObj.h === undefined?sizeObj.height:sizeObj.h);
+		sizeObj.w = (sizeObj.w === undefined?sizeObj.width:sizeObj.w);
+		
+		// if (ifFullLength) {
+		// 	let zoomedSizeLimit = MAX_SCREENSHOT_LENGTH; // Math.floor(MAX_SCREENSHOT_LENGTH / window.devicePixelRatio);
+		// 	sizeObj.w = Math.min(window.__getSaneDocScrollWidth(), zoomedSizeLimit);
+		// 	// sizeObj.w = Math.min(window.getScrlEl().scrollWidth, zoomedSizeLimit);
+		// 	sizeObj.h = Math.min(window.getScrlEl().scrollHeight, zoomedSizeLimit);
+		// } else {
+		// 	// sizeObj.w = window.getScrlEl().clientWidth;
+		// 	// sizeObj.h = window.getScrlEl().clientHeight;
+		// 	sizeObj.w = window.__getSaneDocScrollWidth();//window.innerWidth;
+		// 	sizeObj.h = window.innerHeight;
+		// }
 		return sizeObj;
 	}
-
-// 	window.getScreenshotDataUrl = function (ifFullLength) {
-// 		// this F is for page-level screenshots
-// 		let size = getSize(ifFullLength);
-// 
-// 		let canvas = document.createElementNS("http://www.w3.org/1999/xhtml", "canvas");
-// 		canvas.width = size.w * size.z;
-// 		canvas.height = size.h * size.z;
-// //		canvas.width = size.w;
-// //		canvas.height = size.h;
-// 		canvas.mozOpaque = true; // it's not necessary; simply optimizes performance during rendering - remove if it breaks behavior for the future FF versions
-// 
-// 		let ctx = canvas.getContext("2d");
-// 		ctx.scale(size.z, size.z); // DISABLE - it scales up images, and it's noticeable <-- NO, we keep it; other image quality is too bad, we can downscale later
-// 		window.scrollTo(0, 0); // to make sure top menus etc. are positioned properly
-// 		ctx.drawWindow(window, size.x, size.y, size.w, size.h, "#fff");
-// //		ctx.scale(0.5, 0.5);
-// 		return canvas.toDataURL().replace(/^data:image\/png;base64,/, "");
-// 	};
 
 	function getScreenshotDataUrl(ifFullLength){
 		return __cnvs2DataUrl(window.page2Canvas(ifFullLength));
@@ -88,7 +76,7 @@
 	};
 	
 	function page2Canvas(ifFullLength = true){
-		const bbox = getSize(ifFullLength);
+		const bbox = getPageScreenshotSize(ifFullLength);
 		return screenPart2Canvas(bbox);
 	};
 	
@@ -122,14 +110,14 @@
 		("width" in p) || (p.width = p.w);
 		("height" in p) || (p.height = p.h);
 
-		let z = window.devicePixelRatio;
+		// let z = window.devicePixelRatio;
 		let canvas = document.createElementNS("http://www.w3.org/1999/xhtml", "canvas");
-		canvas.width = p.width * z;
-		canvas.height = p.height * z;
+		canvas.width = p.width; // * z;
+		canvas.height = p.height; // * z;
 		canvas.mozOpaque = true;
 
 		let ctx = canvas.getContext("2d");
-		ctx.scale(z, z);
+		// ctx.scale(z, z);
 		window.scrollTo(0, 0);// to make sure top menus etc. are positioned properly == Also in case I scroll it down for some reason... <-- If it's set with a page script, we should adjust for window.scrollX/Y <-- though this should be reflected already in the bounding box...
 		try {
 			ctx.drawWindow(window, p.left, p.top, p.width, p.height, "#fff");
@@ -171,18 +159,28 @@
 	// 	});
 	// }
 	
-	function url2canvasAsync(url){
+	function url2canvasAsync(url, config = {ensureNoPlaceholderImg: false}){
+		// NOTE: Rejects should be handled upstream
+		const pr = (!config.ensureNoPlaceholderImg)
+			?Promise.resolve()
+			:fetch(url).then(resp=>{
+				// see if a server might still send an (placeholder) image with a 404 response
+				if(!resp.ok){
+					return Promise.reject(new Error("Img not loaded, status:" + resp.status + " URL: " + url));
+				}
+				return Promise.resolve();
+			});
 		const img = new Image();
 		img.setAttribute("src", url);
 		// img.src = url;
-		return img.decode().then(()=>{
-			const z = window.devicePixelRatio;
+		return Promise.all([pr, img.decode()]).then(()=>{
+			// const z = window.devicePixelRatio;
 			const canvas = document.createElementNS("http://www.w3.org/1999/xhtml", "canvas");
-			canvas.width = img.naturalWidth * z;
-			canvas.height = img.naturalHeight * z;
+			canvas.width = img.naturalWidth; // * z;
+			canvas.height = img.naturalHeight; // * z;
 			canvas.mozOpaque = true;
 			const ctx = canvas.getContext("2d");
-			ctx.scale(z, z);
+			// ctx.scale(z, z);
 			ctx.drawImage(img, 0, 0);
 			return canvas;
 		});

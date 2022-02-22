@@ -733,7 +733,7 @@
 			top: 0,
 			left: 0
 		};
-		let zoomedSizeLimit = Math.floor(window.MAX_SCREENSHOT_LENGTH / window.devicePixelRatio);
+		let zoomedSizeLimit = window.MAX_SCREENSHOT_LENGTH;// Math.floor(window.MAX_SCREENSHOT_LENGTH / window.devicePixelRatio); // NOTE: devicePixelRatio messes up when we have a mismatch between virtual and physical pixels
 		sizeObj.width = sizeObj.right = Math.min(window.__getSaneDocScrollWidth(), zoomedSizeLimit);
 		// sizeObj.width = sizeObj.right = Math.min(window.getScrlEl().scrollWidth, zoomedSizeLimit);
 		sizeObj.height = sizeObj.bottom = Math.min(window.getScrlEl().scrollHeight, zoomedSizeLimit);

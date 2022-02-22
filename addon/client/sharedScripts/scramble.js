@@ -116,7 +116,7 @@
 		// replace text nodes with <span>; set spans to have no padding/margin and transp color
 		const span = __makeCleanSpan();
 		span.textContent = str;
-		__enforceCSSVals(span, BLACK_TXT_STYLES);		
+		window.__enforceCSSVals(span, BLACK_TXT_STYLES);		
 		// span.style.setProperty("background-color", "black", "important"); // make it black
 		// span.style.setProperty("color", "black", "important");
 		// span.style.setProperty("text-shadow", "none", "important");
@@ -232,15 +232,15 @@
 						blackBgParenEls.push(el.parentElement);// saving a ref, so we don't repeat blackening if el.parentElement has several text nodes
 						// TODO: use __setBlackBg2Contents instead here
 						cssToRestore.push(...Object.keys(BLACK_TXT_STYLES).map(cssProp=>___getCssVals(el.parentElement, cssProp)));
-						__enforceCSSVals(el.parentElement, BLACK_TXT_STYLES);
-						// __enforceCSSVals(el.parentElement, {"background-color": "black", "background-image": "none", "color": "transparent", "text-shadow": "none", "border-color": "black"});
+						window.__enforceCSSVals(el.parentElement, BLACK_TXT_STYLES);
+						// window.__enforceCSSVals(el.parentElement, {"background-color": "black", "background-image": "none", "color": "transparent", "text-shadow": "none", "border-color": "black"});
 					}else{
 						const span = __makeBlackSpan(el.nodeValue);
 						el.replaceWith(span);
 						txtNodeStore.push({span: span, txt: el});
 						// check for the rare case of textNodes computing to 0 height for some fonts
 						if(window._getTextNodeBBox(span.childNodes[0]).height === 0){
-							__enforceCSSVals(span, {"font-family": "Times"}); // Or some other random font family
+							window.__enforceCSSVals(span, {"font-family": "Times"}); // Or some other random font family
 						}
 					}
 				};
@@ -350,7 +350,7 @@
 			const st = window.getComputedStyle(graphObj.el);
 			const stBef = window.getComputedStyle(graphObj.el, "::before");
 			const stAft = window.getComputedStyle(graphObj.el, "::after");
-			const stToEnf = Object.assign(sharedStyles, __cssValsToObj(st, bgSt2Copy));
+			const stToEnf = Object.assign(sharedStyles, window.__cssValsToObj(st, bgSt2Copy));
 			var pseudoKey = "::before";
 			if(stBef["content"] !== "none"){
 				if(stAft["content"] !== "none"){
@@ -515,23 +515,6 @@
 		return div;
 	}
 
-	function __enforceCSSVals(el, cssValObj) {
-		Object.keys(cssValObj).forEach(prop => {
-			el.style.setProperty(prop, cssValObj[prop], "important");
-		});
-	}
-
-	function __cssValsToObj(styleDecl, propArr) { // Subselects and Puts CSS styles in an object with detectable/iterable keys
-		const res = {};
-		propArr.forEach(prop => {
-			res[prop] = styleDecl[prop];
-			if (styleDecl[prop] === undefined) {
-				console.error("Property ", prop, " is undefined on a CSSStyleDeclaration object");
-			}
-		});
-		return res;
-	}
-
 	//	function __divStylesToCopy(st){
 	//		return ["width", "height", "position", "top", "left", "right", "bottom", "z-index", "float", "display", "writing-mode", "direction"].concat([...st].filter((cssProp)=>{
 	//			//, "border", "margin-top", "margin-left", "margin-right", "margin-bottom"
@@ -655,8 +638,8 @@
 					debugger;
 				}
 				// get styles to apply to an external div/placeholder
-				const _stCpy = __cssValsToObj(st, window.__getAllCssPropList());
-				var stToEnf = __cssValsToObj(st, stToCopy); //__cssValsToObj(st, [...st]);
+				const _stCpy = window.__cssValsToObj(st, window.__getAllCssPropList());
+				var stToEnf = window.__cssValsToObj(st, stToCopy); //window.__cssValsToObj(st, [...st]);
 				stToEnf = Object.assign(stToEnf, __getNonAutoSizesToEnforce(el2rep, st)); // "auto" width/height are zero when applied to divs
 				// otherwise copy all, with [...st]
 				// display:inline make our div height to collapse ==> replace with inline-block if needed
@@ -679,7 +662,7 @@
 				stToEnf.backgroundImage = "none";
 				// ensuring that our divs aren't replaced with "content"
 				stToEnf.content = "none";
-				__enforceCSSVals(outerDiv, stToEnf);// ensure our div is properly positioned/sized
+				window.__enforceCSSVals(outerDiv, stToEnf);// ensure our div is properly positioned/sized
 				// 2 - make internal div occupy all of the space
 				var div;
 				if(settings.coverInternPadding){
@@ -688,7 +671,7 @@
 					// div = document.createElement("div");
 					div = window.__makeCleanDiv();
 					div._thisIsAReplacedDiv = true;
-					__enforceCSSVals(div, {
+					window.__enforceCSSVals(div, {
 						"width": "100%",
 						"height": "100%",
 						"padding": "0",
@@ -698,14 +681,14 @@
 					});
 					if(stToEnf.display === "table" || stToEnf.display === "inline-table"){ // to make sure "height": "100%" is respected
 						// IS it really a special case? Should use simply use "display:inherit" for all cases? Is it going to break something if I do?...
-						__enforceCSSVals(div, {display: "table-cell"});
+						window.__enforceCSSVals(div, {display: "table-cell"});
 					}
 					outerDiv.appendChild(div);	
 				}
 				// 2.5 - add textContent <-- adding content affects/sets a parent's 'baseline', so it's elements are properly aligned (since the default alignment for inline-block elements is "baseline")
 				if(el2rep.innerText || cntrlsWithTextEls.includes(el2rep) || __isItFile(el2rep)){ // only for replaceing text-containing elements -- otherwise leading is screwed up again for images
 					div.textContent = ".";
-					__enforceCSSVals(div, {"color": "transparent"}); // so the "." isn't visible	
+					window.__enforceCSSVals(div, {"color": "transparent"}); // so the "." isn't visible	
 				}
 				// 3 - Set background-image
 				var getBgImgColPr;
@@ -837,7 +820,7 @@
 				div.textContent = "";
 			}else{
 				div.textContent = ".";
-				__enforceCSSVals(div, {"color": "transparent"}); // so the "." isn't visible								
+				window.__enforceCSSVals(div, {"color": "transparent"}); // so the "." isn't visible								
 			}
 			// checking hDiff again - maybe me made it worse
 			if(isItWorse()){
@@ -857,7 +840,7 @@
 				if(parseFloat(pSt["font-size"]) < parseFloat(_stCpy["font-size"]) || (!isNaN(_origElLineH) && (isNaN(_pLineH) || _pLineH < _origElLineH))){
 					 pSt2Restore.push(___getCssVals(outerDiv.parentElement, "font-size"));
 					 pSt2Restore.push(___getCssVals(outerDiv.parentElement, "line-height"));
-					__enforceCSSVals(outerDiv.parentElement, {"line-height": _stCpy["line-height"], "font-size": _stCpy["font-size"]});
+					window.__enforceCSSVals(outerDiv.parentElement, {"line-height": _stCpy["line-height"], "font-size": _stCpy["font-size"]});
 					if(isItWorse()){
 						__restoreCssVals(pSt2Restore);
 						pSt2Restore.length = 0;
@@ -880,12 +863,12 @@
 				const _oldStObj = ___getCssVals(outerDiv.parentElement, "vertical-align");
 				const possibleVAlignVals = ["top", "middle", "baseline", "bottom", "sub", "super", "text-bottom", "text-top"];
 				const _minHDiffI = possibleVAlignVals.map(vAlignVal=>{
-					__enforceCSSVals(outerDiv.parentElement, {"vertical-align": vAlignVal});
+					window.__enforceCSSVals(outerDiv.parentElement, {"vertical-align": vAlignVal});
 					return Math.abs(ph - window.getScrlEl().scrollHeight);
 				}).reduce((a, x, i, arr)=>{
 					return (x < arr[a])?i:a;
 				}, 0);
-				__enforceCSSVals(outerDiv.parentElement, {"vertical-align": possibleVAlignVals[_minHDiffI]});
+				window.__enforceCSSVals(outerDiv.parentElement, {"vertical-align": possibleVAlignVals[_minHDiffI]});
 				if(isItWorse()){
 					__restoreCssVals([_oldStObj]);
 				}else{
@@ -959,7 +942,7 @@
 	// 	});
 	// 	nodeObjWraps.forEach((x) => {
 	// 		const cssOpacity = parseFloat(window.getComputedStyle(x.el).opacity);
-	// 		__enforceCSSVals(x.el, {
+	// 		window.__enforceCSSVals(x.el, {
 	// 			"opacity": (isNaN(cssOpacity) || cssOpacity > MIN_VISIBLE_OPACITY)?"1":"0"
 	// 		});
 	// 	});
@@ -1062,8 +1045,8 @@
 			return Array.from(el.querySelectorAll("*")).concat([el]).map(subEl=>{
 				// const css2RestoreSubArr = ["background-image", "background-color", "color", "text-shadow"]
 				const css2RestoreSubArr = Object.keys(BLACK_TXT_STYLES).map(cssProp=>___getCssVals(subEl, cssProp));
-				__enforceCSSVals(subEl, BLACK_TXT_STYLES);
-				// __enforceCSSVals(subEl, {"background-color": "black", "background-image": "none", "color": "black", "text-shadow": "none", "border-color": "black"});
+				window.__enforceCSSVals(subEl, BLACK_TXT_STYLES);
+				// window.__enforceCSSVals(subEl, {"background-color": "black", "background-image": "none", "color": "black", "text-shadow": "none", "border-color": "black"});
 				return css2RestoreSubArr;
 			});
 		}).flat(2);
@@ -1131,7 +1114,7 @@
 							el.__presentBorders.forEach((side) => {
 								const cssColProp = `border-${side}-color`;
 								elsToRestore.push(___getCssVals(el, cssColProp));
-								__enforceCSSVals(el, Object.fromEntries([[cssColProp, "black"]]));
+								window.__enforceCSSVals(el, Object.fromEntries([[cssColProp, "black"]]));
 							});
 						}
 					});
@@ -1211,7 +1194,7 @@
 						Object.keys(stToChange).forEach(cssProps => {
 							elsToRestore.push(___getCssVals(el, cssProps));
 						});
-						__enforceCSSVals(el, stToChange);
+						window.__enforceCSSVals(el, stToChange);
 					}
 				});
 			});
@@ -1229,7 +1212,7 @@
 				if(hSt["background-image"] === "none"){
 					elsToRestore.push(___getCssVals(rootCnsPaintEl, "background-color"));
 					elsToRestore.push(___getCssVals(rootCnsPaintEl, "background-image"));
-					__enforceCSSVals(rootCnsPaintEl, {"background-color": "white", "background-image": "none"});	
+					window.__enforceCSSVals(rootCnsPaintEl, {"background-color": "white", "background-image": "none"});	
 				}else{
 					console.log("[SCRAMBLE] ", rootCnsPaintEl.tagName, " with imgBg detected --> not whitening it.");
 				}
@@ -1253,7 +1236,7 @@
 						// NEW: if a bg element is relatively small, count it as content, not bg
 						const looksLikeAThing = window.__isItUI(el);
 						const newBgC = _col2BlackButPreserveAlpha(c, {whitenInstead: !looksLikeAThing, avoidDefaultTransparent: true});
-						__enforceCSSVals(el, {"background-image": "none", "background-color": newBgC});
+						window.__enforceCSSVals(el, {"background-image": "none", "background-color": newBgC});
 						// window.__setCSSPropJqArr([el], "background-color", newBgC, "important");
 					});
 					// window.__setCSSPropJqArr(jqBgColSetRef, "background-color", "white", "important");
@@ -1265,7 +1248,7 @@
 							elsToRestore.push(___getCssVals(el, brdProp));
 							const c = window.getComputedStyle(el)[brdProp];
 							const newC = _col2BlackButPreserveAlpha(c, {whitenInstead: true});
-							__enforceCSSVals(el, Object.fromEntries([[brdProp, newC]]));
+							window.__enforceCSSVals(el, Object.fromEntries([[brdProp, newC]]));
 							// window.__setCSSPropJqArr([el], brdProp, _col2BlackButPreserveAlpha(c, {whitenInstead: true}), "important");
 						});
 						// window.__setCSSPropJqArr(jqSameBrdBgEls, brdProp, _col2BlackButPreserveAlpha({whitenInstead: true}), "important");
@@ -1416,6 +1399,4 @@
 	window._scramblePage = _scramblePage;
 	window._restorePage = _restorePage;
 	window.SCRAMBLE_VARIANTS = SCRAMBLE_VARIANTS;
-	window.__cssValsToObj = __cssValsToObj;
-	window.__enforceCSSVals = __enforceCSSVals;
 })();

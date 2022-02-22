@@ -322,11 +322,31 @@
 			});
 	}
 	
+	function __enforceCSSVals(el, cssValObj) { // unsafe: doesn't remember previous cssProps --> only use for temporary Elements
+		Object.keys(cssValObj).forEach(prop => {
+			el.style.setProperty(prop, cssValObj[prop], "important");
+		});
+	}
+
+	function __cssValsToObj(styleDecl, propArr) { // Subselects and Puts CSS styles in an object with detectable/iterable keys
+		const res = {};
+		propArr.forEach(prop => {
+			res[prop] = styleDecl[prop];
+			if (styleDecl[prop] === undefined) {
+				console.error("Property ", prop, " is undefined on a CSSStyleDeclaration object");
+			}
+		});
+		return res;
+	}
+	
+	window.__cssValsToObj = __cssValsToObj;
+	window.__enforceCSSVals = __enforceCSSVals;
+	
 	window.findElsStyledByOrder = findElsStyledByOrder;
 	window.findElsStyledOnHover = findElsStyledOnHover;
 	
 	window.__getAllCssPropList = __getAllCssPropList;
-	window.removeDefaultSpanCss = removeDefaultSpanCss;
+	window.removeDefaultSpanCss = removeDefaultSpanCss; // not used anymore
 	window.toggleCssStyling = toggleCssStyling;
 	window.stripIdenticalCss = stripIdenticalCss;
 	window.recordNoStylingCssAsync = recordNoStylingCssAsync;

@@ -516,7 +516,6 @@
 						var pageCnvsBefore = window.getStoredFullPageCanvas(); // window.page2Canvas(true);
 						// jqG.origPageCnvs = pageCnvsBefore; // saving for the future use
 					}
-					debugger;
 					// 2.-1 - If needed, expand html/body height to capture the page-underlying canvas bgImg
 					_restoreBodyHF = ensureBaseCanvasVisible();
 					// 2 - Prep stylesheets

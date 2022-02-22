@@ -4,6 +4,8 @@
 
 (function(){
 	const ciceroText = "Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo. Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt. Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit, sed quia non numquam eius modi tempora incidunt ut labore et dolore magnam aliquam quaerat voluptatem. Ut enim ad minima veniam, quis nostrum exercitationem ullam corporis suscipit laboriosam, nisi ut aliquid ex ea commodi consequatur? Quis autem vel eum iure reprehenderit qui in ea voluptate velit esse quam nihil molestiae consequatur, vel illum qui dolorem eum fugiat quo voluptas nulla pariatur?"; // used in checking if a node has pre-defined width/height
+	
+	const GGL_ICO_URL = "https://t1.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&size=128&url="; // + window.origin
 
 	function getPageVarData(pageVarsNeeded, thisIframeIsAWidget, thisIsIframe = false) {
 		if (!pageVarsNeeded) {
@@ -210,15 +212,21 @@
 		});
 		// 9.4 - record Special Semantic group props (cnvs/n invis images for banners; expandable menu structures; external links/src)
 		// 9.4.1 - Banners - saving invisible images
-		const pr12 = pr11.then(()=>{
-			if(!semGrNamesToRecord.includes("rotatingBanners")){
-				return Promise.resolve();
-			}
-			return window.domGetters.getSemanticGrPrms("rotatingBanners").then(_getBannerExtraDataAsync).then( resObj=>{
-				resDataObj.data.bannerHiddImgData = resObj.data;
-				screenshotsToSave.groups.bannerHiddImg = resObj.imgArr;
+		const pr12 = pr11
+			.then(()=>{
+				if(!semGrNamesToRecord.includes("rotatingBanners")){
+					return Promise.resolve();
+				}
+				return window.domGetters.getSemanticGrPrms("rotatingBanners").then(_getBannerExtraDataAsync).then( resObj=>{
+					resDataObj.data.bannerHiddImgData = resObj.data;
+					screenshotsToSave.groups.bannerHiddImg = resObj.imgArr;
+				});
+			})
+			// 9.4.1.1 - Favicons -- piggyBacking on an existing promise
+			.then(_extractFavIconsAsync)
+			.then(icoImgArr=>{
+				screenshotsToSave.groups.icoImgs = icoImgArr;
 			});
-		});
 		// 9.4.2 - Menus - expandable items/invis items/structure
 		const pr13 = pr12.then(()=>{
 			if(['menusV', 'menusH', 'menusMixed'].every(m=>!semGrNamesToRecord.includes(m))){
@@ -359,6 +367,77 @@
 		return jqFuncAreas.toArray().map(el=>{
 			return __addElIdToObj(el, {tag: el.tagName.toLowerCase(), funcAreaType: el._funcAreaType});
 		});
+	}
+	
+	function __icoNameFromUrl(url){
+		// url: absolute URL
+		console.assert(url && url.indexOf("http") === 0, "[FAVICON] Bad absolute url to get a website icon from:", url, "Loc:", location.href);
+		let imgName = (new URL(url)).pathname.split("/").pop();
+		if(!imgName){
+			console.warn("[FAVICON] Filename couldn't be extracted from the url:", url, "Location:", location.href);
+			imgName = "[empty]";
+		}
+		return imgName;
+	}
+	
+	function _extractFavIconsAsync(){
+		// favicons aren't visible, so no point having their extraction in dom.processing.js
+		// 1 - Get urls
+		const nameValSep = "=|"; // I hope attributes don't happen to contain this as a sub-string // FIXME: Rework attribute saving as a data table
+		const btwAttrSep = "||";
+		const escSlash = (str)=>str.replaceAll("/", "-|-");
+		// 1.1 - Try favicon head tags
+		const favData = Array
+			.from(document.querySelectorAll("head link[rel*='icon']"))
+			.filter(el=>el.href)
+			.map(el=>{
+				// 1.1.1 - Extract href
+				const url = el.href; // <link> automatically resolves relative urls
+				// 1.1.2 - Get Extra data to save
+				const extraDatStr = Array
+					.from(el.attributes)
+					.filter(attr=>attr.name !== "href")
+					.filter(attr=>attr.name !== "data-el-gen-id") // no point saving our generated ids
+					.map(attr=>attr.name + nameValSep + escSlash(attr.value))
+					.join(btwAttrSep);
+				// 1.1.3 - Put data in file name
+				let imgName = __icoNameFromUrl(url);
+				if(extraDatStr.length){
+					imgName = extraDatStr + btwAttrSep + imgName;
+				}
+				return {url: url, name: imgName};
+			});
+		// 1.2 - if no <link> icons, try favicon.ico
+		if(!favData.length){
+			favData.push({url: (new URL("/favicon.ico", location.href).href), name: "[def]favicon.ico"});
+		}		
+		// 2 - Convert urls to saveable data
+		return Promise
+			.allSettled(favData.map(icoDat=>{
+				return window
+					.url2canvasAsync(icoDat.url)
+					.then(cnvs=>{
+						// converting to the right format for saving images upstream
+						return {name: icoDat.name, dat: window.__cnvs2DataUrl(cnvs)};
+					});
+			}))
+			.then(resArr=>{
+				const nonFailedResArr = Array.from(resArr).filter(res=>res.status === "fulfilled");
+				if(nonFailedResArr.length){
+					return nonFailedResArr.map(res=>res.value);
+				}
+				// 3 - If all else failed to find a favicon, use Google
+				const gglIcoUrl = GGL_ICO_URL + window.origin;
+				return window
+					.url2canvasAsync(gglIcoUrl, {ensureNoPlaceholderImg: true})
+					.then(cnvs=>Object.fromEntries([["name", "[ggl]favicon.ico"], ["dat", window.__cnvs2DataUrl(cnvs)]]))
+					.then(obj=>[obj])
+					.catch(err=>{
+						console.log("%c[FAVICON]%c Default Ggl icon detected -- no favicon to record, Loc: " + location.href, "color: orange;", "color:gray");
+						console.error(err);
+						return [];
+					});
+			});
 	}
 
 	function _getBannerExtraDataAsync(jqBanners){
@@ -1091,6 +1170,10 @@
 		const cssTxtCol = window._cssCol2RgbaArr(st.color);
 		 // txt color
 		return window.getBgColorAsync(el, st, onlyTextBBox).then(bgColRgb=>{
+			if(!bgColRgb){
+				console.error("bgColRgb not defined, ", window.__el2stringForDiagnostics(el));
+				debugger;
+			}
 			const colRgb = window.combineCssColorWithBgColor(cssTxtCol, bgColRgb);
 			respObj._oldRgbTextCol = colRgb.join("_");
 			respObj._oldRgbBgCol = bgColRgb.join("_");
@@ -1611,6 +1694,14 @@
 			// return false;
 		});
 	}
+	
+	function __copyUpCSSTxtProps(elFrom, tmpElTo){
+		// to be used in _measurePureTextWidthHeight
+		// If an Element2BeReplaced is a control, we should copy text-related CSS before measuring its width in pixels -- because sometimes it's set directly on the element, while its parent, e.g., has fontSize === 0
+		const txtProps = ["font-size", "font-family", "font-stretch", "font-style", "font-weight", "font-variant"];
+		const css2set = window.__cssValsToObj(window.getComputedStyle(elFrom), txtProps);
+		window.__enforceCSSVals(tmpElTo, css2set);
+	}
 
 	function _measurePureTextWidthHeight(el, st = null, btwLineSpace){
 		// OPTIMIZE: this F duplicates __wrapBlockElContentsInSpan + __unwrapBlockElContentsFromSpans
@@ -1620,10 +1711,12 @@
 			st = window.getComputedStyle(el);
 		}
 		var bbox, node2repl, txtVal;
+		const span = window.__makeCleanSpan();
 		if(el.childNodes.length === 0 || window._tagSets.controls.has(el.tagName.toLowerCase())){
 			// this is a control <-- we can't embed a span inside it, but we could replace it with a span
 			txtVal = el.value || el.placeholder || el.innerText;
 			node2repl = el;
+			__copyUpCSSTxtProps(el, span);
 			// <option> can't be replaced with a span -- replacing the parent <select> instead
 			if(el.tagName.toLowerCase() === "option"){
 				node2repl = el.parentElement;
@@ -1635,7 +1728,6 @@
 		}
 		// TODO: use window._getTextNodeBBox instead of this span embedding
 		// Wrap textContent in a span, and measure it's dims <-- we don't have to do it for display === inline/inline-list, but it's just simpler -- avoid margins/padding/border
-		const span = window.__makeCleanSpan();
 		span.textContent = txtVal;
 		node2repl.replaceWith(span);
 		// record the bbox of the clean span -- it should wrap around the text with nothing added -- so pure width/height <== // DEBUG: check this
