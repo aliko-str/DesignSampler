@@ -1,8 +1,8 @@
 const path = require("path");
 
 const settings = {
-	profile: "Banks_New_0",
-	inFileUrls: path.join("./Inputs/BanksExtra", "Banks.Extra_0-500.txt"),
+	profile: "Banks_New_1",
+	inFileUrls: path.join("./Inputs/BanksExtra", "Banks.Extra_500-1000.txt"),
 	ffRunParams: {
 		source: "--source-dir=/Users/Aleksii/Projects/FF.v83.Addon.ScreenAndVars/addon/",
 		ff: "--firefox=/Users/Aleksii/tmp/Firefox Developer Edition.app/Contents/MacOS/firefox-bin",
