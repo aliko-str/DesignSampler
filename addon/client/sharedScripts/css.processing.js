@@ -97,6 +97,20 @@
 		return [];
 	}
 	
+	function findElsStyledByCrucialAttrs(){
+		// some styles rely on (not) having some attributes -- e.g., id, class, and style --> we modify these, so styling may get affected
+		const attrs2test = ["[id]", "[id=", "[class]", "[class=", "[style]", "[style="];
+		const matchedSelectors = _getAllSelectors().filter(s=>attrs2test.some(attrS=>s.indexOf(attrS) > -1));
+		if(matchedSelectors.length){
+			console.log("[CSS] Relevant Attribute-based selectors found:", matchedSelectors);
+			return Array
+				.from(document.documentElement.querySelectorAll("*"))
+				.filter(el=>matchedSelectors
+					.some(sel=>el.matches(sel)));
+		}
+		return [];
+	}
+	
 	function findElsStyledOnHover(jqEls) {
 		// finds elements that react to ":hover"
 		const regExNestedHover = /[>~+\d\w]( )+:hover/;
@@ -353,6 +367,7 @@
 	
 	window.findElsStyledByOrder = findElsStyledByOrder;
 	window.findElsStyledOnHover = findElsStyledOnHover;
+	window.findElsStyledByCrucialAttrs = findElsStyledByCrucialAttrs;
 	
 	window.__getAllCssPropList = __getAllCssPropList;
 	window.removeDefaultSpanCss = removeDefaultSpanCss; // not used anymore

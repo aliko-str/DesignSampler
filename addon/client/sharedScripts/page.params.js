@@ -388,7 +388,7 @@
 		const escSlash = (str)=>str.replaceAll("/", "-|-");
 		// 1.1 - Try favicon head tags
 		const favData = Array
-			.from(document.querySelectorAll("html link[rel*='icon']"))
+			.from(document.querySelectorAll("link[rel*='icon']"))
 			.filter(el=>el.href)
 			.map(el=>{
 				// 1.1.1 - Extract href

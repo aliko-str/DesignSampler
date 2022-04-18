@@ -506,7 +506,7 @@
 				return new Promise(function(resolve, reject) {
 					var outRes = null;
 					// const allEls = Array.from(document.body.querySelectorAll("*"));
-					const elsToTrackCssFor = window.findElsStyledByOrder();
+					const elsToTrackCssFor = window.findElsStyledByOrder().concat(window.findElsStyledByCrucialAttrs());
 					console.log("[PREPPING] N els to reverse changes to (cause styled by tree-based selectors):", elsToTrackCssFor.length);
 					// // 3.3 - Removing <noscript> so they don't affect our lists of invisible elements
 					// removeNoScript();
