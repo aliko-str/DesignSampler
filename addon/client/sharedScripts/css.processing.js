@@ -3,7 +3,6 @@
 (()=>{
 	const _getAllSelectors = (()=>{
 		var allSelectorsArrStore;
-		const parenthesisGrFinder = /(\([^())]*\)|\[[^\]\[]*\])/g; // only works for non-nested parentheses; If we meet nested parentheses, we presume it's a rare exception and move on
 		return function _getAllSelectors(settings = {refresh: false}){
 			if(!allSelectorsArrStore || settings.refresh){
 				allSelectorsArrStore = Array.from(document.styleSheets)
@@ -38,37 +37,44 @@
 					.flat(2)
 					.filter(rule=>rule.selectorText)
 					.map(rule => rule.selectorText)
-					.map(s=>{
-						// splitting multi-item selectors in individual selectors
-						// a - find all contents inside parentheses
-						var parnthGr = s.match(parenthesisGrFinder);
-						if(parnthGr){
-							// b - filter out no-comma parentheses groups - they are no danger for comma-based splitting
-							parnthGr = parnthGr.filter(str=>str.indexOf(",") > -1);
-							if(parnthGr.length){
-								// c - remove parentheses groups from selector
-								parnthGr.forEach((gr, i) => {
-									s = s.replaceAll(gr, "~~"+i+"~~");
-								});
-							}
-						}
-						var splits = s.split(",");
-						// d - put parentheses groups back in
-						if(parnthGr && parnthGr.length){
-							splits = splits.map(subSelector=>{
-								parnthGr.forEach((gr, i) => {
-									subSelector = subSelector.replaceAll("~~"+i+"~~", gr);
-								});
-								return subSelector;
-							});
-						}
-						return splits.map(s=>s.trim());
-					}).flat();	
+					.map(__splitInIndivSelectors)
+					.flat();	
 			}
 			return allSelectorsArrStore;
 		};
 		
 	})();
+	
+	function __splitInIndivSelectors(s){
+		// splitting multi-item selectors in individual selectors <-- NOTE: now works with nested parentheses
+		// z - set up
+		const parenthesisGrFinder = /(\([^())]*\)|\[[^\]\[]*\])/g; 
+		const parnthGrStore = []; // arr of groups -- length depends on the nestedness of parentheses
+		// a - find all contents inside parentheses
+		var parnthGr;
+		while(parnthGr = s.match(parenthesisGrFinder)){
+			parnthGrStore.push(parnthGr);
+			// b - remove parentheses groups from selector
+			const nestdnssLvl = parnthGrStore.length - 1;
+			parnthGr.forEach((gr, i) => {
+				s = s.replaceAll(gr, "~~"+i+"~"+ nestdnssLvl.toString() +"~~");
+			});
+		}
+		// c - actual splitting
+		var splits = s.split(",");
+		// d - put parentheses groups back in
+		while(parnthGrStore.length){
+			const parnthGr = parnthGrStore.pop();
+			const nestdnssLvl = parnthGrStore.length;
+			splits = splits.map(subSelector=>{
+				parnthGr.forEach((gr, i) => {
+					subSelector = subSelector.replaceAll("~~"+i+"~"+nestdnssLvl.toString()+"~~", gr);
+				});
+				return subSelector;
+			});
+		}
+		return splits.map(s=>s.trim());
+	}
 	
 	const __cleanCommasCssSelectors = (()=>{
 		// to be used in __findElsStyledOnHover: finds cases of multiple-item pseudo-classes (they now exist), with one of the items being a :hover that we've replaced --> which results in an extra comma, and a failing selector

@@ -860,10 +860,19 @@
 		// }
 		_injectCss1Element(el, pseudo = "", cssObj){
 			const propText = Object.entries(cssObj).map(kv => kv.join(":")).join(";");
+			const ifNativeIdSet = new Boolean(el.id);
 			if(!el.id){
 				el.id = window._generateId();
 			}
-			const selector = "#" + el.id + pseudo;
+			var selector = "#" + el.id + pseudo;
+			// checking for duplicate ids -- yes, it happens
+			if(ifNativeIdSet && document.querySelectorAll("#" + el.id).length > 1){
+				const uIdSel = window._generateId();
+				const uIdVal = window._generateId();
+				el.dataset[uIdSel] = uIdVal;
+				selector = `[data-${uIdSel}='${uIdVal}']${pseudo}`;
+				console.log("[CSS INJECT]%c Duplicate native id found --> switching to attibutes as selectors, new selector: " + selector + ", id: " + el.id + " Loc:" + window.location, "color:red;font-weight:bolder;");
+			}
 			try {
 				this.sheet.insertRule(selector + "{" + propText + "}", this.sheet.cssRules.length);
 			} catch (e) {

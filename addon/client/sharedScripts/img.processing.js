@@ -244,22 +244,31 @@
 		return Promise.all(jqBackImg.toArray().map(bgImgEl=>{
 			return new Promise(function(resolve, reject) {
 				const st = window.getComputedStyle(bgImgEl);
-				const img = new Image();
-				const defRes = {el: bgImgEl, loaded: false, nativeWidth: 0, nativeHeight: 0};
-				img.onerror = function (err) {
-					console.log("Error loading a BG image, ", img.src, "el:", bgImgEl.tagName+"."+bgImgEl.className);
-					resolve(defRes);
-				};
-				img.onload = function (ev) {
-					resolve(Object.assign(defRes, {loaded: true, nativeWidth: img.width, nativeHeight: img.height}));
-				};
 				const cssUrl = window._urlFromCssStr(st["background-image"]);
-				if(!cssUrl){
-					console.warn("Bad css url: ", st["background-image"]);
-					resolve(defRes);
+				const defRes = {el: bgImgEl, loaded: false, nativeWidth: 0, nativeHeight: 0};
+				// special case of SVG -- it takes the size of container
+				if(cssUrl.indexOf("data:image/svg") > -1){
+					const b = bgImgEl.getBoundingClientRect();
+					bgImgEl.__hasSvgBg = true; // can't really be used for control detection -- we don't know what the semantics of the image are -- maybe it's a logo, not a control
+					console.log("[IMG] data:image/svg found in src when in _getOnlyBgImgSizesAsync --> returning container sizes, ", b, window.location.href);
+					resolve(Object.assign(defRes, {loaded: true, nativeWidth: b.width, nativeHeight: b.height}));
+				}else{
+					// else wait for the image to load
+					const img = new Image();
+					img.onerror = function (err) {
+						console.log("Error loading a BG image, ", img.src, "el:", bgImgEl.tagName+"."+bgImgEl.className);
+						resolve(defRes);
+					};
+					img.onload = function (ev) {
+						resolve(Object.assign(defRes, {loaded: true, nativeWidth: img.width, nativeHeight: img.height}));
+					};
+					if(!cssUrl){
+						console.warn("Bad css url: ", st["background-image"]);
+						resolve(defRes);
+					}
+					img.setAttribute("src", cssUrl);
+					// img.src = cssUrl;	
 				}
-				img.setAttribute("src", cssUrl);
-				// img.src = cssUrl;
 			});
 		}));
 	};

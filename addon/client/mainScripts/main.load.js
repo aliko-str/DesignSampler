@@ -5,7 +5,7 @@
 
 	const scriptLoadedTimeout = 12000; // needs to be > delayFromScriptsToRun * 2 + scrollingTime
 	const delayForScriptsToRun = 5500;
-	const MAX_SCROLL_TOP_TIME = 1000; // because some pages continously firing "scroll" events that we use to know when scrollTop finished
+	const MAX_SCROLL_TOP_TIME = 3000; // because some pages continously firing "scroll" events that we use to know when scrollTop finished
 	// var hasLoaded = false;
 	
 	function _scrollTopAsync(){
@@ -15,7 +15,7 @@
 			const scrollHandler = () => {
 				window.clearTimeout(timer);
 				timer = setTimeout( () => {
-					console.log("Done scrolling to the top: ", Date.now()-tStart, "ms");
+					console.log("%cDone scrolling to the top: " + (Date.now()-tStart) + "ms", "color:pink;");
 					window.removeEventListener("scroll", scrollHandler);
 					done = true;
 					resolve();
@@ -24,9 +24,12 @@
 			window.addEventListener('scroll', scrollHandler, { passive: true });
 			tStart = Date.now();
 			window.scrollTo({top: 0, left: 0, behavior: "smooth"}); // some pages use scrolling-based animations, and these don't reset unless scrolling is 'smooth'
+			console.log("[SCROLL] To Top.");
 			window.setTimeout(()=>{
-				console.log("[SCROLL] Timed-out before scrollTop finished -- probably page firing 'scroll' events manually");
-				resolve();
+				if(!done){
+					console.log("[SCROLL] Timed-out before scrollTop finished -- probably page firing 'scroll' events manually");
+					resolve();
+				}
 			}, MAX_SCROLL_TOP_TIME);
 		});
 	}

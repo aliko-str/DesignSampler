@@ -297,6 +297,12 @@
 		});
 	};
 	
+	function _locAlarmPr(timeout){
+		return new Promise(function(resolve, reject) {
+			window.setTimeout(resolve, timeout);
+		});
+	}
+	
 	// Checking for Quirks mode and linking scrollingElement to documentElement if needed
 	const getScrlEl = (()=>{
 		// var scrlEl = window.getScrlEl();
@@ -334,6 +340,7 @@
 	
 	// window.stopMarqueeAsync = stopMarqueeAsync;
 	window._alarmPr = _alarmPr;
+	window._locAlarmPr = _locAlarmPr;
 	window.getScrlEl = getScrlEl;
 	window.pauseVideoAudio = pauseVideoAudio;
 	window.stopAllAnimations = stopAllAnimations;

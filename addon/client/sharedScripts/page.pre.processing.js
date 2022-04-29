@@ -525,52 +525,56 @@
 					_marquee2div(); // cause marquee causes trouble and often has no text, looking broken/empty
 					// 3.1 - Extract pseudo graphics in separate elements
 					_detachPseudoElements(); // this generates new <spans>, which affects what needs wrapping -- do it before wrapping
-					// 3.2 - Do alterations
-					__wrapNakedTxtNodesInSpans();
-					// A bit of time for reflow to happen - otherwise we have false-flag differences
-					// 3.3 - Hide outsideViewport fixed els <== TODO: move before taking 1st canvas to avoid false flags <-- after a debug
-					hideInvisFixedEls();
-					// 3.4 - appling CSS that no longer applies due to nth-child and nth-of-type being messed up (because of our element inserting above)
-					_cleanUpStyleReversingF = window.revert2PreCompStyles(elsToTrackCssFor, "UIFrozen");
-					window.setTimeout(()=>{
-						// 4 - Take another screenshot and compare/save the difference -- there should be any
-						if (diffCheckNeeded) {
-							var pageCnvsAfter = window.page2Canvas(true);
-							const diffThr = 2;
-							const {
-								sizeDiff,
-								wDiff,
-								hDiff,
-								canvasesAreSame,
-								diffCnvs,
-								accuDiff
-							} = window.getCnvsDiff(pageCnvsBefore, pageCnvsAfter, diffThr);
-							if (!canvasesAreSame) {
-								debugger;
+					window._locAlarmPr(350) // a small delay to finish UI reflows after PseudoElement extraction -- to avoid false style restorations
+						.then(()=>{
+							// 3.2 - Do alterations
+							__wrapNakedTxtNodesInSpans();
+							// A bit of time for reflow to happen - otherwise we have false-flag differences
+							// 3.3 - Hide outsideViewport fixed els <== TODO: move before taking 1st canvas to avoid false flags <-- after a debug
+							hideInvisFixedEls();
+							// 3.4 - appling CSS that no longer applies due to nth-child and nth-of-type being messed up (because of our element inserting above)
+							_cleanUpStyleReversingF = window.revert2PreCompStyles(elsToTrackCssFor, "UIFrozen");
+						})
+						.then(()=>window._locAlarmPr(300))
+						.then(()=>{
+							// 4 - Take another screenshot and compare/save the difference -- there should be any
+							if (diffCheckNeeded) {
+								var pageCnvsAfter = window.page2Canvas(true);
+								const diffThr = 2;
+								const {
+									sizeDiff,
+									wDiff,
+									hDiff,
+									canvasesAreSame,
+									diffCnvs,
+									accuDiff
+								} = window.getCnvsDiff(pageCnvsBefore, pageCnvsAfter, diffThr);
+								if (!canvasesAreSame) {
+									debugger;
+								}
+								console.assert(canvasesAreSame, "Visual Difference after manipulation, total size diff in pixels:", sizeDiff, "wDiff: ", wDiff, "hDiff:", hDiff, "total pixel value Diff: ", accuDiff, window.location.href);
+								// TODO log differences in console
+								outRes = {
+									accuDiff: accuDiff,
+									diffCnvs: diffCnvs
+								};
 							}
-							console.assert(canvasesAreSame, "Visual Difference after manipulation, total size diff in pixels:", sizeDiff, "wDiff: ", wDiff, "hDiff:", hDiff, "total pixel value Diff: ", accuDiff, window.location.href);
-							// TODO log differences in console
-							outRes = {
-								accuDiff: accuDiff,
-								diffCnvs: diffCnvs
-							};
-						}
-						// 5.1 - Clean up
-						window.toggleDomPrepForInstaManip("on", {
-							refresh: true
-						}); // refreshing due to us adding spans
-						// window.toggleDomPrepForInstaManip("off", {
-						// 	refresh: true
-						// }); // refreshing due to us adding spans
-						// 5.2 - ensuring getAllVis collections are refreshed
-						window.domGetters.forceRefresh();
-						// jqG.__elStore.allVis = null;
-						// 5.4 - Saving computed styles for all visible elements
-						document.documentElement.dispatchEvent(new Event("DOMPrepped"));
-						console.log("DONE PREPPING", location.href);
-						resolve(outRes);
-						// return outRes;
-					}, 300);
+							// 5.1 - Clean up
+							window.toggleDomPrepForInstaManip("on", {
+								refresh: true
+							}); // refreshing due to us adding spans
+							// window.toggleDomPrepForInstaManip("off", {
+							// 	refresh: true
+							// }); // refreshing due to us adding spans
+							// 5.2 - ensuring getAllVis collections are refreshed
+							window.domGetters.forceRefresh();
+							// jqG.__elStore.allVis = null;
+							// 5.4 - Saving computed styles for all visible elements
+							document.documentElement.dispatchEvent(new Event("DOMPrepped"));
+							console.log("DONE PREPPING", location.href);
+							resolve(outRes);
+							// return outRes;							
+						});
 				});
 			}	
 		};
