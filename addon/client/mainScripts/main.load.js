@@ -39,7 +39,7 @@
 			const nSteps = Math.floor(window.getScrlEl().scrollHeight / window.innerHeight);
 			for(let i = 1; i <= nSteps; i++){
 				window.setTimeout(()=>{
-					window.scrollTo({left: 0, top: window.scrollY + window.innerHeight, behavior: "instant"});
+					window.scrollTo({left: 0, top: Math.ceil(window.scrollY + window.innerHeight), behavior: "instant"});
 					console.log("Current scroll: ", window.scrollY, " Window height: ", window.getScrlEl().scrollHeight);
 				}, 150 * i);
 			}

@@ -10,8 +10,8 @@
 	function scrollDownUp(cb) {
 		const scrlEl = window.getScrlEl();//window.getScrlEl() || document.documentElement;
 		console.log("Current scroll: ", window.scrollY, " Window height: ", scrlEl.scrollHeight);
-		if (window.scrollY < (scrlEl.scrollHeight - window.innerHeight)) {
-			window.scrollTo(0, window.scrollY + window.innerHeight);
+		if (window.scrollY + 1 < (scrlEl.scrollHeight - window.innerHeight)) {
+			window.scrollTo(0, Math.ceil(window.scrollY + window.innerHeight));
 			window.setTimeout(function () {
 				scrollDownUp(cb);
 			}, 150);
