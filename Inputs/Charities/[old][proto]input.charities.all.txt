@@ -311,4 +311,4 @@ http://www.ruok.org.au		false	6000
 https://www.redkite.org.au/		false	6000
 http://rslnational.org		false	6000
 http://www.snowfoundation.org.au/		false	6000
-http://www.wipan.net.au
+http://www.wipan.net.au		false	6000
