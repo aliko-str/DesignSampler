@@ -45,6 +45,29 @@ function listenForTimers(){
 	});
 };
 
+function _enableFullCORS(httpRespInfo){
+	// fixing Web Admins' fuckups -- not set Access-Control-Allow-Origin headers (often leads to non-loaded icons, fonts, etc.)
+	const reqTypesToAlter = ["script", "xmlhttprequest", "font"];
+	if(reqTypesToAlter.includes(httpRespInfo.type)){ // only for documents
+		if(httpRespInfo.responseHeaders){
+			const corsHeader = httpRespInfo.responseHeaders.find(obj=>obj.name.toLowerCase() === "access-control-allow-origin");
+			if(corsHeader === undefined){
+				httpRespInfo.responseHeaders.push({
+					name: "Access-Control-Allow-Origin",
+					value: "*"
+				});
+				// console.log("[CORS Mod] Modifying Access-Control-Allow-Origin response header, TO '*''"); // too noisy -- disabling
+				return {responseHeaders: httpRespInfo.responseHeaders};
+			}
+			// console.log("[CORS Mod] NOT Modifying anything, existing Access-Control-Allow-Origin: ", corsHeader.value);
+		}	
+	}else{
+		// console.log("[cenableFullCORS] Type not to be altered: ", httpRespInfo.type);
+		// console.log("_%cenableFullCORS", "color:red;");
+	}
+	return {}; // Empty obj --> modifying nothing
+}
+
 function _enableEvalModifCSP(httpRespInfo){
 	// probably better only modify Content Security Policy headers for the target Tab, but I don't care about implementing it now -- do it for the entire browser
 	// NOTE: didn't work for dynamically inserted <iframes> (e.g., what FB does) -- not sure why --> Nuclear option, set security.csp.enable to "false"
@@ -96,6 +119,8 @@ async function doAllTheWork(setUpData, port) {
 	var jobProgress = setUpData.jobProgress;
 	const pageMods = setUpData.pageMods;
 	__debug = settings.debug;
+	// a good place for the CORS header modification -- so I see a non-broken page during previsiting too
+	browser.webRequest.onHeadersReceived.addListener(_enableFullCORS, {urls: ["*://*/*"]}, ["blocking", "responseHeaders"]);
 	// 1.2 - Make sure we listen for setting Update
 	const updateSetUpData = () => {
 		return new Promise(function (resolve, reject) {
@@ -163,6 +188,7 @@ async function doAllTheWork(setUpData, port) {
 			// global clean-up
 			browser.gTab.stopResizingBrowserTabsTo();
 			browser.webRequest.onHeadersReceived.removeListener(_enableEvalModifCSP);
+			browser.webRequest.onHeadersReceived.removeListener(_enableFullCORS);
 			ifrIdCleanUpF();
 			browser.browserAction.enable();
 		});
