@@ -1,4 +1,5 @@
 FF profile mode: security.csp.enable
+FF: extensions.experiments.enabled
 
 // // check what's contained in what, and how many full, unique groups we have
 // const _allPrims = elArrArrCpy.flat();

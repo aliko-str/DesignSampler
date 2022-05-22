@@ -167,7 +167,7 @@
 			var __nTries = 0;
 			const MAX_TRIES = 5;
 			var __intrvId2 = setInterval(()=>{
-				if(document.body.innerHTML || __nTries >= MAX_TRIES){
+				if((document.body && document.body.innerHTML) || __nTries >= MAX_TRIES){
 					console.log("%c __nTries to initialize events for an empty-body iframe: " + __nTries, "color:orange;");
 					window.clearInterval(__intrvId2);
 					attachPapaListeners();
@@ -177,7 +177,9 @@
 		}	
 	}
 	
-	dumbHackInit();
+	window.addEventListener("load", dumbHackInit);
+	
+	// dumbHackInit();
 	
 	function attachPapaListeners(){
 		// This F is just a wrapper for the stupid hack right above

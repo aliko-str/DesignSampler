@@ -866,7 +866,7 @@
 			}
 			var selector = "#" + el.id + pseudo;
 			// checking for duplicate ids -- yes, it happens
-			if(ifNativeIdSet && document.querySelectorAll("#" + el.id).length > 1){
+			if(ifNativeIdSet && document.querySelectorAll("#" + CSS.escape(el.id)).length > 1){
 				const uIdSel = window._generateId();
 				const uIdVal = window._generateId();
 				el.dataset[uIdSel] = uIdVal;
