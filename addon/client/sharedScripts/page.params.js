@@ -371,7 +371,10 @@
 	
 	function __icoNameFromUrl(url){
 		// url: absolute URL
-		console.assert(url && url.indexOf("http") === 0, "[FAVICON] Bad absolute url to get a website icon from:", url, "Loc:", location.href);
+		console.assert(url && (url.indexOf("http") === 0 || url.indexOf("data:image") > -1), "[FAVICON] Bad absolute url to get a website icon from:", url, "Loc:", location.href);
+		if(url.indexOf("data:image") > -1){
+			return url.split(",")[0].replace("/", "");
+		}
 		let imgName = (new URL(url)).pathname.split("/").pop();
 		if(!imgName){
 			console.warn("[FAVICON] Filename couldn't be extracted from the url:", url, "Location:", location.href);
