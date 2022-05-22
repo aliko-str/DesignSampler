@@ -40,18 +40,21 @@
 			// jqRoot.find("#" + draggableId).prepend(framesetWarn);
 		}
 	}
+	
+	// frequent shortcuts -- to minimize typing in FF console
+	// window.$$c = (s)=>document.querySelectorAll(s).forEeach(x=>x.click());
+	// window.$$r = (s)=>document.querySelectorAll(s).forEeach(x=>x.remove());
+	const w = window.wrappedJSObject;
+	w.eval("window.$$c = (s)=>document.querySelectorAll(s).forEach(x=>x.click());");
+	w.eval("window.$$r = (s)=>document.querySelectorAll(s).forEach(x=>x.remove());");
 
 	function renderFormAndAssignHandlers() {
 		const _log = console.log;
 		console.log = function () {
 			return _debug ? _log("[CONTENT Script Previsit]", ...arguments) : undefined; // swallow log messages if not in debug - otherwise it's a bit too console polluting
 		};
-
 		var urlId = "NOT SET URL ID";
 		var tabId = "NOT SET TAB ID";
-		if (!jQuery) {
-			throw new Error("We'd want jQuery loaded");
-		}
 		window.scrollTo(0, 0);
 		const bodyClone = $("body").clone(); // Not doing removals on the original html, so we see all the effects at least once
 		bodyClone.find("script").remove(); // so scripts dont get confused when re-run
@@ -64,8 +67,17 @@
 			$("body").append(origBodyHtml);
 		};
 		const _getF = ()=>{
-			const txtAreatxt = $("#" + formId).find("textarea").val().replaceAll("$$", "document.querySelectorAll");
-			return new Function("$", "addCssF", txtAreatxt);
+			const txtAreatxt = $("#" + formId).find("textarea").val();
+			const pieces = txtAreatxt.split(";").map(s=>{
+				if(s.indexOf("$$c") > -1){
+					return s.replace("$$c", "document.querySelectorAll") + ".forEach(x=>x.click())";
+				}else if(s.indexOf("$$r") > -1){
+					return s.replace("$$r", "document.querySelectorAll") + ".forEach(x=>x.remove())";
+				}
+				return s;
+			});
+			const ft = pieces.join(";").replaceAll("$$", "document.querySelectorAll"); // handling console's native $$
+			return new Function("$", "addCssF", ft);
 		};
 		const jqOurForm = $(htmlForm);
 		_renderWarnings(jqOurForm);
