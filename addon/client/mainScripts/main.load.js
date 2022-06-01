@@ -46,29 +46,6 @@
 			window.setTimeout(resolve, 150 * nSteps + 10);
 		});
 	}
-
-	// var _hasRun = false;
-	// 
-	// function startWorkingOnPage() {
-	// 	const _main = window.addonMain;
-	// 	if (_hasRun) {
-	// 		return;
-	// 	}
-	// 	_hasRun = true;
-	// 	window.setTimeout(function () {
-	// 		// This could probably be done from a Content Script -- no need for being a page script
-	// 		Promise
-	// 			.race([_scrollDownAsync().then(_scrollTopAsync), new Promise(function(resolve, reject) {
-	// 				window.setTimeout(()=>{
-	// 					reject("After double waiting period of scriptLoadedTimeout, " + scriptLoadedTimeout + "Not everything has loaded/fired ");
-	// 				}, scriptLoadedTimeout);
-	// 			})])
-	// 			.catch(console.error)
-	// 			.then(()=>{
-	// 				_main();
-	// 			});
-	// 	}, delayFromScriptsToRun);
-	// }
 	
 	function scrollUpDown(){
 		// This could probably be done from a Content Script -- no need for being a page script
@@ -90,24 +67,10 @@
 		})
 		.then(()=>window.waitForAllImagesToLoadAsync())
 		.then(scrollUpDown)
+		.then(()=>{
+			return window._alarmPr(1000); // a second for the new content to try to load
+		})
 		.then(()=>window.addonMain());
-
-	// if (document.readyState === "complete") {
-	// 	window.waitForAllImagesToLoad(startWorkingOnPage);
-	// } else {
-	// 	window.addEventListener("load", x => window.waitForAllImagesToLoad(startWorkingOnPage));
-	// }
-	// // for the case when "load" is overwritten or fails to fire for any other reason
-	// window.setTimeout(function () {
-	// 	// NOTE: this part was intended to handle non-loading (infinite load) pages, but it no longer does - we inject this script at "document_end", which means after "load" ==> We should handle non-loads in br.main.js
-	// 	if (!_hasRun) {
-	// 		if (console && console.log) {
-	// 			console.log("Timed out on: " + window.location.href);
-	// 		}
-	// 		// here we don't care if images haven't loaded fully yet -- too much to wait
-	// 		startWorkingOnPage();
-	// 	}
-	// }, scriptLoadedTimeout);
 
 	window._scrollDownAsync = _scrollDownAsync;
 	window._scrollTopAsync = _scrollTopAsync;

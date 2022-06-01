@@ -228,64 +228,52 @@
 			});
 		}
 	}
-
-	function _waitForAllImagesToLoad(callback) {
-	//	console.log("WAITING FOR images in an iframe");
-		const element = document.body;
-		var allImgsLength = 0;
-		var allImgsLoaded = 0;
-		var allImgs = [];
-
-		var filtered = Array.prototype.filter.call(element.querySelectorAll('img'), function (item) {
-			if (item.src === '') {
-				return false;
+	
+	
+	function _waitForAllImagesToLoadPr () {
+		const allImgUrls = Array.from(document.querySelectorAll("img")).map(x=>x.src);
+		console.log("Images to load", allImgUrls.length, JSON.stringify(allImgUrls));
+		return Promise.allSettled(allImgUrls.map(imgUrl=>{
+			if(!imgUrl || imgUrl.indexOf("data:image/") > -1){
+				// nothing to wait for to load 
+				return Promise.reject("Empty or data:image/ URL, " + imgUrl);
 			}
-
-			// Firefox's `complete` property will always be `true` even if the image has not been downloaded.
-			// Doing it this way works in Firefox.
-			var img = new Image();
-			img.src = item.src;
-			return !img.complete;
-		});
-
-		allImgs = filtered.map(item => ({
-			src: item.src,
-			element: item
-		}));
-
-		allImgsLength = allImgs.length;
-		allImgsLoaded = 0;
-
-		// If no images found, don't bother.
-		if (allImgsLength === 0) {
-			return callback.call(element);
-		}
-
-		console.log("Images to load", allImgs.length, JSON.stringify(allImgs));
-
-		allImgs.forEach(function (img) {
-			var image = new Image();
-
-			// Handle the image loading and error with the same callback.
-			image.addEventListener('load', function () {
-				allImgsLoaded++;
-				// console.log("Loaded an image");
-				if (allImgsLoaded === allImgsLength) {
-					callback.call(element);
-					return false;
+			// checking if valid url
+			var urlObj;
+			try{
+				urlObj = new URL(imgUrl, document.location.href);
+			}catch(e){
+				// console.warn("[_waitForAllImagesToLoadPr] Not a valid URL:", imgUrl, location.href);
+				return Promise.reject("Not a valid URL, " + imgUrl);
+			}
+			// checking if http
+			if(urlObj.protocol !== "http:" && urlObj.protocol !== "https:"){
+				// console.log(urlObj, urlObj.protocol, imgUrl);
+				// console.warn("[_waitForAllImagesToLoadPr] : ", imgUrl, location.href);
+				return Promise.reject("Img url not http, " + imgUrl);
+			}
+			// trying to load the image
+			return new Promise(function(resolve, reject) {
+				// else wait for the image to load
+				const img = new Image();
+				img.onerror = function (err) {
+					// console.log("Error loading an image, ", imgUrl);
+					reject(err + imgUrl);
+				};
+				img.onload = function (ev) {
+					resolve();
+				};
+				img.setAttribute("src", imgUrl);
+			});
+		})).then(imgLoadResArr=>{
+			imgLoadResArr = Array.from(imgLoadResArr);
+			// console.log(JSON.stringify(imgLoadResArr));
+			console.log("[_waitForAllImagesToLoadPr] Images loaded: ", imgLoadResArr.reduce((a, x)=>a = (a + (x.reason?0:1)), 0), "OUT of", imgLoadResArr.length);
+			imgLoadResArr.forEach(x => {
+				if(x.reason){
+					console.warn("[_waitForAllImagesToLoadPr]" + x.reason);
 				}
 			});
-
-			image.addEventListener('error', function () {
-				allImgsLoaded++;
-				// console.log("Error loading an image");
-				if (allImgsLoaded === allImgsLength) {
-					callback.call(element);
-					return false;
-				}
-			});
-
-			image.src = img.src;
 		});
 	};
 	
@@ -324,18 +312,9 @@
 		};
 	})();
 	
-	// window.waitForAllImagesToLoad = function(cb){
-	// 	window.setTimeout(()=>{
-	// 		_waitForAllImagesToLoad(cb);
-	// 	}, 100); // small timeout - otherwise many images aren't found for some reason
-	// };
-	
 	window.waitForAllImagesToLoadAsync = function(){
-		return new Promise(function(resolve, reject) {
-			window.setTimeout(()=>{
-				_waitForAllImagesToLoad(resolve);
-			}, 100); // small timeout - otherwise many images aren't found for some reason
-		});
+		// small timeout - otherwise many images aren't found for some reason
+		return _locAlarmPr(100).then(_waitForAllImagesToLoadPr);
 	};
 	
 	// window.stopMarqueeAsync = stopMarqueeAsync;
