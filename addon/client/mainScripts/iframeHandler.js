@@ -33,6 +33,9 @@
 			console.warn("[IFRAME] Timed out on: " + window.location.href);
 		})
 		.then(()=>{
+			return window.shadowDom2IFramesAsync(false);
+		})
+		.then(()=>{
 			return window._alarmPr(delayForScriptsToRun);
 		})
 		.then(window.waitForAllImagesToLoadAsync);

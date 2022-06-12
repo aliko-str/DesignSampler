@@ -499,6 +499,7 @@
 				_cleanUpStyleReversingF(); // if it's not assigned, let it fall and debug
 				// readdNoScript();
 				_restoreBodyHF();
+				restoreShadowDom();
 			},
 			prepDomForDataExtractionAsync(diffCheckNeeded = false) {
 				console.log("PREPPING", location.href);
@@ -579,7 +580,105 @@
 			}	
 		};
 	})();
+	
+	const {shadowDom2IFramesAsync, restoreShadowDom} = (()=>{
+		var _diffRes, replPairs = [];
+		return {
+			// TODO: make it work for nested shadowRoots -- for now, just 1 nestedness level
+			shadowDom2IFramesAsync(diffCheckNeeded = true){
+				// 0 - fool checks
+				console.assert(_diffRes === undefined, "[shadowDom2IFrames] Should be called only once. Debug.", window.location.href);
+				// 1 - find all visible (not checking much -- iframes won't show overflow, so no point checking minSize) shadow doms
+				const shadowDomHosts = Array
+					.from(document.body.querySelectorAll("*"))
+					.filter(el=>el.openOrClosedShadowRoot)
+					.filter(el=>{
+						const st = window.getComputedStyle(el);
+						const o = parseFloat(st.opacity);
+						const b = el.getBoundingClientRect();
+						console.assert(!isNaN(o), "[shadowDom2IFrames] Opacity parsing failed:", o, st.opacity);
+						return st.visibility === "visible" && st.display !== "none" && o > 0.1 && (b.width > 1 && b.height > 1);
+					});
+				if(!shadowDomHosts.length){
+					console.log("[shadowDom2IFrames] No shadow DOM roots found.", window.location.href);
+					return Promise.resolve();
+				}
+				console.log("[shadowDom2IFrames]%c FOUND Shadow DOM roots, n: " + shadowDomHosts.length + " " + location.href, "color:#7FFFD4;");
+				// 2 - visual changes tracking
+				if(diffCheckNeeded){
+					var cnvsBefore = window.page2Canvas(true);
+				}
+				// 3 - make empty divs as iframe placeholders; enforce missing CSS on them
+				// NOTE: Replacing the original shadowDom Hosts with <div>s may break sibling/order-based CSS <-- let's hope it's minimal <-- If not, we'll have to track it
+				const prArr = shadowDomHosts.map(el=>{
+					return new Promise(function(resolve, reject) {
+						// create a div with an iFrame; clone its attributes
+						const iFrame = document.createElement("iframe");
+						iFrame.addEventListener('load', ()=>{
+							const iDoc = iFrame.contentWindow.document;
+							el.openOrClosedShadowRoot.childNodes.forEach(chNode=>{
+								const ndCpy = iDoc.importNode(chNode, true);
+								iDoc.body.appendChild(ndCpy);
+								// iDoc.body.appendChild(chNode.cloneNode(true));
+							});
+							resolve();
+							debugger;
+						});
+						iFrame.setAttribute("shadow-dom-replacement", "yes");
+						Array.from(el.attributes).forEach(x=>iFrame.setAttribute(x.name, x.value));
+						// const shadowChildClones = Array.from(el.openOrClosedShadowRoot.childNodes).map(chNode=>chNode.cloneNode(true));
+						// save orig css
+						const origElSt = window.__cssValsToObj(window.getComputedStyle(el), window.__getAllCssPropList());
+						// save innerHTML // add div
+						el.replaceWith(iFrame);
+						// shadowChildClones.forEach(chNode=>{
+						// 	iFrame.contentWindow.document.body.appendChild(chNode);
+						// });
+						// enforce css difference
+						const divStToEnf = window.stripIdenticalCss(origElSt, window.getComputedStyle(iFrame));
+						window.__enforceCSSVals(iFrame, divStToEnf);
+						// keep a ref to revert changes
+						// return {iFrame, el};
+						replPairs.push({iFrame, el});
+						// iFrame.setAttribute("src", "about:blank");
+					});
+				});
+				return Promise
+					.all(prArr)
+					.then(()=>{
+						// 4 - check for visual differences
+						if(diffCheckNeeded){
+							const cnvsAfter = window.page2Canvas(true);
+							const diffThr = 4;
+							const {
+								sizeDiff,
+								wDiff,
+								hDiff,
+								canvasesAreSame,
+								diffCnvs,
+								accuDiff
+							} = window.getCnvsDiff(cnvsBefore, cnvsAfter, diffThr);
+							if (!canvasesAreSame) {
+								debugger;
+							}
+							console.assert(canvasesAreSame, "Visual Difference after manipulation, total size diff in pixels:", sizeDiff, "wDiff: ", wDiff, "hDiff:", hDiff, "total pixel value Diff: ", accuDiff, window.location.href);
+							return {
+								accuDiff,
+								diffCnvs
+							};
+						}
+					});
+			},
+			restoreShadowDom(){
+				replPairs.forEach(({iFrame, el})=>{
+					iFrame.replaceWith(el);
+				});
+			}
+		};
+	})();
 
+
+	window.shadowDom2IFramesAsync = shadowDom2IFramesAsync;
 	window.restoreDomAfterDataExtraction = restoreDomAfterDataExtraction;
 	window.prepDomForDataExtractionAsync = prepDomForDataExtractionAsync;
 	window.toggleDomPrepForInstaManip = createFToggleDomPrepForInstaManip();

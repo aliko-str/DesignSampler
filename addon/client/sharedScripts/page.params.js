@@ -273,7 +273,7 @@
 		});
 		// 11 - Some fool checks; Converting dataObjArr to text
 		const pr16 = pr15.catch(e=>{
-			console.error(e, window.location.href);
+			console.error(JSON.stringify(e), window.location.href);
 			console.error(e.stack);
 		}).then(()=>{
 			// NOTE: In-group membership is only for counting elements; Properties (incl. content alignment) will need to be computed/recorded for each group separately from their elements
@@ -539,7 +539,6 @@
 				if(typeof subArrEls.some !== "function"){
 					debugger;
 				}
-				
 				nodes = primArr.filter(primEl=>subArrEls.some(subGrEl=>subGrEl.contains(primEl)));
 			}
 			return {_id: idArr[i], nodes: nodes, i: i};

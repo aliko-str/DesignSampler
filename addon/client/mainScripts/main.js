@@ -5,6 +5,8 @@
 // const _debug = true;
 
 (function(){
+	var cnvsDiffAfterShadowDomMods, accuDiffAfterShadowDomMods;
+	
 	function applyPageModsAsync(){
 		// We need to do this before anything else, but after a page loaded -- pageMods determine which iframes are visible (e.g., due to removing "overflow:hidden" on <html>)
 		return browser.runtime.sendMessage({"action": "GiveMePageMods"})
@@ -43,9 +45,21 @@
 		console.log("Main Content Script rolling, ", window.location.href);
 		window.recordNoStylingCssAsync()
 			.then(applyPageModsAsync)
+			.then(()=>window.shadowDom2IFramesAsync(true)) // NOTE: I have to do it here (and not with other page alterations) since otherwise the new IFrames won't be counted as visible, and won't be processed
+			.then(diff=>{
+				if(diff){
+					cnvsDiffAfterShadowDomMods = diff.diffCnvs;
+					accuDiffAfterShadowDomMods = diff.accuDiff;
+				}
+			})
+			.then(()=>{
+				return window._alarmPr(1000);
+			})
 			.then(handleIFrameLoadingAsync)
 			.then(mainWork);
 	}
+	
+
 	
 	function handleIFrameLoadingAsync(){
 		_listenForDocSizeQuestions();
@@ -132,6 +146,17 @@
 					});
 				}
 				return Promise.resolve(); // we won't be collecting data, so don't bother changing anything
+			}).then(() => {
+				// Not sure where else to put this...
+				if(cnvsDiffAfterShadowDomMods){ // if nothing was changed/replaced, we have no visDiff to save
+					return browser.runtime.sendMessage({
+						"action": "SaveImg",
+						"urlId": urlId,
+						"folders": ["visDiffAfterShadowDomManip"],
+						"name": accuDiffAfterShadowDomMods + "_" + window._urlToHost(urlId),
+						"dat": window.__cnvs2DataUrl(cnvsDiffAfterShadowDomMods)
+					});	
+				}
 			}).then(() => {
 				return window.getPageVarData(settings.pageVarsNeeded);
 			}).then(({dataTables, membershipTables, debugScreenshots, groupsOfImgArr}) => {
@@ -308,15 +333,16 @@
 					});
 				}, Promise.resolve());
 			}).then(() => {
-				// some safeguard housekeeping before we save HTML/DOM etc.
-				window.dispatchEvent(new Event("StartEventHandling"));
-				window.toggleDomPrepForInstaManip("off");
-				window.restoreDomAfterDataExtraction();
-				// do housekeeping in iframes
+				// do housekeeping in iframes -- before the main Frame housekeeping (we switch from iframes back to Shadow DOM, which removes some iframes)
 				return browser.runtime.sendMessage({
 					"action": "HouseKeepIFrames",
 					"urlId": urlId
 				});
+			}).then(()=>{
+				// some safeguard housekeeping before we save HTML/DOM etc.
+				window.dispatchEvent(new Event("StartEventHandling"));
+				window.toggleDomPrepForInstaManip("off");
+				window.restoreDomAfterDataExtraction();
 			}).then(()=>{
 				// all Done
 				return browser.runtime.sendMessage({
