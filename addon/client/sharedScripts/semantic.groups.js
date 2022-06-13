@@ -949,7 +949,7 @@
 			const potentialMenuItemEls = window._filterOutNestedElements(jqAnchors.add(allTxtEls)); // .add(iconArr) <== NOTE: icons outside <a> were causing misclassifications
 			// 1 - Find all items that may qualify as menus
 			// 1.1 - navs
-			const navEls = window.domGetters.getAllVis().filter("nav").toArray();
+			const navEls = window.domGetters.getAllVis().filter("nav, menu").toArray();
 			// 1.2 - computed navs
 			const cmpNavElArr = [... new Set(potentialMenuItemEls.map(menuItemEl=>{
 				// 1.2a - Look up until we find another potentialMenuItem contained in an ancestor <-- new Set takes care of duplicates

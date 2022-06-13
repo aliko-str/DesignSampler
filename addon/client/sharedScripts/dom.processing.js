@@ -9,7 +9,8 @@
 		this.invisible = new Set(["map", "area"]);
 		this.controlsCantBeIn = new Set(["p", "h1", "h2", "h3", "h4", "h5", "h6", "pre", "cite", "code", "q", "rb", "var"]);
 		this.nonMainText = new Set(["label", "output", "legend", "summary"]); // TODO: do we use it actually?... remove otherwise
-		this.displayBlockTags = new Set(['address', 'article', 'aside', 'blockquote', 'details', 'dialog', 'dd', 'div', 'dl', 'dt', 'fieldset', 'figcaption', 'figure', 'footer', 'form', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'header', 'hgroup', 'hr', 'li', 'main', 'nav', 'ol', 'p', 'pre', 'section', 'table', 'ul']); // from https://developer.mozilla.org/en-US/docs/Web/HTML/Block-level_elements
+		this.displayBlockTags = new Set(['address', 'article', 'aside', 'blockquote', 'details', 'dialog', 'dd', 'div', 'dl', 'dt', 'fieldset', 'figcaption', 'figure', 'footer', 'form', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'header', 'hgroup', 'hr', 'li', 'main', 'nav', 'ol', 'p', 'pre', 'section', 'table', 'ul', 'menu']); // from https://developer.mozilla.org/en-US/docs/Web/HTML/Block-level_elements
+		this.builtinWithShadowDom = new Set(["video", "audio", "embed", "object", "select", "dialog", "input", "textarea", "marquee", "portal", "hr", "meter", "progress", "svg"]);
 		this.replacedElements = new Set(["iframe", "video", "embed", "img", "audio", "canvas", "object", "applet"]); // NOTE: I don't keep option/inputs here since this Set is only to be used for cmpCntrl blackening out, and option/inputs aren't cmpCntrls
 		this.groups = {
 			// TODO: check if shadeAdControls is actually used

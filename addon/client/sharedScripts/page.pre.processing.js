@@ -592,6 +592,7 @@
 				const shadowDomHosts = Array
 					.from(document.body.querySelectorAll("*"))
 					.filter(el=>el.openOrClosedShadowRoot)
+					.filter(el=>!window._tagSets.builtinWithShadowDom.has((el.tagName || "").toLowerCase())) // filtering out elements with ShadowDom by default (for some reason it's visible to addons with openOrClosedShadowRoot -- but only while the el is attached do the document)
 					.filter(el=>{
 						const st = window.getComputedStyle(el);
 						const o = parseFloat(st.opacity);
@@ -603,7 +604,8 @@
 					console.log("[shadowDom2IFrames] No shadow DOM roots found.", window.location.href);
 					return Promise.resolve();
 				}
-				console.log("[shadowDom2IFrames]%c FOUND Shadow DOM roots, n: " + shadowDomHosts.length + " " + location.href, "color:#7FFFD4;");
+				console.log("[shadowDom2IFrames]%c FOUND Shadow DOM roots, n: " + shadowDomHosts.length + " " + shadowDomHosts.map(x=>x.tagName).join(", ") + " " + location.href, "color:#7FFFD4;");
+				// debugger;
 				// 2 - visual changes tracking
 				if(diffCheckNeeded){
 					var cnvsBefore = window.page2Canvas(true);
@@ -616,13 +618,18 @@
 						const iFrame = document.createElement("iframe");
 						iFrame.addEventListener('load', ()=>{
 							const iDoc = iFrame.contentWindow.document;
-							el.openOrClosedShadowRoot.childNodes.forEach(chNode=>{
-								const ndCpy = iDoc.importNode(chNode, true);
-								iDoc.body.appendChild(ndCpy);
-								// iDoc.body.appendChild(chNode.cloneNode(true));
-							});
-							resolve();
-							debugger;
+							try {
+								el.openOrClosedShadowRoot.childNodes.forEach(chNode=>{
+									const ndCpy = iDoc.importNode(chNode, true);
+									iDoc.body.appendChild(ndCpy);
+									// iDoc.body.appendChild(chNode.cloneNode(true));
+								});
+								resolve();
+							} catch (e) {
+								console.error(e, el.tagName, location.href);
+								debugger;
+								reject();
+							}
 						});
 						iFrame.setAttribute("shadow-dom-replacement", "yes");
 						Array.from(el.attributes).forEach(x=>iFrame.setAttribute(x.name, x.value));
@@ -645,6 +652,7 @@
 				});
 				return Promise
 					.all(prArr)
+					.then(()=>window._alarmPr(350)) // a small delay for changes to render
 					.then(()=>{
 						// 4 - check for visual differences
 						if(diffCheckNeeded){

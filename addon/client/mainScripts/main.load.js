@@ -65,8 +65,8 @@
 		.then(()=>{
 			return window._alarmPr(delayForScriptsToRun);
 		})
-		.then(()=>window.waitForAllImagesToLoadAsync())
 		.then(scrollUpDown)
+		.then(()=>window.waitForAllImagesToLoadAsync())
 		.then(()=>{
 			return window._alarmPr(1000); // a second for the new content to try to load
 		})
