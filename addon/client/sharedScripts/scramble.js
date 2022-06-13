@@ -1359,6 +1359,7 @@
 			_pH = window.getScrlEl().scrollHeight;
 			return scrambleImg(variant, _urlId);
 		}).then((restoreF) => {
+			debugger;
 			console.assert(_pH === window.getScrlEl().scrollHeight, "3 Page height changed after scrambleImg, from", _pH, "to", window.getScrlEl().scrollHeight, location.href);
 			console.assert(restoreF && typeof restoreF === 'function', "We didn't pass on a function to restore DOM after scrambleImg", window.location.href);
 			_restoreFStore[restFName].img = restoreF;

@@ -777,7 +777,7 @@
 				if(!headers.length){
 					const imgWithLogoInSrc = visMainImgArr.filter(imgEl=>{
 						const st = window.getComputedStyle(imgEl);
-						const src = imgEl.src || window._urlFromCssStr(st["background-image"]);
+						const src = (imgEl.currentSrc || imgEl.src) || window._urlFromCssStr(st["background-image"]);
 						const b = window._getFloatProofBBox(imgEl);
 						const notGiant = b.width < window.innerWidth / 2 && b.height < window.innerHeight / 2;
 						return notGiant && src && src.toLowerCase().indexOf("logo") > -1; // if it's a non-url img, I can't do much - filter it out

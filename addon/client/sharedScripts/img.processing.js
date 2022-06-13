@@ -256,7 +256,7 @@
 					// else wait for the image to load
 					const img = new Image();
 					img.onerror = function (err) {
-						console.log("Error loading a BG image, ", img.src, "el:", bgImgEl.tagName+"."+bgImgEl.className);
+						console.log("Error loading a BG image, ", img.currentSrc, "el:", bgImgEl.tagName+"."+bgImgEl.className);
 						resolve(defRes);
 					};
 					img.onload = function (ev) {

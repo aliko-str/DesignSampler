@@ -492,7 +492,7 @@
 	function __el2src(el){
 		// return img.src if el is an image; otherwise looks at background-image and a URL in it
 		if(el.tagName.toLowerCase() === "img"){
-			return el.src;
+			return (el.currentSrc || el.src);
 		}
 		const bgImg = window.getComputedStyle(el).getPropertyValue("background-image");
 		if(bgImg.indexOf("url") > -1){

@@ -231,7 +231,7 @@
 	
 	
 	function _waitForAllImagesToLoadPr () {
-		const allImgUrls = Array.from(document.querySelectorAll("img")).map(x=>x.src);
+		const allImgUrls = Array.from(document.querySelectorAll("img")).map(x=>(x.currentSrc || x.src));
 		console.log("Images to load", allImgUrls.length, JSON.stringify(allImgUrls));
 		return Promise.allSettled(allImgUrls.map(imgUrl=>{
 			if(!imgUrl || imgUrl.indexOf("data:image/") > -1){

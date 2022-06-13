@@ -5,7 +5,7 @@
 		this.inputTypesWithText = new Set(["datetime-local", "button", "reset", "text", "date", "email", "month", "number", "search", "tel", "time", "url", "week", "datetime", "submit"]);
 		this.controls = new Set(["button", "input", "option", "select", "details", "textarea", "audio", "portal"]);
 		this.styledAsControls = new Set(["kbd", "hr", "meter", "progress"]);
-		this.media = new Set(["img", "object", "video", "canvas", "embed", "picture", "svg"]);
+		this.media = new Set(["img", "object", "video", "canvas", "embed", "svg"]); // "picture", NOTE: pictures are displayed in their internal <img>, so they're an invisible container in practice
 		this.invisible = new Set(["map", "area"]);
 		this.controlsCantBeIn = new Set(["p", "h1", "h2", "h3", "h4", "h5", "h6", "pre", "cite", "code", "q", "rb", "var"]);
 		this.nonMainText = new Set(["label", "output", "legend", "summary"]); // TODO: do we use it actually?... remove otherwise
