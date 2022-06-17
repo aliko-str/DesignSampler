@@ -589,8 +589,8 @@
 				// 0 - fool checks
 				console.assert(_diffRes === undefined, "[shadowDom2IFrames] Should be called only once. Debug.", window.location.href);
 				// 1 - find all visible (not checking much -- iframes won't show overflow, so no point checking minSize) shadow doms
-				const shadowDomHosts = Array
-					.from(document.body.querySelectorAll("*"))
+				const shadowDomHosts = Array 
+					.from(document.body.querySelectorAll("body :not(svg *)")) // <== omitting <svg> insides; <use> for some reason produces a shadow root
 					.filter(el=>el.openOrClosedShadowRoot)
 					.filter(el=>!window._tagSets.builtinWithShadowDom.has((el.tagName || "").toLowerCase())) // filtering out elements with ShadowDom by default (for some reason it's visible to addons with openOrClosedShadowRoot -- but only while the el is attached do the document)
 					.filter(el=>{

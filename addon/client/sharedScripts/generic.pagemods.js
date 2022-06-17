@@ -40,7 +40,7 @@
 		// Overlays with style-fixed overflows on body/html
 		const fixedBodySels = ["#attentive_overlay"].join(",");
 		const fixedBodyEls = document.querySelectorAll(fixedBodySels);
-		if(fixedBodyEls){
+		if(fixedBodyEls.length){
 			fixedBodyEls.forEach(x => x.remove());
 			document.documentElement.style = document.body.style = null;
 		}
