@@ -59,13 +59,13 @@
 		// NOTE: it's a bit wonky, but we need to request a semantic group before we do other processing - because it's a group that triggers initialization for all other groups and includes a post-initialization step 
 		const pr1 = window.domGetters.getSemanticGrPrms("mainTxtChunksArr").then((elsMainTxt)=>{
 			resDataObj.data.sampledMainTxtParagraphs = sampleMainTexts(elsMainTxt); // NOTE: this is in addition to later recording mainTxt as groups
-		});
+		}).catch(e=>console.error("pr1", e));
 		// 2 - Record text primites, their text, their origTag and some of the old computed properties
 		const pr2 = pr1.then(()=>{
 			return getTextsAndOldStylesAsync(window.domGetters.getTxtGr("all")).then(txtPrimitivesOldData=>{
 				resDataObj.data.txtPrimitivesOldData = txtPrimitivesOldData;
 			});
-		});
+		}).catch(e=>console.error("pr2", e));
 		// 3 - Record paragraphs
 		const pr3 = pr2.then(()=>{
 			const jqElsToSplitInPara = window.domGetters.getTxtGr("allNoCntrlNoCompCntrl");
@@ -77,7 +77,7 @@
 			// const origPageCnvs = window.page2Canvas(true);
 			const origPageCnvs = window.getStoredFullPageCanvas();
 			screenshotsToSave.debug.paragraphsCnvs = window.highlightRectsOnCnvs(origPageCnvs, paraRes2Save); // .map(x=>x.bbox)
-		});
+		}).catch(e=>console.error("pr3", e));
 		// NOTE: we don't save actual BG color for each primitive <== it ONLY makes sense for text (to calc contrast) -- we also later save it for groups
 		// 3.1 - Record column width only for the not-inline elements, or for their first non-inline ancestor <-- a separate table, a separate type of group <== WE DO THAT for paragraphs; we can't do better
 		// 4 - Record bbox, tagName, and type for all real primities + All Computed Properties
@@ -113,7 +113,7 @@
 				// window.toggleCssStyling("on");
 				// // window.toggleDomPrepForInstaManip("on");
 			});
-		});
+		}).catch(e=>console.error("pr4", e));
 		// 6 - Record all links, their href, textContent, _id, ifVisible
 		const pr5 = pr4.then(()=>{
 			const allVisAarr = window.domGetters.getAllVis().filter("a").toArray();
@@ -128,7 +128,7 @@
 				};
 				return __addElIdToObj(elA, res);
 			});
-		});
+		}).catch(e=>console.error("pr5", e));
 		// 7 - Record BG and Border primitives - I'm not sure they will be used in statistics, but let's keep them for now
 		const pr6 = pr5.then(()=>{
 			return window.domGetters.getOtherGrPromise("border").then((jqBorder)=>{
@@ -143,7 +143,7 @@
 					return resObj;
 				});
 			});
-		});
+		}).catch(e=>console.error("pr6", e));
 		// 7.1 - BG change primitives
 		const pr7 = pr6.then(()=>{
 			return window.domGetters.getOtherGrPromise("bgColChange").then((jqBgChange)=>{
@@ -154,13 +154,13 @@
 					return resObj;
 				});
 			});
-		});
+		}).catch(e=>console.error("pr7", e));
 		// 8 - Save window.domGetters.getGraphGrPromise("allNonBgBg") as images
 		const pr8 = pr7.then(()=>{
 			return putImagesInArrayAsync().then(resImgArr=>{
 				screenshotsToSave.groups.graphics.push(...resImgArr);
 			});
-		});
+		}).catch(e=>console.error("pr8", e));
 		// 9 - All Semantic Groups: Record bbox, whiteSpace (incl. betw. char space), and screenshot ==> used backgrounds (with sizes) and borders (border length) could be extracted from bg/Border primitives
 		// 9.1 - Computed Controls
 		const pr9 = pr8.then(()=>{
@@ -171,7 +171,7 @@
 				Object.assign(screenshotsToSave.debug, cmpCntrlResObj.debug);				
 				resDataObj.data.cmpCntrlGroupProps = cmpCntrlResObj.data;
 			});
-		});
+		}).catch(e=>console.error("pr9", e));
 		// 9.2 - Semantic Groups
 		const pr10 = pr9.then(()=>{
 			return __prepPrimitiveForGroupAnalysesAsync().then(primitives=>{
@@ -198,7 +198,7 @@
 					});
 				});				
 			});
-		});
+		}).catch(e=>console.error("pr10", e));
 		// 9.3 - Border elements as groups <-- not sure we'll use it, but let's keep it
 		const pr11 = pr10.then(()=>{
 			return window.domGetters.getOtherGrPromise("borderMoreThn1Side").then(jqGr=>{
@@ -209,7 +209,7 @@
 					resDataObj.data.brdEnclosedGroupProps = cmpCntrlResObj.data;
 				});
 			});
-		});
+		}).catch(e=>console.error("pr11", e));
 		// 9.4 - record Special Semantic group props (cnvs/n invis images for banners; expandable menu structures; external links/src)
 		// 9.4.1 - Banners - saving invisible images
 		const pr12 = pr11
@@ -221,12 +221,7 @@
 					resDataObj.data.bannerHiddImgData = resObj.data;
 					screenshotsToSave.groups.bannerHiddImg = resObj.imgArr;
 				});
-			})
-			// 9.4.1.1 - Favicons -- piggyBacking on an existing promise
-			.then(_extractFavIconsAsync)
-			.then(icoImgArr=>{
-				screenshotsToSave.groups.icoImgs = icoImgArr;
-			});
+			}).catch(e=>console.error("pr12", e));
 		// 9.4.2 - Menus - expandable items/invis items/structure
 		const pr13 = pr12.then(()=>{
 			if(['menusV', 'menusH', 'menusMixed'].every(m=>!semGrNamesToRecord.includes(m))){
@@ -235,7 +230,7 @@
 			return window.domGetters.getSemanticGrPrms("menus").then(_getMenuExtraData).then(menuData=>{
 				resDataObj.data.menuData = menuData;
 			});
-		});
+		}).catch(e=>console.error("pr13", e));
 		// 9.4.3 - Social areas -- external links + iframe VS link
 		const pr14 = pr13.then(()=>{
 			if(!semGrNamesToRecord.includes("socialButtons")){
@@ -260,7 +255,7 @@
 			return window.domGetters.getSemanticGrPrms("fixedAreas").then(_getFixedAreaExtraData).then(d=>{
 				resDataObj.data.fixedAreaData = d;
 			});
-		});
+		}).catch(e=>console.error("pr14", e));
 		// 10 - Record page-level stats: dimensions, whiteSpace, effective width (width of the root element)
 		const pr15 = pr14.then(()=>{
 			const primitives = {}; // empty, so semanticGroup2DataAsync gets them internally
@@ -270,9 +265,16 @@
 					resDataObj.data.pageGroupProps = resObj.data;
 				});
 			});
-		});
+		}).catch(e=>console.error("pr15", e));
+		// 9.4.1.1 - Favicons -- piggyBacking on an existing promise
+		const pr16 = (thisIsIframe)?pr15:pr15.then(_extractFavIconsAsync)
+			.then(icoImgArr=>{
+				screenshotsToSave.groups.icoImgs = icoImgArr;
+			})
+			.catch(e=>console.error("pr16", e));
+		// thisIsIframe
 		// 11 - Some fool checks; Converting dataObjArr to text
-		const pr16 = pr15.catch(e=>{
+		const pr17 = pr16.catch(e=>{
 			console.error(JSON.stringify(e), window.location.href);
 			console.error(e.stack);
 		}).then(()=>{
@@ -284,7 +286,7 @@
 				groupsOfImgArr: screenshotsToSave.groups // {[{name:string, dat:base64}]}
 			};
 		});
-		return pr16;
+		return pr17;
 	};
 
 	function __datObj2ArrForSaving(obj, type = "txt", mapF = (x)=>x, mapFParams){

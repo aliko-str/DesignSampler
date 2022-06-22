@@ -654,6 +654,9 @@
 			try {
 				var avgBgCol = window.__calAvgRGB(bgCnvs.getContext("2d").getImageData(0, 0, bgCnvs.width, bgCnvs.height).data);
 			} catch (e) {
+				// console.error(e, location.href);
+				console.error("[ALTER] Element to set animation to none (or something similar) in pageMods.js?..:", window.__el2stringForDiagnostics(el), JSON.stringify(bbox));
+				console.error(e.toString(), location.href);
 				debugger;
 			}
 			return Promise.resolve(avgBgCol);			
