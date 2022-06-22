@@ -66,10 +66,9 @@
 			return window._alarmPr(delayForScriptsToRun);
 		})
 		.then(scrollUpDown)
+		.then(()=>window._alarmPr(500))
 		.then(()=>window.waitForAllImagesToLoadAsync())
-		.then(()=>{
-			return window._alarmPr(1000); // a second for the new content to try to load
-		})
+		.then(()=>window._alarmPr(1000)) // a second for the new content to try to load
 		.then(()=>window.addonMain());
 
 	window._scrollDownAsync = _scrollDownAsync;
