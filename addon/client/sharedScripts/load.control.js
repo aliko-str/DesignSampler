@@ -100,12 +100,16 @@
 			// removing intervals/timeouts
 			w.eval(`
 				const highestTimeoutId = window.setTimeout(";");
-				for (let i = 0; i < highestTimeoutId; i++) {
-					window.clearTimeout(i);
+				if(highestTimeoutId && !window.isNaN(highestTimeoutId)){
+					for (let i = 0; i < highestTimeoutId; i++) {
+						window.clearTimeout(i);
+					}					
 				}
 				const highestIntervalId = window.setInterval(";");
-				for (let i = 0; i < highestIntervalId; i++) {
-					window.clearInterval(i);
+				if(highestIntervalId && !window.isNaN(highestIntervalId)){
+					for (let i = 0; i < highestIntervalId; i++) {
+						window.clearInterval(i);
+					}					
 				}`);
 			// NOTE: this is suboptimal to call it here, but I'm out of ideas how else to disable JS and Animations at the same time --> // TODO: Maybe more all js disabling to a separate location
 			window.toggleDomPrepForInstaManip("on"); // Otherwise some elements get stuck in an invisible position <-- js disabled, but CSS animations running

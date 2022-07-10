@@ -45,7 +45,7 @@
 		console.log("Main Content Script rolling, ", window.location.href);
 		window.recordNoStylingCssAsync()
 			.then(applyPageModsAsync)
-			.then(()=>window.shadowDom2IFramesAsync(true)) // NOTE: I have to do it here (and not with other page alterations) since otherwise the new IFrames won't be counted as visible, and won't be processed
+			.then(()=>window.unwrapShadowDomAsync(true)) // NOTE: I have to do it here (and not with other page alterations) since otherwise the new IFrames won't be counted as visible, and won't be processed
 			.then(diff=>{
 				if(diff){
 					cnvsDiffAfterShadowDomMods = diff.diffCnvs;
@@ -81,7 +81,9 @@
 		browser.runtime.onMessage.addListener((msg, sender)=>{
 			// NOTE: this message must be sent to a specific TAB only - we don't check urlId here, since we don't have it yet
 			if(msg.action === "GiveMeIFrameVisibility"){ // we only check visibility superficially
+				// console.warn("GiveMeIFrameVisibility CALLED", location.href);
 				return window.propagateFrVisReqsAsync().then(visFrInfoArr=>{
+					// console.warn("GiveMeIFrameVisibility REPLYING WITH DATA", location.href);
 					return {"action": "HaveYourIFrameVisibility", "visFrInfoArr": visFrInfoArr || [], "mainFrameUrl": window.location.href};
 				});
 				

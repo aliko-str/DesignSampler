@@ -16,7 +16,8 @@
 			}
 			// 2 - Revert styles for el and descendants
 			// FIXME: Also check for pseudoelements
-			window.revert2PreCompStyles(els2check, "UIFrozen", {bruteForce: true});
+			// window.revert2PreCompStyles(els2check, "UIFrozen", {bruteForce: true});
+			window.revert2PreCompStyles(els2check, "NoShadowDOM", {bruteForce: true});
 		}
 	}
 	

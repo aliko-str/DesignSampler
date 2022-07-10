@@ -119,16 +119,18 @@
 	
 	function findElsStyledOnHover(jqEls) {
 		// finds elements that react to ":hover"
-		const regExNestedHover = /[>~+\d\w]( )+:hover/;
+		// const regExNestedHover = /[>~+\d\w]( )+:hover/;
+		const regExNestedHover = /([>~+\d\w] +):hover/g;
+		const regExNonNakedHover = /([^\\]):hover/g; // for the rare case of idiotic CSS selectors with an escaped ":" befere a "hover" in them --  yes, it happens.
 		// const cssSelDelim = /,( *[^\d ])/g; // We can't use "," because selectors can contain pseudo functions and styles as strings, i.e., references to rgb colors with commas -- it does happen...
 		const selectorsWithHoverArr = _getAllSelectors()
 			.filter(selector => {
 				return selector && selector.indexOf(":hover") > -1;
 			}).map(selector => {
 				// sometimes there are "naked" :hover nested selector elements
-				const replStr = regExNestedHover.test(selector) ? "*" : "";
-				return selector.replaceAll(/([^\\]):hover/g, "$1"+replStr); // for the rare case of idiotic CSS selectors with an escaped ":" befere a "hover" in them --  yes, it happens.
-				// return selector.replaceAll(":hover", replStr);
+				// const replStr = regExNestedHover.test(selector) ? "*" : "";
+				// const outS = selector.replaceAll(/([^\\]):hover/g, "$1"+replStr); 
+				return selector.replaceAll(regExNestedHover, "$1*").replaceAll(regExNonNakedHover, "$1");
 			}).filter(x => x.length).filter(sel => {
 				// checking if :hover was nested in another pseudo-class and filtering such cases out
 				return sel.indexOf("()") === -1;
@@ -326,10 +328,10 @@
 			animEndEvents.forEach(eName => document.addEventListener(eName, __listenAnimEndF));
 			// checking if any animations started at all
 			window.setTimeout(()=>{
-				if(!__resolved && !__animCounter){
+				console.log("NUMBER OF RUNNING ANIMATIONS", __animCounter, location.href);
+				if(!__resolved && __animCounter <= 0){
 					__listenAnimEndF(); // clean-up + resolve
 				}
-				console.log("NUMBER OF RUNNING ANIMATIONS", __animCounter);
 			}, 300); // a bit of time for animations to start
 		});
 		window.toggleCssStyling("on");

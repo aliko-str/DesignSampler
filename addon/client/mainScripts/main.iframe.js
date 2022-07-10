@@ -210,7 +210,7 @@
 	// Recovery/RE-insertion portion
 	browser.runtime.onMessage.addListener(msg=>{
 		if(msg.action === "ping"){
-			return Promise.resolve({action: "pong"});
+			return Promise.resolve({action: "pong", _href: location.href});
 		}
 	});
 	// console.error("MAKING IFRAME PINGABLE");

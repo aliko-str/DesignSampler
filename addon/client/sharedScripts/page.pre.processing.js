@@ -243,7 +243,8 @@
 								el[addF](span);
 								addedElements.push(span);
 								// 3 - copy up styles on an empty span
-								const oldSt = window.getPreComputedStyles(el, "UIFrozen", pseudoKey);
+								const oldSt = window.getPreComputedStyles(el, "NoShadowDOM", pseudoKey);
+								// const oldSt = window.getPreComputedStyles(el, "UIFrozen", pseudoKey);
 								const stToEnf = window.stripIdenticalCss(oldSt, window.getComputedStyle(span));
 								// const stToEnf = window.__cssValsToObj(st, window.__getAllCssPropList());
 								// 3.1 - NEW extra -- SVG contents don't scale properly --> keep them as pseudoElements
@@ -348,15 +349,6 @@
 	})();
 	
 	const {_marquee2div, _restoreMarquee} = (()=>{
-		// const __cloneNodeF = (node)=>{
-		// 	const clone = node.cloneNode(true);
-		// 	if(node.nodeType === document.ELEMENT_NODE){
-		// 		// clone["_oldVals"] = Object.assign({}, node["_oldVals"]);
-		// 		clone._id = clone.dataset.elGenId;
-		// 		console.assert(clone._id);
-		// 	}
-		// 	return clone;
-		// };
 		const marqueeDivPairs = [];
 		return {
 			_marquee2div(){
@@ -369,7 +361,7 @@
 					const div = window.__makeCleanDiv();
 					const mrqSt = window.__cssValsToObj(window.getComputedStyle(mrq), window.__getAllCssPropList());
 					mrq.childNodes.forEach(subNode => {
-						const clone = subNode.cloneNode(true);
+						const clone = subNode.cloneNode(true); // NOTE: cloneNode will likely fail for custom Elements -- we disable their js upstream <-- let's hope it's rare
 						// const clone = __cloneNodeF(subNode);
 						// if(subNode.nodeType === document.ELEMENT_NODE){
 						// 	clone._id = window._getElId(subNode);
@@ -387,7 +379,8 @@
 					Object.assign(divStToEnf, {"overflow": "hidden", "overflowX": "hidden", "overflowY": "hidden"});
 					window.__enforceCSSVals(div, divStToEnf);
 					debugger;
-					window.revert2PreCompStyles(mrqClonedDescendants, "UIFrozen");
+					window.revert2PreCompStyles(mrqClonedDescendants, "NoShadowDOM");
+					// window.revert2PreCompStyles(mrqClonedDescendants, "UIFrozen");
 					marqueeDivPairs.push({mrq: mrq, div: div});
 					// making sure that div has at least some text <-- so line-height is respected on the parent
 					const hasVisTxtNodes = div.innerText.trim().length;//Array.from(div.childNodes).some(x=>x.nodeType === document.TEXT_NODE);
@@ -488,6 +481,14 @@
 		return noopF;
 	}
 	
+	function _cheapFilter2Visible(el){
+		const st = window.getComputedStyle(el);
+		const o = parseFloat(st.opacity);
+		const b = el.getBoundingClientRect();
+		console.assert(!isNaN(o), "[shadowDom2IFrames] Opacity parsing failed:", o, st.opacity);
+		return st.visibility === "visible" && st.display !== "none" && o > 0.1 && (b.width > 1 && b.height > 1);
+	}
+	
 	const {prepDomForDataExtractionAsync, restoreDomAfterDataExtraction} = (()=>{
 		var _cleanUpStyleReversingF, _restoreBodyHF;
 		return {
@@ -499,7 +500,7 @@
 				_cleanUpStyleReversingF(); // if it's not assigned, let it fall and debug
 				// readdNoScript();
 				_restoreBodyHF();
-				restoreShadowDom();
+				// restoreShadowDom(); // fuck it, not restoring after shadow dom unwrapping -- too much hastle
 			},
 			prepDomForDataExtractionAsync(diffCheckNeeded = false) {
 				console.log("PREPPING", location.href);
@@ -534,7 +535,8 @@
 							// 3.3 - Hide outsideViewport fixed els <== TODO: move before taking 1st canvas to avoid false flags <-- after a debug
 							hideInvisFixedEls();
 							// 3.4 - appling CSS that no longer applies due to nth-child and nth-of-type being messed up (because of our element inserting above)
-							_cleanUpStyleReversingF = window.revert2PreCompStyles(elsToTrackCssFor, "UIFrozen");
+							_cleanUpStyleReversingF = window.revert2PreCompStyles(elsToTrackCssFor, "NoShadowDOM");
+							// _cleanUpStyleReversingF = window.revert2PreCompStyles(elsToTrackCssFor, "UIFrozen");
 						})
 						.then(()=>window._locAlarmPr(300))
 						.then(()=>{
@@ -581,112 +583,501 @@
 		};
 	})();
 	
-	const {shadowDom2IFramesAsync, restoreShadowDom} = (()=>{
-		var _diffRes, replPairs = [];
+	function _lineUpShadowRoot(startingEl){
+		// finding all shadow roots and putting them in a linear array -- nested, lower-level roots first
+		// 1 - retrieve shadow roots for this level
+		//document.body
+		return Array 
+			.from(startingEl.querySelectorAll(":not(svg *)")) // <== omitting <svg> insides; <use> for some reason produces a shadow root
+			.filter(el=>el.openOrClosedShadowRoot)
+			.filter(el=>!window._tagSets.builtinWithShadowDom.has((el.tagName || "").toLowerCase())) // filtering out elements with ShadowDom by default (for some reason it's visible to addons with openOrClosedShadowRoot -- but only while the el is attached do the document)
+			// .filter(_cheapFilter2Visible)
+			.filter(el=>el.openOrClosedShadowRoot.querySelectorAll(":not(style)").length)
+			.sort((a, b)=>{
+				if(a.contains(b)){
+					return 1;
+				}else if(b.contains(a)){
+					return -1;
+				}
+				return 0;
+			}) // cause to-be-slotted elements can also have shadow roots -- they aren't visible until they are slotted (so we )
+			.map(el => {
+				// 2 - if there are nested shadow roots, run recursion...
+				const nestedRoots = _lineUpShadowRoot(el.openOrClosedShadowRoot);
+				nestedRoots.push(el); // adding current root as the last element
+				return nestedRoots;
+			})
+			.flat(1);
+	}
+	
+	// NEW approach: line up shadow roots; do slotting, record els to restore (incl in shadowHosts); repl shadowHosts with divs, record all els to restore
+	// NOTE: restoring ShadowDom manipuations may not be possible -- it'd require running custom-element constructors, which may well no longer work.
+	
+	function _getAllShadowDomAffectedNodes(shadowRoots){
+		// 1 - get all slotted els
+		// 1.1 - get all <slot>s
+		const slots = shadowRoots
+			.map(rootEl=>Array.from(rootEl.openOrClosedShadowRoot.querySelectorAll("slot")))
+			.flat(1);
+		// 1.2 - link assigned nodes
+		const assndNodes = slots
+			.filter(aSlot=>aSlot.assignedNodes().length) // cause some <slot>s aren't assigned anything - Isn't it joy working through some retard's code?..
+			.map(aSlot=>{
+				const assndNodesAndChildren = Array
+					.from(aSlot.assignedNodes())
+					.filter(el=>el.nodeType === document.ELEMENT_NODE) // assigned nodes can be non-Element nodes (e.g., text)
+					.map(el=>Array.from(el.querySelectorAll("*")).concat([el])) // selecting all cause even in-svg elements can be styled with CSS
+					.flat(1);
+				// NOTE: there may be shadowRoots inside assignedNodes (and they would be invisible to querySelectorAll above) - but we don't need to collect them here --> they and their contents will be tracked for changes anyway below.
+				return assndNodesAndChildren;
+			})
+			.flat(1);
+		// 2 - shadow roots and their contents + their siblings (which may be affected by the order-based styling); NOTE: keeping all siblings for restoring is just simpler than looking through nested styles for order-based selectors
+		const shadowRootDescendants = shadowRoots
+			.map(x=>x.openOrClosedShadowRoot.querySelectorAll(":not(style)")) // no need to check for nestedness -- nested shadowRoots are already collected
+			.map(x=>Array.from(x))
+			.flat(1);
+		const shadowRootSiblings = shadowRoots
+			.map(x=>x.parentElement)
+			.filter(x=>x)
+			.map(x=>x.children) // already contains original shadowRoots
+			.map(x=>Array.from(x))
+			.flat(1);
+		// 3 - a unique-element collection to track changes for
+		return Array.from(new Set(assndNodes.concat(shadowRootSiblings, shadowRootDescendants)));
+	}
+	
+	function _doManualSlotting(shadowRoots){
+		shadowRoots = shadowRoots || _lineUpShadowRoot(document.body);
+		shadowRoots
+			.map(rootEl=>Array.from(rootEl.openOrClosedShadowRoot.querySelectorAll("slot")))
+			.flat(1)
+			.filter(aSlot=>aSlot.assignedNodes().length) // cause some <slot>s aren't assigned anything - Isn't it joy working through some retard's code?..
+			.forEach(aSlot=>{
+				const assndNodes = aSlot.assignedNodes();
+				aSlot.replaceWith(...assndNodes);
+			});
+	}
+	
+	function _shadowRoots2Divs(){
+		const shadowRoots = _lineUpShadowRoot(document.body); // after manual slotting, the roots need to be re-searched for
+		shadowRoots
+			.forEach(rootEl => {
+				const div = window.__makeCleanDiv();
+				div.setAttribute("was-shadow-root", rootEl.tagName.toLowerCase());
+				Array.from(rootEl.attributes).forEach(x=>div.setAttribute(x.name, x.value));
+				const shadowContent = Array
+					.from(rootEl.openOrClosedShadowRoot.childNodes)
+					.filter(x=>x.nodeType !== document.ELEMENT_NODE || x.tagName.toLowerCase() !== "style") // not polluting the global scope with inShadowRoot <style>s
+					.map(el=>{
+						if(el.nodeType === document.ELEMENT_NODE){
+							Array.from(el.querySelectorAll("style")).forEach(x => x.remove()); // checking if there are also nested styles somewhere in a shadowRoot
+						}
+						return el;
+					});
+				div.append(...shadowContent);
+				rootEl.replaceWith(div);
+				rootEl._replacementEl = div; // keep a reference for style restoring
+			});
+	}
+	
+	
+	const {__el2styles, __restoreStyling} = (()=>{
+		// const props = window.__getAllCssPropList({excludePrefixed: true})
+		// 	.filter(propStr=>{ // let's only keep the simpler ones -- otherwise too high overhead with pointless props
+		// 		return propStr.split("-").length < 3;
+		// 	});
+		const props = window.__getAllCssPropList({excludePrefixed: true}); // we'll have to keep all props -- otherwise differences creep in
 		return {
-			// TODO: make it work for nested shadowRoots -- for now, just 1 nestedness level
-			shadowDom2IFramesAsync(diffCheckNeeded = true){
-				// 0 - fool checks
-				console.assert(_diffRes === undefined, "[shadowDom2IFrames] Should be called only once. Debug.", window.location.href);
-				// 1 - find all visible (not checking much -- iframes won't show overflow, so no point checking minSize) shadow doms
-				const shadowDomHosts = Array 
-					.from(document.body.querySelectorAll("body :not(svg *)")) // <== omitting <svg> insides; <use> for some reason produces a shadow root
-					.filter(el=>el.openOrClosedShadowRoot)
-					.filter(el=>!window._tagSets.builtinWithShadowDom.has((el.tagName || "").toLowerCase())) // filtering out elements with ShadowDom by default (for some reason it's visible to addons with openOrClosedShadowRoot -- but only while the el is attached do the document)
-					.filter(el=>{
-						const st = window.getComputedStyle(el);
-						const o = parseFloat(st.opacity);
-						const b = el.getBoundingClientRect();
-						console.assert(!isNaN(o), "[shadowDom2IFrames] Opacity parsing failed:", o, st.opacity);
-						return st.visibility === "visible" && st.display !== "none" && o > 0.1 && (b.width > 1 && b.height > 1);
-					});
-				if(!shadowDomHosts.length){
-					console.log("[shadowDom2IFrames] No shadow DOM roots found.", window.location.href);
-					return Promise.resolve();
-				}
-				console.log("[shadowDom2IFrames]%c FOUND Shadow DOM roots, n: " + shadowDomHosts.length + " " + shadowDomHosts.map(x=>x.tagName).join(", ") + " " + location.href, "color:#7FFFD4;");
-				// debugger;
-				// 2 - visual changes tracking
-				if(diffCheckNeeded){
-					var cnvsBefore = window.page2Canvas(true);
-				}
-				// 3 - make empty divs as iframe placeholders; enforce missing CSS on them
-				// NOTE: Replacing the original shadowDom Hosts with <div>s may break sibling/order-based CSS <-- let's hope it's minimal <-- If not, we'll have to track it
-				const prArr = shadowDomHosts.map(el=>{
-					return new Promise(function(resolve, reject) {
-						// create a div with an iFrame; clone its attributes
-						const iFrame = document.createElement("iframe");
-						iFrame.addEventListener('load', ()=>{
-							const iDoc = iFrame.contentWindow.document;
-							try {
-								el.openOrClosedShadowRoot.childNodes.forEach(chNode=>{
-									const ndCpy = iDoc.importNode(chNode, true);
-									iDoc.body.appendChild(ndCpy);
-									// iDoc.body.appendChild(chNode.cloneNode(true));
-								});
-								resolve();
-							} catch (e) {
-								console.error(e, el.tagName, location.href);
-								debugger;
-								reject();
-							}
-						});
-						iFrame.setAttribute("shadow-dom-replacement", "yes");
-						Array.from(el.attributes).forEach(x=>iFrame.setAttribute(x.name, x.value));
-						// const shadowChildClones = Array.from(el.openOrClosedShadowRoot.childNodes).map(chNode=>chNode.cloneNode(true));
-						// save orig css
-						const origElSt = window.__cssValsToObj(window.getComputedStyle(el), window.__getAllCssPropList());
-						// save innerHTML // add div
-						el.replaceWith(iFrame);
-						// shadowChildClones.forEach(chNode=>{
-						// 	iFrame.contentWindow.document.body.appendChild(chNode);
-						// });
-						// enforce css difference
-						const divStToEnf = window.stripIdenticalCss(origElSt, window.getComputedStyle(iFrame));
-						window.__enforceCSSVals(iFrame, divStToEnf);
-						// keep a ref to revert changes
-						// return {iFrame, el};
-						replPairs.push({iFrame, el});
-						// iFrame.setAttribute("src", "about:blank");
-					});
-				});
-				return Promise
-					.all(prArr)
-					.then(()=>window._alarmPr(350)) // a small delay for changes to render
-					.then(()=>{
-						// 4 - check for visual differences
-						if(diffCheckNeeded){
-							const cnvsAfter = window.page2Canvas(true);
-							const diffThr = 4;
-							const {
-								sizeDiff,
-								wDiff,
-								hDiff,
-								canvasesAreSame,
-								diffCnvs,
-								accuDiff
-							} = window.getCnvsDiff(cnvsBefore, cnvsAfter, diffThr);
-							if (!canvasesAreSame) {
-								debugger;
-							}
-							console.assert(canvasesAreSame, "Visual Difference after manipulation, total size diff in pixels:", sizeDiff, "wDiff: ", wDiff, "hDiff:", hDiff, "total pixel value Diff: ", accuDiff, window.location.href);
-							return {
-								accuDiff,
-								diffCnvs
-							};
+			__el2styles(el){
+				// const props = window.__getAllCssPropList({excludePrefixed: true});
+				const outObj = Object.fromEntries(["", "::before", "::after"].map(pseudo=>["st"+pseudo, window.__cssValsToObj(window.getComputedStyle(el, pseudo), props)]));
+				return Object.assign(outObj, {el});
+			},
+			__restoreStyling(elsAndStyles, rootEl2AppendStylesTo, settings = {enforceDiff: false}){
+				// after some DOM manipulations, styles may have changed -- restore them
+				const cssInjector =  new window.CssInjector(rootEl2AppendStylesTo);
+				console.groupCollapsed("__restoreStyling long operation");
+				elsAndStyles.forEach((elAndStyles, i) => {
+					if(!(i%100)){
+						console.log("[__restoreStyling] Processing element number", i+1, settings.enforceDiff?"with enforcement":" ");
+					}
+					const el = elAndStyles.el._replacementEl || elAndStyles.el;
+					["", "::before", "::after"].forEach(pseudo => {
+						const newStObj = window.__cssValsToObj(window.getComputedStyle(el, pseudo), props);
+						if(pseudo && (elAndStyles["st" + pseudo].content === newStObj.content && (newStObj.content === "none" || !newStObj.content))){
+							return; // speedUp -- no need to enforce anything since it's invisible
+						}
+						const stDiff = window.stripIdenticalCss(elAndStyles["st" + pseudo], newStObj);
+						if(Object.keys(stDiff).length){
+							cssInjector._injectCss1Element(el, pseudo, (settings.enforceDiff?window.__cssObj2Imp(stDiff):stDiff), {asText: false});
 						}
 					});
-			},
-			restoreShadowDom(){
-				replPairs.forEach(({iFrame, el})=>{
-					iFrame.replaceWith(el);
 				});
+				console.groupEnd();
 			}
 		};
 	})();
+	
+	// function _customEls2Divs(shadowRootEl){
+	// 	// 1 - Find custom elements within a shadow root <-- Must be done after manual Slotting
+	// 	const customEls = Array
+	// 		.from(shadowRootEl.openOrClosedShadowRoot.querySelectorAll("*"))
+	// 		.filter(el=>customElements.get(el.tagName.toLowerCase()));
+	// 	if(!customEls.length){
+	// 		return; // nothing to process
+	// 	}
+	// 	// 2 - Record their styles
+	// 	const __duplEls2restore = customEls.map(el=>{
+	// 		const res = Array.from(el.querySelectorAll(":not(svg *)")); // descendants
+	// 		if(el.parentElement && el.parentElement.nodeType === document.ELEMENT_NODE){
+	// 			res.push(... el.parentElement.children); // add siblings
+	// 		}else{
+	// 			// only the element itself
+	// 			res.push(el);	
+	// 		}
+	// 		return res;
+	// 	}).flat(1);
+	// 	const els2restore = Array.from(new Set(__duplEls2restore));
+	// 	const elsAndStyles = els2restore.map(__el2styles);
+	// 	// 3 - replace with a clean div
+	// 	customEls.forEach(customEl => {
+	// 		const div = window.__makeCleanDiv();
+	// 		div.setAttribute("was-custom-el", customEl.tagName.toLowerCase());
+	// 		Array.from(customEl.attributes).forEach(x=>div.setAttribute(x.name, x.value));
+	// 		div.append(...customEl.childNodes);
+	// 		customEl.replaceWith(div);
+	// 		customEl._replacementEl = div; // keep a reference for comparison
+	// 	});
+	// 	// 4 - restore styling
+	// 	__restoreStyling(elsAndStyles, shadowRootEl.openOrClosedShadowRoot);
+	// }
+	
+	// function _replSlotsWithActualElements(rootEl){
+	// 	// 1 - Find all slots in their shadow root
+	// 	const slots = rootEl.openOrClosedShadowRoot.querySelectorAll("slot");
+	// 	if(!slots.length){
+	// 		return; // nothing to do
+	// 	}
+	// 	// 2 - Clone assigned nodes
+	// 	// 2.1 - Keep a ref to orig assigned nodes
+	// 	// TODO: A - save styles before slotting/replacing
+	// 	// TODO: B - Convert custom elements to divs
+	// 	// TODO: C - Switch from Promise.all to Reduce -- iframe replacement
+	// 	const origAssndNodes = []; // Slots and their assigned elements are unique -- no need for Set
+	// 	const slotReplPairs = Array
+	// 		.from(slots)
+	// 		.filter(aSlot=>aSlot.assignedNodes().length) // cause some <slot>s aren't assigned anything - Isn't it joy working through some retard's code?..
+	// 		.map(aSlot => {
+	// 			const assndNodes = aSlot.assignedNodes();
+	// 			// 2.2 - Record before-replacement styling
+	// 			// 2.2.1 - Get all items + descendants
+	// 			const assndNodesAndChildren = Array
+	// 				.from(assndNodes)
+	// 				.filter(el=>el.nodeType === document.ELEMENT_NODE) // assigned nodes can be non-Element nodes (e.g., text)
+	// 				.map(el=>Array.from(el.querySelectorAll(":not(svg)")).concat([el]))
+	// 				.flat(1)
+	// 				.filter(_cheapFilter2Visible);
+	// 			// 2.2.2 - Record all styling
+	// 			const elsAndStyles = assndNodesAndChildren.map(__el2styles);
+	// 			// 3 - Replace
+	// 			aSlot.replaceWith(...assndNodes);
+	// 			// 3.1 - Restore styling when needed
+	// 			__restoreStyling(elsAndStyles, rootEl.openOrClosedShadowRoot);
+	// 			// // 4 - Keep a ref to the slots
+	// 			origAssndNodes.push(...assndNodes);
+	// 			return {aSlot, clones: assndNodes};
+	// 		});
+	// 	// 5 - A restorer F?... A bit too complex/problematic <-- Probably not going to work -- we import these Elements in Iframes (aka, other document) later on...
+	// 	return ()=>{
+	// 		// 5.1 - put the original slotted elements back
+	// 		rootEl.append(...origAssndNodes);
+	// 		// origAssndNodes.forEach(x=>rootEl.appendChild());
+	// 		// 5.2 - put the original <slot> back; remove its replacements
+	// 		slotReplPairs.forEach(pair=>{
+	// 			pair.clones.forEach((aClone, i)=>{
+	// 				if(i){ // if 1st, replace with the original slot, otherwise just remove
+	// 					aClone.remove();
+	// 				}else{
+	// 					aClone.replaceWith(pair.aSlot);
+	// 				}
+	// 			});
+	// 		});
+	// 	};
+	// }
+	
+	function unwrapShadowDomAsync(diffCheckNeeded = true){
+		// 1 - getting all shadow roots -- we need access to invisible elements too for some calculations
+		const shadowRoots = _lineUpShadowRoot(document.body);
+		if(!shadowRoots.length){
+			console.log("[unwrapShadowDomAsync] No shadow DOM roots found.", window.location.href);
+			document.documentElement.dispatchEvent(new Event("NoShadowDOM"));
+			return window._alarmPr(50);
+			// return Promise.resolve();
+		}
+		console.log("[unwrapShadowDomAsync]%c FOUND Shadow DOM roots, n: " + shadowRoots.length + " " + shadowRoots.map(x=>x.tagName).join(", ") + " " + location.href, "color:#7FFFD4;");
+		// debugger;
+		// 2 - visual changes tracking
+		if(diffCheckNeeded){
+			var cnvsBefore = window.page2Canvas(true);
+		}
+		// 3 - get all elements that could be re-styled due to our shadowDom unwrapping
+		const elsAndStyles = _getAllShadowDomAffectedNodes(shadowRoots).map(__el2styles);
+		console.log("[unwrapShadowDomAsync]%c %i elements to track CSS changes for", "color:#7FFFD4;", elsAndStyles.length);
+		// 4 - unwrapping
+		_doManualSlotting(shadowRoots);
+		_shadowRoots2Divs();
+		// 5 - style restoring
+		__restoreStyling(elsAndStyles);
+		console.log("[unwrapShadowDomAsync] Checking for !important cases to overwrite, repeating __restoreStyling");
+		__restoreStyling(elsAndStyles, undefined, {enforceDiff: true}); // because the original styles often have !important rules that we still need to overwrite
+		return window._alarmPr(350) // a small delay for changes to render
+			.then(()=>{
+				document.documentElement.dispatchEvent(new Event("NoShadowDOM"));
+			})
+			.then(()=>{
+				// 6 - check for visual differences
+				if(diffCheckNeeded){
+					const cnvsAfter = window.page2Canvas(true);
+					const diffThr = 4;
+					const {
+						sizeDiff,
+						wDiff,
+						hDiff,
+						canvasesAreSame,
+						diffCnvs,
+						accuDiff
+					} = window.getCnvsDiff(cnvsBefore, cnvsAfter, diffThr);
+					if (!canvasesAreSame) {
+						debugger;
+					}
+					console.assert(canvasesAreSame, "Visual Difference after manipulation, total size diff in pixels:", sizeDiff, "wDiff: ", wDiff, "hDiff:", hDiff, "total pixel value Diff: ", accuDiff, window.location.href);
+					return {
+						accuDiff,
+						diffCnvs
+					};
+				}
+			});
+	}
+	
+	// const {shadowDom2IFramesAsync, restoreShadowDom} = (()=>{
+	// 	var _diffRes, _restoreShadowDom; //, replPairs = [];
+	// 
+	// 	// function _shadowRoot2IFrameAsync(el){
+	// 	// 	return new Promise(function(resolve, reject) {
+	// 	// 		// create a div with an iFrame; clone its attributes
+	// 	// 		const iFrame = document.createElement("iframe");
+	// 	// 		iFrame.addEventListener('load', ()=>{
+	// 	// 			const iDoc = iFrame.contentWindow.document;
+	// 	// 			try {
+	// 	// 				el.openOrClosedShadowRoot.childNodes.forEach(chNode=>{
+	// 	// 					const ndCpy = iDoc.importNode(chNode, true);
+	// 	// 					iDoc.body.appendChild(ndCpy);
+	// 	// 					// iDoc.body.appendChild(chNode.cloneNode(true));
+	// 	// 				});
+	// 	// 				resolve();
+	// 	// 			} catch (e) {
+	// 	// 				console.error(e, el.tagName, location.href);
+	// 	// 				debugger;
+	// 	// 				reject();
+	// 	// 			}
+	// 	// 		});
+	// 	// 		iFrame.setAttribute("shadow-dom-replacement", "yes");
+	// 	// 		Array.from(el.attributes).forEach(x=>iFrame.setAttribute(x.name, x.value));
+	// 	// 		// const shadowChildClones = Array.from(el.openOrClosedShadowRoot.childNodes).map(chNode=>chNode.cloneNode(true));
+	// 	// 		// save orig css
+	// 	// 		const origElSt = window.__cssValsToObj(window.getComputedStyle(el), window.__getAllCssPropList());
+	// 	// 		// save innerHTML // add div
+	// 	// 		el.replaceWith(iFrame);
+	// 	// 		// shadowChildClones.forEach(chNode=>{
+	// 	// 		// 	iFrame.contentWindow.document.body.appendChild(chNode);
+	// 	// 		// });
+	// 	// 		// enforce css difference
+	// 	// 		const divStToEnf = window.stripIdenticalCss(origElSt, window.getComputedStyle(iFrame));
+	// 	// 		window.__enforceCSSVals(iFrame, divStToEnf);
+	// 	// 		// keep a ref to revert changes
+	// 	// 		// return {iFrame, el};
+	// 	// 		// replPairs.push({iFrame, el});
+	// 	// 		// iFrame.setAttribute("src", "about:blank");
+	// 	// 		return () => iFrame.replaceWith(el);
+	// 	// 	});
+	// 	// }
+	// 
+	// 	function shadowDom2IFramesAsync(diffCheckNeeded = true){
+	// 		// 0 - fool checks
+	// 		console.assert(_diffRes === undefined, "[shadowDom2IFrames] Should be called only once. Debug.", window.location.href);
+	// 		// 1 - find all visible (not checking much -- iframes won't show overflow, so no point checking minSize) shadow doms
+	// 		const shadowRoots = _lineUpShadowRoot(document.body);
+	// 		// 
+	// 		// .filter(el=>{
+	// 		// 	const st = window.getComputedStyle(el);
+	// 		// 	const o = parseFloat(st.opacity);
+	// 		// 	const b = el.getBoundingClientRect();
+	// 		// 	console.assert(!isNaN(o), "[shadowDom2IFrames] Opacity parsing failed:", o, st.opacity);
+	// 		// 	return st.visibility === "visible" && st.display !== "none" && o > 0.1 && (b.width > 1 && b.height > 1);
+	// 		// });
+	// 		if(!shadowRoots.length){
+	// 			console.log("[shadowDom2IFrames] No shadow DOM roots found.", window.location.href);
+	// 			return Promise.resolve();
+	// 		}
+	// 		console.log("[shadowDom2IFrames]%c FOUND Shadow DOM roots, n: " + shadowRoots.length + " " + shadowRoots.map(x=>x.tagName).join(", ") + " " + location.href, "color:#7FFFD4;");
+	// 		// debugger;
+	// 		// 2 - visual changes tracking
+	// 		if(diffCheckNeeded){
+	// 			var cnvsBefore = window.page2Canvas(true);
+	// 		}
+	// 		// 3 - Handle Slot
+	// 		debugger;
+	// 		const restoreSlotFs = shadowRoots.map(_replSlotsWithActualElements);
+	// 		// 3.1 - Custom elements to Divs
+	// 		_lineUpShadowRoot(document.body).map(_customEls2Divs);
+	// 		// 4 - make empty divs as iframe placeholders; enforce missing CSS on them
+	// 		// NOTE: Replacing the original shadowDom Hosts with <div>s may break sibling/order-based CSS <-- let's hope it's minimal <-- If not, we'll have to track it
+	// 		const restoreShadowRootsFs = []; // Useless?...
+	// 		return _lineUpShadowRoot(document.body) // NOTE: searching for shadow roots again -- slotting above may have created new elements with shadow roots
+	// 			.reduce((p, el)=>{
+	// 				return p.then(()=>_shadowRoot2IFrameAsync(el)).then(restoreF=>restoreShadowRootsFs.push(restoreF));
+	// 			}, Promise.resolve())
+	// 			.then(()=>{
+	// 				_restoreShadowDom = ()=>{ // saving the global restore F
+	// 					restoreShadowRootsFs.forEach(f => f());
+	// 					restoreSlotFs.forEach(f => f());
+	// 					console.log("[shadowDom2IFramesAsync] Done restoring shadow Roots.");
+	// 				};
+	// 			})
+	// 			.then(()=>window._alarmPr(350)) // a small delay for changes to render
+	// 			.then(()=>{
+	// 				// 4 - check for visual differences
+	// 				if(diffCheckNeeded){
+	// 					const cnvsAfter = window.page2Canvas(true);
+	// 					const diffThr = 4;
+	// 					const {
+	// 						sizeDiff,
+	// 						wDiff,
+	// 						hDiff,
+	// 						canvasesAreSame,
+	// 						diffCnvs,
+	// 						accuDiff
+	// 					} = window.getCnvsDiff(cnvsBefore, cnvsAfter, diffThr);
+	// 					if (!canvasesAreSame) {
+	// 						debugger;
+	// 					}
+	// 					console.assert(canvasesAreSame, "Visual Difference after manipulation, total size diff in pixels:", sizeDiff, "wDiff: ", wDiff, "hDiff:", hDiff, "total pixel value Diff: ", accuDiff, window.location.href);
+	// 					return {
+	// 						accuDiff,
+	// 						diffCnvs
+	// 					};
+	// 				}
+	// 			});
+	// 	}
+	// 
+	// 	return {
+	// 		// TODO: make it work for nested shadowRoots -- for now, just 1 nestedness level
+	// 		// shadowDom2IFramesAsync(diffCheckNeeded = true){
+	// 		// 	// 0 - fool checks
+	// 		// 	console.assert(_diffRes === undefined, "[shadowDom2IFrames] Should be called only once. Debug.", window.location.href);
+	// 		// 	// 1 - find all visible (not checking much -- iframes won't show overflow, so no point checking minSize) shadow doms
+	// 		// 	const shadowDomHosts = Array 
+	// 		// 		.from(document.body.querySelectorAll("body :not(svg *)")) // <== omitting <svg> insides; <use> for some reason produces a shadow root
+	// 		// 		.filter(el=>el.openOrClosedShadowRoot)
+	// 		// 		.filter(el=>!window._tagSets.builtinWithShadowDom.has((el.tagName || "").toLowerCase())) // filtering out elements with ShadowDom by default (for some reason it's visible to addons with openOrClosedShadowRoot -- but only while the el is attached do the document)
+	// 		// 		.filter(el=>{
+	// 		// 			const st = window.getComputedStyle(el);
+	// 		// 			const o = parseFloat(st.opacity);
+	// 		// 			const b = el.getBoundingClientRect();
+	// 		// 			console.assert(!isNaN(o), "[shadowDom2IFrames] Opacity parsing failed:", o, st.opacity);
+	// 		// 			return st.visibility === "visible" && st.display !== "none" && o > 0.1 && (b.width > 1 && b.height > 1);
+	// 		// 		});
+	// 		// 	if(!shadowDomHosts.length){
+	// 		// 		console.log("[shadowDom2IFrames] No shadow DOM roots found.", window.location.href);
+	// 		// 		return Promise.resolve();
+	// 		// 	}
+	// 		// 	console.log("[shadowDom2IFrames]%c FOUND Shadow DOM roots, n: " + shadowDomHosts.length + " " + shadowDomHosts.map(x=>x.tagName).join(", ") + " " + location.href, "color:#7FFFD4;");
+	// 		// 	// debugger;
+	// 		// 	// 2 - visual changes tracking
+	// 		// 	if(diffCheckNeeded){
+	// 		// 		var cnvsBefore = window.page2Canvas(true);
+	// 		// 	}
+	// 		// 	// 3 - make empty divs as iframe placeholders; enforce missing CSS on them
+	// 		// 	// NOTE: Replacing the original shadowDom Hosts with <div>s may break sibling/order-based CSS <-- let's hope it's minimal <-- If not, we'll have to track it
+	// 		// 	const prArr = shadowDomHosts.map(el=>{
+	// 		// 		return new Promise(function(resolve, reject) {
+	// 		// 			// create a div with an iFrame; clone its attributes
+	// 		// 			const iFrame = document.createElement("iframe");
+	// 		// 			iFrame.addEventListener('load', ()=>{
+	// 		// 				const iDoc = iFrame.contentWindow.document;
+	// 		// 				try {
+	// 		// 					el.openOrClosedShadowRoot.childNodes.forEach(chNode=>{
+	// 		// 						const ndCpy = iDoc.importNode(chNode, true);
+	// 		// 						iDoc.body.appendChild(ndCpy);
+	// 		// 						// iDoc.body.appendChild(chNode.cloneNode(true));
+	// 		// 					});
+	// 		// 					resolve();
+	// 		// 				} catch (e) {
+	// 		// 					console.error(e, el.tagName, location.href);
+	// 		// 					debugger;
+	// 		// 					reject();
+	// 		// 				}
+	// 		// 			});
+	// 		// 			iFrame.setAttribute("shadow-dom-replacement", "yes");
+	// 		// 			Array.from(el.attributes).forEach(x=>iFrame.setAttribute(x.name, x.value));
+	// 		// 			// const shadowChildClones = Array.from(el.openOrClosedShadowRoot.childNodes).map(chNode=>chNode.cloneNode(true));
+	// 		// 			// save orig css
+	// 		// 			const origElSt = window.__cssValsToObj(window.getComputedStyle(el), window.__getAllCssPropList());
+	// 		// 			// save innerHTML // add div
+	// 		// 			el.replaceWith(iFrame);
+	// 		// 			// shadowChildClones.forEach(chNode=>{
+	// 		// 			// 	iFrame.contentWindow.document.body.appendChild(chNode);
+	// 		// 			// });
+	// 		// 			// enforce css difference
+	// 		// 			const divStToEnf = window.stripIdenticalCss(origElSt, window.getComputedStyle(iFrame));
+	// 		// 			window.__enforceCSSVals(iFrame, divStToEnf);
+	// 		// 			// keep a ref to revert changes
+	// 		// 			// return {iFrame, el};
+	// 		// 			replPairs.push({iFrame, el});
+	// 		// 			// iFrame.setAttribute("src", "about:blank");
+	// 		// 		});
+	// 		// 	});
+	// 		// 	return Promise
+	// 		// 		.all(prArr)
+	// 		// 		.then(()=>window._alarmPr(350)) // a small delay for changes to render
+	// 		// 		.then(()=>{
+	// 		// 			// 4 - check for visual differences
+	// 		// 			if(diffCheckNeeded){
+	// 		// 				const cnvsAfter = window.page2Canvas(true);
+	// 		// 				const diffThr = 4;
+	// 		// 				const {
+	// 		// 					sizeDiff,
+	// 		// 					wDiff,
+	// 		// 					hDiff,
+	// 		// 					canvasesAreSame,
+	// 		// 					diffCnvs,
+	// 		// 					accuDiff
+	// 		// 				} = window.getCnvsDiff(cnvsBefore, cnvsAfter, diffThr);
+	// 		// 				if (!canvasesAreSame) {
+	// 		// 					debugger;
+	// 		// 				}
+	// 		// 				console.assert(canvasesAreSame, "Visual Difference after manipulation, total size diff in pixels:", sizeDiff, "wDiff: ", wDiff, "hDiff:", hDiff, "total pixel value Diff: ", accuDiff, window.location.href);
+	// 		// 				return {
+	// 		// 					accuDiff,
+	// 		// 					diffCnvs
+	// 		// 				};
+	// 		// 			}
+	// 		// 		});
+	// 		// },
+	// 		shadowDom2IFramesAsync,
+	// 		restoreShadowDom(){
+	// 			_restoreShadowDom(); // if not defined -- let it fall
+	// 			// replPairs.forEach(({iFrame, el})=>{
+	// 			// 	iFrame.replaceWith(el);
+	// 			// });
+	// 		}
+	// 	};
+	// })();
 
 
-	window.shadowDom2IFramesAsync = shadowDom2IFramesAsync;
+	// window.shadowDom2IFramesAsync = shadowDom2IFramesAsync;
+	window.unwrapShadowDomAsync = unwrapShadowDomAsync;
 	window.restoreDomAfterDataExtraction = restoreDomAfterDataExtraction;
 	window.prepDomForDataExtractionAsync = prepDomForDataExtractionAsync;
 	window.toggleDomPrepForInstaManip = createFToggleDomPrepForInstaManip();

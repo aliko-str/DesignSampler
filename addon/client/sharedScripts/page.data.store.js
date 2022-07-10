@@ -41,9 +41,10 @@
 			return window._getElId(el)+(pseudoKey?pseudoKey.replace("::", ":"):"");
 		};
 		const _recordStyles = (timepoint)=>{
+			console.assert(cmpStStore[timepoint] === undefined, "Already initialized styleStore for the timepoint:", timepoint, "?... Debug.", location.href);
 			// initializing cmpStStore
 			const stIdPairs = pseudo2record
-				.concat([null]) // so we record real element styles
+				.concat([null]) // so we also record real element styles
 				.map(pseudoType=>{
 					return Array.from(document.querySelectorAll("*")).map(el=>{
 						const st = window.getComputedStyle(el, pseudoType);
@@ -58,6 +59,10 @@
 		document.documentElement.addEventListener("UIFrozen", (e)=>{
 			assingHiddenIdsAllEls(); // a convenient place for assigning ids
 			_recordStyles("UIFrozen");
+		}, false);
+		document.documentElement.addEventListener("NoShadowDOM", (e)=>{
+			assingHiddenIdsAllEls();
+			_recordStyles("NoShadowDOM");
 		}, false);
 		document.documentElement.addEventListener("DOMPrepped", (e)=>{
 			assingHiddenIdsAllEls(); // new elements have been added, so we should assign them ids

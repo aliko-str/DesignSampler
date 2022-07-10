@@ -839,10 +839,10 @@
 	})();
 	
 	class CssInjector{
-		constructor(){
+		constructor(rootEl2AppendStylesTo = document.head){
 			// for cases when I can't use elements' style, e.g., for pseudoElements
 			this.styleEl = document.createElement("style");
-			this.sheet = document.head.appendChild(this.styleEl).sheet;
+			this.sheet = rootEl2AppendStylesTo.appendChild(this.styleEl).sheet;
 		}
 		static defaultSheet;
 		static _injectStringCss(selectorStr, cssStr){
@@ -858,7 +858,7 @@
 		// 	// }).join(";");
 		// 	this.sheet.insertRule(selector + "{" + propText + "}", this.sheet.cssRules.length);
 		// }
-		_injectCss1Element(el, pseudo = "", cssObj){
+		_injectCss1Element(el, pseudo = "", cssObj, params = {asText: false}){
 			const propText = Object.entries(cssObj).map(kv => kv.join(":")).join(";");
 			const ifNativeIdSet = new Boolean(el.id);
 			if(!el.id){
@@ -873,15 +873,19 @@
 				selector = `[data-${uIdSel}='${uIdVal}']${pseudo}`;
 				console.log("[CSS INJECT]%c Duplicate native id found --> switching to attibutes as selectors, new selector: " + selector + ", id: " + el.id + " Loc:" + window.location, "color:red;font-weight:bolder;");
 			}
-			try {
-				this.sheet.insertRule(selector + "{" + propText + "}", this.sheet.cssRules.length);
-			} catch (e) {
-				// probably an id is faulty
-				console.warn(e, "Couldn't assign css for an element", window.__el2stringForDiagnostics(el));
-				const aClass = window._generateId();
-				el.classList.add(aClass);
-				const classSel = "." + aClass + pseudo;
-				this.sheet.insertRule(classSel + "{" + propText + "}", this.sheet.cssRules.length);
+			if(params && params.asText){
+				this.styleEl.textContent += selector + "{" + propText + "}";
+			}else{
+				try {
+					this.sheet.insertRule(selector + "{" + propText + "}", this.sheet.cssRules.length);
+				} catch (e) {
+					// probably an id is faulty
+					console.warn(e, "Couldn't assign css for an element", window.__el2stringForDiagnostics(el));
+					const aClass = window._generateId();
+					el.classList.add(aClass);
+					const classSel = "." + aClass + pseudo;
+					this.sheet.insertRule(classSel + "{" + propText + "}", this.sheet.cssRules.length);
+				}
 			}
 		}
 		_injectStringCss(selectorStr, cssStr){

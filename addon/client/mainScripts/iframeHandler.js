@@ -17,6 +17,11 @@
 	browser.runtime.onMessage.addListener((msg)=>{
 		if(msg.action === "haveYouLoaded_iframe"){
 			return loadDonePr
+				// .then(()=>{
+				// 	if(location.href.indexOf("about:srcdoc") > -1){
+				// 		console.warn("[SRCDOC] In Client Script, after loadDonePr", location.href);
+				// 	}
+				// })
 				.then(window.recordNoStylingCssAsync) // moving here cause we don't want these in Previsiting
 				.then(window.stopAllAnimations)
 				.then(()=>{
@@ -33,7 +38,7 @@
 			console.warn("[IFRAME] Timed out on: " + window.location.href);
 		})
 		.then(()=>{
-			return window.shadowDom2IFramesAsync(false);
+			return window.unwrapShadowDomAsync(false);
 		})
 		.then(()=>{
 			return window._alarmPr(delayForScriptsToRun);

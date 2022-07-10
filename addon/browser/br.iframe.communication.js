@@ -9,6 +9,7 @@
 			.catch(e=>{
 				// trying to recover -- xml documents (translated in html) don't have scripts loaded in them automatically
 				console.log("%cManually injecting scripts in an iframe", "color:orange;");
+				console.warn(e);
 				const jsArr = browser.runtime.getManifest()["content_scripts"][0]["js"];
 				const cssArrPr = browser.runtime
 					.getManifest()["content_scripts"][0]["css"]
@@ -49,6 +50,9 @@
 					});
 			})
 			.then(respMsg=>{
+				// if(respMsg._href.indexOf("about:srcdoc") > -1){
+				// 	console.warn("[SRCDOC] AFTER Pong.", respMsg);
+				// }
 				console.assert(respMsg.action === "pong");
 			});
 	}
