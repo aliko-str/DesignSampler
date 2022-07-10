@@ -42,6 +42,7 @@
 		const charCodeZero = "0".charCodeAt(0);
 		const charCodeNine = "9".charCodeAt(0);
 		return (n) => {
+			n = n.charCodeAt(0);
 			return (n >= charCodeZero && n <= charCodeNine);
 		};
 	})();
@@ -82,13 +83,13 @@
 
 	function txt2randomScramble(str) {
 		// const letters = [...str.replace(/[\W\d]/g, "").toLowerCase()]; // NOTE: \W filters out non-Latin alpahbet chars - which we'd like to keep --> switching to manual filter
-		const letters = [...str].filter(isItLetter).map(char=>char.toLowerCase());
+		const letters = [...str].filter(s=>isItLetter(s) || isItDigit(s)).map(char=>char.toLowerCase());
 		return [...str].map((aChar) => {
 			// TODO remove isItDigit <-- isItLetter already covers it			
 			//			if(isItDigit(aChar)){
 			//				return aChar;
 			//			}
-			if (!isItLetter(aChar)) {
+			if (!isItLetter(aChar) && !isItDigit(aChar)) {
 				return aChar;
 			}
 			const repChar = letters.splice(Math.floor(Math.random() * letters.length), 1)[0];
