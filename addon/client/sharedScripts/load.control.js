@@ -113,107 +113,124 @@
 				}`);
 			// NOTE: this is suboptimal to call it here, but I'm out of ideas how else to disable JS and Animations at the same time --> // TODO: Maybe more all js disabling to a separate location
 			window.toggleDomPrepForInstaManip("on"); // Otherwise some elements get stuck in an invisible position <-- js disabled, but CSS animations running
-			// adding a counter for Stub F calls
-			w.eval(`window.___stubFCallCounter = 0;`);
-			const removeNonNativeWinProps = `
-				(()=>{
-					if(!window.___windowObjCleaned){
-						console.log("Prepping to clean page window of custom props");
-						const iframe = document.createElement('iframe');
-						iframe.style.display = 'none';
-						iframe.onload = ()=>{
-							const cleanNames = Object.keys(iframe.contentWindow).concat(["___stubFCallCounter", "___windowObjCleaned"]);
-							document.body.removeChild(iframe);
-							const allNames = Object.keys(window);
-							console.log("[PScript CLEANUP] REMOVing", allNames.length - cleanNames.length, " properties from the window object", window.location.href);
-							var _i = 0;
-							allNames.forEach(k => {
-								if(!cleanNames.includes(k)){
-									delete window[k];
-									console.log("[PScript CLEANUP] %i %s", _i++, k);
-								}
-							});
-							window.___windowObjCleaned = true;
-						};
-						document.body.appendChild(iframe);
+			// NOTE: disabling selectors kills the js runtime on Youtube -- trying out this temporary hack of not doing this for youtube -- other options: unwrap iframes in DIVs; replace iframes with screenshots
+			const urls2skipJsOverwriting = ["youtube", "youtu.be"];
+			if(urls2skipJsOverwriting.some(x=>location.host.indexOf(x) > -1)){
+				console.log("[PScript STUB]%c NOT Overwriting JS for this host: %s", "color:orange;background-color:darkgreen;", location.host);
+			}else{
+				// adding a counter for Stub F calls
+				w.eval(`window.___stubFCallCounter = 0;`);
+				const removeNonNativeWinProps = `
+					(()=>{
+						if(!window.___windowObjCleaned){
+							console.log("Prepping to clean page window of custom props");
+							const iframe = document.createElement('iframe');
+							iframe.style.display = 'none';
+							iframe.onload = ()=>{
+								const cleanNames = Object.keys(iframe.contentWindow).concat(["___stubFCallCounter", "___windowObjCleaned"]);
+								document.body.removeChild(iframe);
+								const allNames = Object.keys(window);
+								console.log("[PScript CLEANUP] REMOVing", allNames.length - cleanNames.length, " properties from the window object", window.location.href);
+								var _i = 0;
+								allNames.forEach(k => {
+									if(!cleanNames.includes(k)){
+										delete window[k];
+										console.log("[PScript CLEANUP] %i %s", _i++, k);
+									}
+								});
+								window.___windowObjCleaned = true;
+							};
+							document.body.appendChild(iframe);
+						}
+					})();
+				`;
+				const stopJsThrow = `
+					if(++window.___stubFCallCounter === 100){
+						try{
+							console.log("%c[PScript STUB] too many calls to a Stub F", window.___stubFCallCounter, "==> Do smth to avoid slow-downs. For now, just no longer printing logs.", "color:pink;font-style:oblique;");
+							window.___stopLogs = true;
+							${removeNonNativeWinProps}
+							console.log = ()=>{};	
+						}catch (e){
+							console.error("couldn't stop js execution", JSON.stringify(e));
+						}
+						throw "[PScript STUB] Stop JS please";
 					}
-				})();
-			`;
-			const stopJsThrow = `
-				if(++window.___stubFCallCounter === 100){
-					try{
-						console.log("%c[PScript STUB] too many calls to a Stub F", window.___stubFCallCounter, "==> Do smth to avoid slow-downs. For now, just no longer printing logs.", "color:pink;font-style:oblique;");
-						window.___stopLogs = true;
-						${removeNonNativeWinProps}
-						console.log = ()=>{};	
-					}catch (e){
-						console.error("couldn't stop js execution", JSON.stringify(e));
-					}
-					throw "[PScript STUB] Stop JS please";
-				}
-			`;
-			// redefining setInterval/Timeout to no-op -- hopefully animations stop.
-			w.eval(`setInterval = () => {
-				console.log("[PScript STUB] Page scripts trying to set an interval --> we've replaced it with no-op", window.location.href);
-				${stopJsThrow}
-			};`);
-			w.eval(`setTimeout = () => {
-				console.log("[PScript STUB] Page scripts trying to set a timeout --> we've replaced it with no-op", window.location.href);
-				${stopJsThrow}
-			};`);
-			// Just element selection isn't enough -- we need to ensure XHRs don't 'grow' webpages after we screenshot them
-			function stubPageF(className, fName, w, returnV = "null"){
-				w.eval(`${className}.prototype.${fName} = ()=>{
-					if(!window.___stopLogs){
-						console.log("[PScript STUB]Page script tried to use an overwritten ${className} F, '${fName}', Doing nothing instead.", window.location.href);
-					}
+				`;
+				// redefining document.write -- otherwise all event handlers (including ours) get removed
+				w.eval(`
+					document.write = (markup)=>{
+						console.log("%c[PScript STUB] Preventing document.write, %s, markup: %s", "color:pink;", location.href, markup);
+						${stopJsThrow}
+					};
+					document.writeln = (line)=>{
+						console.log("%c[PScript STUB] Preventing document.writeln, %s, line: %s", "color:pink;", location.href, line);
+						${stopJsThrow}
+					};
+					`);
+				// redefining setInterval/Timeout to no-op -- hopefully animations stop.
+				w.eval(`setInterval = () => {
+					console.log("[PScript STUB] Page scripts trying to set an interval --> we've replaced it with no-op", window.location.href);
 					${stopJsThrow}
-					return ${returnV};
-				}`);				
-			}
-			// HTMLDocument functions to disable
-			["getElementsByTagNameNS", "getElementsByTagName", "getElementsByName", "getElementsByClassName", "querySelectorAll"].forEach(f => stubPageF("HTMLDocument", f, w, "[]"));
-			["getElementById", "querySelector", "createElement", "createElementNS"].forEach(f => stubPageF("HTMLDocument", f, w, "null"));
-			// ELEMENT f to disble
-			// setHTML <== Not yet used/available
-			const domManipF2Disable = ["after", "append", "appendChild", "before", "insertAdjacentElement", "insertAdjacentHTML", "prepend", "remove", "replaceWith", "replaceChildren", "querySelector", "querySelectorAll", "attachShadow"];
-			domManipF2Disable.forEach(fName => stubPageF("HTMLElement", fName, w));
-			// Node f to disable
-			["insertBefore", "appendChild", "replaceChild", "removeChild"].forEach(f => stubPageF("Node", f, w));
-			// Class adding via Element.setProperty
-			w.eval(`HTMLElement.prototype.setAttribute = (a, b)=>console.log("[PScript STUB] Trying to set setAttribute", a, b);`);
-			// DIRECT html-as-string manipulation
-			w.eval(`Object.defineProperty(Element.prototype, "innerHTML", {
-				set (v){console.log("[PScript STUB] not SETTING HTML", v);}, 
-				get(){console.log("[PScript STUB][Asking for html]"); return ""},  
-				enumerable: true,
-				configurable: true
-			});`);
-			// BELOW: Trying to stop WordPress animations without the nuclear option of overwriting Function.prototype.call/apply which are so beloved by lib devs
-			// "content_security_policy": "script-src 'self' 'unsafe-eval'; object-src 'self';",
-			const overwriteCSS2Prop = (propName, w)=>{
-				const tmplt = `
-					Object.defineProperty(CSS2Properties.prototype, "${propName}", {set(a){
+				};`);
+				w.eval(`setTimeout = () => {
+					console.log("[PScript STUB] Page scripts trying to set a timeout --> we've replaced it with no-op", window.location.href);
+					${stopJsThrow}
+				};`);
+				// Just element selection isn't enough -- we need to ensure XHRs don't 'grow' webpages after we screenshot them
+				function stubPageF(className, fName, w, returnV = "null"){
+					w.eval(`${className}.prototype.${fName} = ()=>{
 						if(!window.___stopLogs){
-							console.log("[PScript STUB] Not setting ${propName.toUpperCase()} style", (a || "undefined").toString());
+							console.log("[PScript STUB]Page script tried to use an overwritten ${className} F, '${fName}', Doing nothing instead.", window.location.href);
 						}
 						${stopJsThrow}
-						// console.stack();
-						return "";
-					}});
-				`;
-				w.eval(tmplt);
-			};
-			// NUCLEAR option -- disabling setters on all CSS2Properties
-			const allCssProps2Disable = Object.keys(window.CSS2Properties.prototype); // window.__getAllCssPropList();
-			//const allCssProps2Disable = ["left", "display", "opacity", "transform", "MozTransform", "webkitTransform", "WebkitTransform"]
-			allCssProps2Disable.forEach(cssProp => {
-				overwriteCSS2Prop(cssProp, w);
-			});
-			// Preventing event Dispatching - no idea how to stop JS animations otherwise (they save a copy to setTimeout)
-			w.eval(`EventTarget.prototype.dispatchEvent = function(e){console.log("[PScript STUB] Preventing an event: ", e.type, location.href)};`);
-			// Disabling in-built animations
-			w.eval(`Element.prototype.animate = function(){console.log("[PScript STUB] Preventing built-in Animation: ", ...arguments)}`);
+						return ${returnV};
+					}`);				
+				}
+				// HTMLDocument functions to disable
+				["getElementsByTagNameNS", "getElementsByTagName", "getElementsByName", "getElementsByClassName", "querySelectorAll"].forEach(f => stubPageF("HTMLDocument", f, w, "[]"));
+				["getElementById", "querySelector", "createElement", "createElementNS"].forEach(f => stubPageF("HTMLDocument", f, w, "null"));
+				// ELEMENT f to disble
+				// setHTML <== Not yet used/available
+				const domManipF2Disable = ["after", "append", "appendChild", "before", "insertAdjacentElement", "insertAdjacentHTML", "prepend", "remove", "replaceWith", "replaceChildren", "querySelector", "querySelectorAll", "attachShadow"];
+				domManipF2Disable.forEach(fName => stubPageF("HTMLElement", fName, w));
+				// Node f to disable
+				["insertBefore", "appendChild", "replaceChild", "removeChild"].forEach(f => stubPageF("Node", f, w));
+				// Class adding via Element.setProperty
+				w.eval(`HTMLElement.prototype.setAttribute = (a, b)=>console.log("[PScript STUB] Trying to set setAttribute", a, b);`);
+				// DIRECT html-as-string manipulation
+				w.eval(`Object.defineProperty(Element.prototype, "innerHTML", {
+					set (v){console.log("[PScript STUB] not SETTING HTML", v);}, 
+					get(){console.log("[PScript STUB][Asking for html]"); return ""},  
+					enumerable: true,
+					configurable: true
+				});`);
+				// BELOW: Trying to stop WordPress animations without the nuclear option of overwriting Function.prototype.call/apply which are so beloved by lib devs
+				// "content_security_policy": "script-src 'self' 'unsafe-eval'; object-src 'self';",
+				const overwriteCSS2Prop = (propName, w)=>{
+					const tmplt = `
+						Object.defineProperty(CSS2Properties.prototype, "${propName}", {set(a){
+							if(!window.___stopLogs){
+								console.log("[PScript STUB] Not setting ${propName.toUpperCase()} style", (a || "undefined").toString());
+							}
+							${stopJsThrow}
+							// console.stack();
+							return "";
+						}});
+					`;
+					w.eval(tmplt);
+				};
+				// NUCLEAR option -- disabling setters on all CSS2Properties
+				const allCssProps2Disable = Object.keys(window.CSS2Properties.prototype); // window.__getAllCssPropList();
+				//const allCssProps2Disable = ["left", "display", "opacity", "transform", "MozTransform", "webkitTransform", "WebkitTransform"]
+				allCssProps2Disable.forEach(cssProp => {
+					overwriteCSS2Prop(cssProp, w);
+				});
+				// Preventing event Dispatching - no idea how to stop JS animations otherwise (they save a copy to setTimeout)
+				w.eval(`EventTarget.prototype.dispatchEvent = function(e){console.log("[PScript STUB] Preventing an event: ", e.type, location.href)};`);
+				// Disabling in-built animations
+				w.eval(`Element.prototype.animate = function(){console.log("[PScript STUB] Preventing built-in Animation: ", ...arguments)}`);
+			}
 			w.eval(`window.stop();`);
 			window.dispatchEvent(new Event("StopEventHandling"));
 		} catch (err) {
