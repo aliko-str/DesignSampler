@@ -62,6 +62,11 @@
 			console.warn("[GEN PAGE MODs] Issue: niceScroll detected --> Removing it", location.href);
 			try{
 				jqLib(w.document.documentElement).niceScroll().remove(); // We can no longer use selectors because we've disabled them <-- Maybe I should only keep manipulations disabled
+				// some extras -- not sure it's needed for all, but certainly for some pages
+				const s = document.documentElement.style;
+				if(s && s.overflowX === "auto"){ // NOTE: because having overflow: auto visible makes both overflows auto <-- which hides overflow sometimes
+					s.overflowX = "initial";
+				}
 			}catch(e){
 				console.error("niceScroll error", e);
 			}

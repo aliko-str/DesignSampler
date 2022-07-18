@@ -378,9 +378,12 @@
 			const mainGrArr = jqMainGr.toArray().filter(grEl=>{
 				return !ifrArr.some(ifr=>grEl.contains(ifr)); // because we use swapping for banner detection -- triggers reloading
 			});
+			console.groupCollapsed("Looping potentialBanners, n: ", mainGrArr.length);
+			debugger;
 			const potentialBanners = mainGrArr.map(mainGrEl=>{
 				const bannerSiblings = _getBannerSibligns(mainGrEl, hiddenGrArr, ifrArr);
 				var currEl = mainGrEl.parentElement;
+				console.count("potentialBanners");
 				while(currEl !== null){
 					if(_isThisElAPotentialBanner(currEl, mainGrArr, bannerSiblings)){
 						// saving hidden images so we don't have to re-search for them
@@ -395,12 +398,14 @@
 						return null;
 					}
 				}
+				
 				// if(currEl && bannerSiblings.length){
 				// 	// saving hidden images so we don't have to re-search for them
 				// 	currEl._hiddImgs = bannerSiblings.filter(x=>currEl.contains(x));
 				// }
 				return currEl; // it's null, we've reach HTMLDocument <-- I don't expect to be here often, but it's possible
 			}).filter(el=>el);
+			console.groupEnd();
 			return potentialBanners;
 		});
 	}

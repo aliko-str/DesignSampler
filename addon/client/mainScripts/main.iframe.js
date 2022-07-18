@@ -168,7 +168,7 @@
 			const MAX_TRIES = 5;
 			var __intrvId2 = setInterval(()=>{
 				if((document.body && document.body.innerHTML) || __nTries >= MAX_TRIES){
-					console.log("%c __nTries to initialize events for an empty-body iframe: " + __nTries, "color:orange;");
+					console.log("%c __nTries to initialize events for an empty-body iframe: %i, %s", "color:orange;",  ++__nTries, location.href);
 					window.clearInterval(__intrvId2);
 					attachPapaListeners();
 					window.getPageLoadedPr(undefined, ()=>{}, true); // Resetting if needed

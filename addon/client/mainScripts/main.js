@@ -85,8 +85,7 @@
 				return window.propagateFrVisReqsAsync().then(visFrInfoArr=>{
 					// console.warn("GiveMeIFrameVisibility REPLYING WITH DATA", location.href);
 					return {"action": "HaveYourIFrameVisibility", "visFrInfoArr": visFrInfoArr || [], "mainFrameUrl": window.location.href};
-				});
-				
+				});	
 			}
 		});
 		browser.runtime.sendMessage({"action": "HaveIFramesLoaded?"});
