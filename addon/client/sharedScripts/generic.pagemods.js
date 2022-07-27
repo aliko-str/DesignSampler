@@ -2,7 +2,7 @@
 // scripts to be applied to each webpage - to remove pop-ups, top/bottom bars etc.
 
 (()=>{
-	const noActionExceptions = ["crimsouneclub.com", "fabindia.com", "corneliajames.com", "saintandsofia.com"]; // because some of the genericPageMods cause page re-load
+	const noActionExceptions = ["crimsouneclub.com", "fabindia.com", "corneliajames.com", "saintandsofia.com", "www.rubynz.com"]; // because some of the genericPageMods cause page re-load
 	
 	function __ssGenericPageMod(){
 		if(noActionExceptions.some(x=>window.location.href.indexOf(x) > -1)){
@@ -37,6 +37,15 @@
 			document.documentElement.classList.remove(c);
 			document.body.classList.remove(c);
 		});
+		// KLaviyo bs popups -- common for eCommerce
+		const klaviyo = document.querySelectorAll("[class*='kl-private-reset-css'][role='dialog']");
+		if(klaviyo.length){
+			klaviyo[0].parentElement.id = klaviyo[0].parentElement.id || "klavioIsCrap" + Math.round(Math.random()*100);
+			window.CssInjector._injectStringCss("#" + klaviyo[0].parentElement.id, "display: none !important;");
+			// window.CssInjector._injectStringCss("[class*='kl-private-reset-css']:has([class*='kl-private-reset-css'][role='dialog'])", "display: none !important;");
+		}
+		// 
+		// .forEach(x=>x.parentElement.style.display = "none");
 		// Overlays with style-fixed overflows on body/html
 		const fixedBodySels = ["#attentive_overlay"].join(",");
 		const fixedBodyEls = document.querySelectorAll(fixedBodySels);

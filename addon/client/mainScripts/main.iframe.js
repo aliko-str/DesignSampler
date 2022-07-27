@@ -153,6 +153,9 @@
 	
 	// Remembering this Iframe Machine ID -- so we can later tell it to Papa Window, so it can link <iframes> with Background Iframes
 	browser.runtime.sendMessage({action: "TellMeMyMachineIframeId"}).then((msg)=>{
+		if(!msg){
+			return; // we aren't running the addon yet
+		}
 		console.assert(msg.machineFrameId !== undefined);
 		machineFrameId = msg.machineFrameId;
 	});

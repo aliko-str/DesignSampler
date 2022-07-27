@@ -165,11 +165,15 @@
 		var _setTxtNodeVal = function(el, modF, {ifControl} = {ifControl: false}){
 			if(ifControl){
 				el._thisIsAControl = true;
-				if(el.value.length === 0 && el.placeholder.length){
+				if(el.value.length === 0){
 					// replacing placeholder
-					el._replPlaceholder = true;
-					el._oldText = el.placeholder;
-					el.placeholder = modF(el.placeholder);
+					if(el.placeholder && el.placeholder.length){ // some inputs don't have a placeholder
+						el._replPlaceholder = true;
+						el._oldText = el.placeholder;
+						el.placeholder = modF(el.placeholder);						
+					}else{
+						console.log("%c No-placeholder input: %s", "color:pink;", window.__el2stringForDiagnostics(el));
+					}
 				}else{
 					el._oldText = el.value;
 					el.value = modF(el.value);	
@@ -296,7 +300,7 @@
 			jqAllEls.each(function(jqI, el) {
 				if (el.nodeType === 3) {
 					_setTxtNodeVal(el, f);
-				} else if(el.value){
+				} else if(el.value !== undefined && typeof el.value === "string"){
 					// this is a control elements, not simple texts
 					_setTxtNodeVal(el, f, {ifControl: true});
 				} else {

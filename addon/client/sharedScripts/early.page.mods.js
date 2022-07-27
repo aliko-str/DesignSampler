@@ -46,6 +46,13 @@
 				const __realAddEventListener = EventTarget.prototype.addEventListener;
 				const __realRemoveEventListener = EventTarget.prototype.removeEventListener;
 				EventTarget.prototype.addEventListener = function(t, f, opt){
+					if(f === null){
+						return; // do nothing
+					}
+					if(f.handleEvent){ // a handler can be an object
+						var self = f;
+						f = f.handleEvent;
+					}
 					function wF(e){
 						if(__pageScriptEventsAllowed){
 							// console.log("[PAGE_MODS] Handling event: %c" + t, "color: #A9C998;");
@@ -53,7 +60,7 @@
 							if(f.name.startsWith("bound") && !f.hasOwnProperty("prototype")){
 								f(e);
 							}else{
-								f.call(this, e);
+								f.call(self || this, e);
 							}
 						}else{
 							console.log("[PAGE_MODS] NOT handling page event: %c" + t, "color: #A9C998;");

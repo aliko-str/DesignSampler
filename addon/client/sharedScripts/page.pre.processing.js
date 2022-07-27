@@ -554,6 +554,9 @@
 								} = window.getCnvsDiff(pageCnvsBefore, pageCnvsAfter, diffThr);
 								if (!canvasesAreSame) {
 									debugger;
+									// 4.1 - if needed, refreshing our saved canvas
+									const ifForceRefresh = true;
+									window.getStoredFullPageCanvas(ifForceRefresh);
 								}
 								console.assert(canvasesAreSame, "Visual Difference after manipulation, total size diff in pixels:", sizeDiff, "wDiff: ", wDiff, "hDiff:", hDiff, "total pixel value Diff: ", accuDiff, window.location.href);
 								// TODO log differences in console
@@ -571,7 +574,7 @@
 							// }); // refreshing due to us adding spans
 							// 5.2 - ensuring getAllVis collections are refreshed
 							window.domGetters.forceRefresh();
-							// jqG.__elStore.allVis = null;
+							// jqG.__elStore.allVis = null;							
 							// 5.4 - Saving computed styles for all visible elements
 							document.documentElement.dispatchEvent(new Event("DOMPrepped"));
 							console.log("DONE PREPPING", location.href);

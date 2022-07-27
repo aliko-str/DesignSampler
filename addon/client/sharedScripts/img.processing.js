@@ -386,7 +386,7 @@
 		return {
 			sizeDiff: Math.abs(imgArr1.length - imgArr2.length),
 			wDiff: cnvs1.width - cnvs2.width,
-			hDiff: cnvs2.height - cnvs2.height,
+			hDiff: cnvs1.height - cnvs2.height,
 			canvasesAreSame: canvasesAreSame,
 			diffCnvs: diffCnvs,
 			accuDiff: accuDiff
@@ -672,7 +672,10 @@
 	const getStoredFullPageCanvas = (()=>{
 		// I expect we'll have to rely on the fullpage canvas quite often -- let's keep a reference to it and not recalc
 		var canvas = null;
-		return ()=>{
+		return (ifForceRefresh = false)=>{
+			if(ifForceRefresh){
+				canvas = null;
+			}
 			if(canvas === null){
 				canvas = window.page2Canvas(true);
 			}
