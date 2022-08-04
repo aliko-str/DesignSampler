@@ -187,7 +187,7 @@
 		};
 		const _restoreTxtNodeVal = function(el){
 			if (el._oldText === undefined) {
-				console.error("We can't restore a text node - the old text is not defined on the node. Has the node been changed after text scrambling?..");
+				console.error("We can't restore a text node - the old text is not defined on the node. Has the node been changed after text scrambling?..", el.parentElement?window.__el2stringForDiagnostics(el.parentElement):"[DETACHED text node]");
 			} else {
 				if(el._thisIsAControl){
 					if(el._replPlaceholder){

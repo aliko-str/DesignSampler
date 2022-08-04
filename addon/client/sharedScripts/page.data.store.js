@@ -72,7 +72,7 @@
 			getPreComputedStyles(el, timepoint = "DOMPrepped", pseudoType = null){
 			// if cmpStStore isn't initialized, let it fall.
 				if(!cmpStStore[timepoint]){
-					throw "Initialize cmpStStore. Timepoint: " + timepoint;
+					throw "Initialize cmpStStore. Timepoint: " + timepoint + " location: " + location.href;
 				}
 				const elId = _makeIdF(el, pseudoType);
 				if(!cmpStStore[timepoint][elId]){

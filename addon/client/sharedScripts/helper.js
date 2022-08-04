@@ -842,6 +842,7 @@
 		constructor(rootEl2AppendStylesTo = document.head){
 			// for cases when I can't use elements' style, e.g., for pseudoElements
 			this.styleEl = document.createElement("style");
+			this.styleEl.setAttribute("type", "text/css");
 			this.sheet = rootEl2AppendStylesTo.appendChild(this.styleEl).sheet;
 		}
 		static defaultSheet;

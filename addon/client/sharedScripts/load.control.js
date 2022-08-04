@@ -171,11 +171,13 @@
 				// redefining setInterval/Timeout to no-op -- hopefully animations stop.
 				w.eval(`setInterval = () => {
 					console.log("[PScript STUB] Page scripts trying to set an interval --> we've replaced it with no-op", window.location.href);
-					${stopJsThrow}
+					${stopJsThrow};
+					return 0;
 				};`);
 				w.eval(`setTimeout = () => {
 					console.log("[PScript STUB] Page scripts trying to set a timeout --> we've replaced it with no-op", window.location.href);
-					${stopJsThrow}
+					${stopJsThrow};
+					return 0;
 				};`);
 				// Just element selection isn't enough -- we need to ensure XHRs don't 'grow' webpages after we screenshot them
 				function stubPageF(className, fName, w, returnV = "null"){

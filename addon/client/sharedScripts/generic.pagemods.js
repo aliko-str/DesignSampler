@@ -42,6 +42,7 @@
 		if(klaviyo.length){
 			klaviyo[0].parentElement.id = klaviyo[0].parentElement.id || "klavioIsCrap" + Math.round(Math.random()*100);
 			window.CssInjector._injectStringCss("#" + klaviyo[0].parentElement.id, "display: none !important;");
+			console.log("%c[PAGEModes] Cleaned KLaviyo", "color:gray;");
 			// window.CssInjector._injectStringCss("[class*='kl-private-reset-css']:has([class*='kl-private-reset-css'][role='dialog'])", "display: none !important;");
 		}
 		// 
