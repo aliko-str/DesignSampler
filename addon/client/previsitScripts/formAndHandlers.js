@@ -50,7 +50,7 @@
 			const formEl = shadow.getElementById(formId);
 			attachSubmitHandler(formEl, urlIdRef);
 			shadow.getElementById(validatePageBtnId).addEventListener("click", validateHandler);
-			attachValidate(shadow, urlIdRef);
+			attachBanishHandler(shadow, urlIdRef);
 			// shadow.getElementById(formId).submit();
 			shadow.getElementById(restorePageBtnId).addEventListener("click", function (e) {
 				e.preventDefault();
@@ -105,19 +105,19 @@
 		}, 500);
 	}
 	
-	function attachValidate(formEl, urlId){
+	function attachBanishHandler(formEl, urlIdRef){
 		formEl.querySelector("#" + removePageBtnId).addEventListener("click", function (e) {
 			e.preventDefault();
-			console.log("Asking to banish a page, UrlID:", urlId);
+			console.log("Asking to banish a page, UrlID:", urlIdRef.urlId);
 			browser.runtime.sendMessage({
 				"action": "banishPage",
-				"urlId": urlId
+				"urlId": urlIdRef.urlId
 			}).then((respObj) => {
 				console.log("Done banishing a page, ", respObj);
 				// we are done here - emit Done event
 				browser.runtime.sendMessage({
 					"action": "doNextStep",
-					urlId: urlId
+					urlId: urlIdRef.urlId
 				});
 			});
 		});
