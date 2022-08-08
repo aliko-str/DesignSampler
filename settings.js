@@ -1,8 +1,8 @@
 const path = require("path");
 
 const settings = {
-	profile: "EStoreFashion_All",
-	inFileUrls: path.join("./Inputs/ECommerce.Fashion", "ECommerce.FashionClothes.ALL.txt"),
+	profile: "EStoreHome_All",
+	inFileUrls: path.join("./Inputs/ECommerce.Home", "ECommerce.FurnitureHomeDecor.ALL.txt"),
 	ffRunParams: {
 		source: "--source-dir=/Users/Aleksii/Projects/FF.v83.Addon.ScreenAndVars/addon/",
 		ff: "--firefox=/Users/Aleksii/tmp/Firefox Developer Edition.app/Contents/MacOS/firefox-bin",

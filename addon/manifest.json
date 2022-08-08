@@ -40,6 +40,6 @@
 		"default_title": "Batch take screenshots",
 		"browser_style": true
 	},
-	"web_accessible_resources": ["client/images/bg.trsp.png", "client/images/bg.png", "client/images/bg.old.png", "client/htmlSaverScripts/shadowloader-compressed.js"],
+	"web_accessible_resources": ["client/images/bg.trsp.png", "client/images/bg.png", "client/images/bg.old.png", "client/htmlSaverScripts/shadowloader-compressed.js", "client/css/previsit.shadow.form.css"],
 	"permissions": ["<all_urls>", "nativeMessaging", "tabs", "activeTab", "webNavigation", "storage", "webRequest", "webRequestBlocking"]
 }
