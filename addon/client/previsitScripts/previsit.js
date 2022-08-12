@@ -115,6 +115,7 @@
 						hasLoaded = true;
 						// we're done detaching timeouts and intervals ==> do other work
 						window.__ssGenericPageMod(); // so we don't redo the work of deleting common banners
+						window.__pageContextGenericMods();
 						window.renderFormAndAssignHandlers();
 						// TODO notify parent script all good
 					}

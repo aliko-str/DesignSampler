@@ -2,7 +2,8 @@
 // scripts to be applied to each webpage - to remove pop-ups, top/bottom bars etc.
 
 (()=>{
-	const noActionExceptions = ["crimsouneclub.com", "fabindia.com", "corneliajames.com", "saintandsofia.com", "www.rubynz.com"]; // because some of the genericPageMods cause page re-load
+	// TODO: Move these exceptions to an external file
+	const noActionExceptions = ["crimsouneclub.com", "fabindia.com", "corneliajames.com", "saintandsofia.com", "www.rubynz.com", "www.ezliving-interiors.ie"]; // because some of the genericPageMods cause page re-load
 	
 	function __ssGenericPageMod(){
 		if(noActionExceptions.some(x=>window.location.href.indexOf(x) > -1)){
@@ -22,12 +23,12 @@
 			el.remove();
 		});
 		// Common alert banner x buttons
-		const bannerCloseButtons = [".klaviyo-close-form", ".js-usp-close", ".modal-close", ".js-modal-close", ".fancybox-close-small", "[data-wps-popup-close]", ".wisepops-close", ".s-close-popup", ".close-modal", ".ui-dialog-titlebar-close"];
+		const bannerCloseButtons = [".klaviyo-close-form", ".js-usp-close", ".modal-close", ".js-modal-close", ".fancybox-close-small", "[data-wps-popup-close]", ".wisepops-close", ".s-close-popup", ".close-modal", ".ui-dialog-titlebar-close", ".popup-close"];
 		// Common cookieButtons to be clicked
 		const cookieButtons2Click = ["#CybotCookiebotDialogBodyButtonDecline", "button.close", ".recommendation-modal__close-button", "#btn-cookie-allow", ".js-cookie-consent-close", ".cookie-banner-accept", ".cookie-accept-button", ".js-accept-gdpr", ".eg-cc-dismiss", "#inputAcceptCookies", ".cookie-notice__close"].concat(bannerCloseButtons).join(",");
 		document.querySelectorAll(cookieButtons2Click).forEach(x=>x.click());
 		// Common cookie-notice providers/messages
-		const commonCookieContainerSelectors = ["#onetrust-banner-sdk", "#onetrust-consent-sdk", ".cc-window.cc-banner.cc-bottom", "#cookie-bar, #cookie-law-info-bar, #cookie-notice", ".cookie-policy.cookie-policy--open", "#__tealiumGDPRecModal", "#cookie_alert"].join(",");
+		const commonCookieContainerSelectors = ["#onetrust-banner-sdk", "#onetrust-consent-sdk", ".cc-window.cc-banner.cc-bottom", "#cookie-bar, #cookie-law-info-bar, #cookie-notice", ".cookie-policy.cookie-policy--open", "#__tealiumGDPRecModal", "#cookie_alert", "#js-cookie-banner", "#cookie_terms", "[data-role='gdpr-cookie-container']", "#ccc", "[id*='shopify-privacy-banner']", "#cookieNotification", "#cmplz-cookiebanner-container"].join(",");
 		document.querySelectorAll(commonCookieContainerSelectors).forEach(el=>el.remove());
 		// Generic Overlays
 		const commonOverlaySelectors = [".pum-overlay", ".overlay_11", "#boxpopup0", "#boxpopup1", "#boxpopup2", "#boxpopup3", "#boxpopup", ".md-overlay", "#myModal", ".modal-backdrop", "#shopify-section-popup", '#onesignal-slidedown-container'];

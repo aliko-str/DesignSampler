@@ -3,7 +3,7 @@
 /* global browser */
 
 (function(){
-	const MAX_PAGE_LENGTH = Math.pow(2, 14); // TODO: Move it to the settings.js file
+	const MAX_PAGE_LENGTH = Math.pow(2, 13.5); // TODO: Move it to the settings.js file
 	
 	const formId = "id" + Math.round(Math.random() * 100000);
 	const removePageBtnId = "id" + Math.round(Math.random() * 100000);
@@ -80,12 +80,11 @@
 	};
 
 	function _renderWarnings(rootEl){
-		const warnEl = "<span class='previsit-warn'></span>";
+		const warnElBuildF = (msg)=>`<span class='previsit-warn'>${msg}</span>`;
 		const doc = window.getScrlEl();//window.getScrlEl() || document.documentElement;
 		if(doc.scrollHeight > MAX_PAGE_LENGTH){
-			const tooLongWarning = $(warnEl);
-			tooLongWarning.text("Long Page: " + doc.scrollHeight + "px. Exclude?");
-			rootEl.querySelector("#" + draggableId).prepend(tooLongWarning);
+			const warnElS = warnElBuildF("Long Page: " + doc.scrollHeight + "px. Exclude?");
+			rootEl.querySelector("#" + draggableId).insertAdjacentHTML("afterbegin", warnElS);
 		}
 		if(document.querySelectorAll("frameset").length){
 			window.alert("FRAMESET detected - nothing will work here. Dump this steaming pile-of-garbage page. It'll close automatically.");
