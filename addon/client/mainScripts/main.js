@@ -48,16 +48,16 @@
 		window.recordNoStylingCssAsync()
 			.then(applyPageModsAsync)
 			.then(window.extractLocalIFramesInShadowDow)
-			.then(()=>window.unwrapShadowDomAsync(true)) // NOTE: I have to do it here (and not with other page alterations) since otherwise the new IFrames won't be counted as visible, and won't be processed
-			.then(diff=>{
-				if(diff){
-					cnvsDiffAfterShadowDomMods = diff.diffCnvs;
-					accuDiffAfterShadowDomMods = diff.accuDiff;
-				}
-			})
-			.then(()=>{
-				return window._alarmPr(1000);
-			})
+			// .then(()=>window.unwrapShadowDomAsync(true)) // NOTE: I have to do it here (and not with other page alterations) since otherwise the new IFrames won't be counted as visible, and won't be processed
+			// .then(diff=>{
+			// 	if(diff){
+			// 		cnvsDiffAfterShadowDomMods = diff.diffCnvs;
+			// 		accuDiffAfterShadowDomMods = diff.accuDiff;
+			// 	}
+			// })
+			// .then(()=>{
+			// 	return window._alarmPr(1000);
+			// })
 			.then(handleIFrameLoadingAsync)
 			.then(mainWork);
 	}
@@ -151,16 +151,17 @@
 				}
 				return Promise.resolve(); // we won't be collecting data, so don't bother changing anything
 			}).then(() => {
-				// Not sure where else to put this...
-				if(cnvsDiffAfterShadowDomMods){ // if nothing was changed/replaced, we have no visDiff to save
-					return browser.runtime.sendMessage({
-						"action": "SaveImg",
-						"urlId": urlId,
-						"folders": ["visDiffAfterShadowDomManip"],
-						"name": accuDiffAfterShadowDomMods + "_" + window._urlToHost(urlId),
-						"dat": window.__cnvs2DataUrl(cnvsDiffAfterShadowDomMods)
-					});	
-				}
+				// NOTE: no longer needed - we moved shadowDom alterations together with other page.preprocessing actions
+				// // Not sure where else to put this...
+				// if(cnvsDiffAfterShadowDomMods){ // if nothing was changed/replaced, we have no visDiff to save
+				// 	return browser.runtime.sendMessage({
+				// 		"action": "SaveImg",
+				// 		"urlId": urlId,
+				// 		"folders": ["visDiffAfterShadowDomManip"],
+				// 		"name": accuDiffAfterShadowDomMods + "_" + window._urlToHost(urlId),
+				// 		"dat": window.__cnvs2DataUrl(cnvsDiffAfterShadowDomMods)
+				// 	});	
+				// }
 			}).then(() => {
 				return window.getPageVarData(settings.pageVarsNeeded);
 			}).then(({dataTables, membershipTables, debugScreenshots, groupsOfImgArr}) => {

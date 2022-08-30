@@ -503,85 +503,88 @@
 				// restoreShadowDom(); // fuck it, not restoring after shadow dom unwrapping -- too much hastle
 			},
 			prepDomForDataExtractionAsync(diffCheckNeeded = false) {
-				console.log("PREPPING", location.href);
+				console.log("%c[PREPPING] Staring on:%s", "background-color:gray;", location.href);
 				// some permanent alterations to DOM needed for our Data Extractions
-				return new Promise(function(resolve, reject) {
-					var outRes = null;
-					// const allEls = Array.from(document.body.querySelectorAll("*"));
-					const elsToTrackCssFor = window.findElsStyledByOrder().concat(window.findElsStyledByCrucialAttrs());
-					console.log("[PREPPING] N els to reverse changes to (cause styled by tree-based selectors):", elsToTrackCssFor.length);
-					// // 3.3 - Removing <noscript> so they don't affect our lists of invisible elements
-					// removeNoScript();
-					// 1 - make dom maniplation instant -- so out diff checks actually pick them up <== We should do that prior to screenshot taking - otherwise comparisons show a diff due to animations
-					window.toggleDomPrepForInstaManip("on");
-					if (diffCheckNeeded) {
-						// 1.1 - Take a full-page screeonshot 
-						var pageCnvsBefore = window.getStoredFullPageCanvas(); // window.page2Canvas(true);
-						// jqG.origPageCnvs = pageCnvsBefore; // saving for the future use
-					}
-					// 2.-1 - If needed, expand html/body height to capture the page-underlying canvas bgImg
-					_restoreBodyHF = ensureBaseCanvasVisible();
-					// 2 - Prep stylesheets
-					__makeCrossOrigStylesheetsAccessible();
-					// 3.0 - Replacing marquee with divs
-					_marquee2div(); // cause marquee causes trouble and often has no text, looking broken/empty
-					// 3.1 - Extract pseudo graphics in separate elements
-					_detachPseudoElements(); // this generates new <spans>, which affects what needs wrapping -- do it before wrapping
-					window._alarmPr(350) // a small delay to finish UI reflows after PseudoElement extraction -- to avoid false style restorations
-						.then(()=>{
-							// 3.2 - Do alterations
-							__wrapNakedTxtNodesInSpans();
-							// A bit of time for reflow to happen - otherwise we have false-flag differences
-							// 3.3 - Hide outsideViewport fixed els <== TODO: move before taking 1st canvas to avoid false flags <-- after a debug
-							hideInvisFixedEls();
-							// 3.4 - appling CSS that no longer applies due to nth-child and nth-of-type being messed up (because of our element inserting above)
-							_cleanUpStyleReversingF = window.revert2PreCompStyles(elsToTrackCssFor, "NoShadowDOM");
-							// _cleanUpStyleReversingF = window.revert2PreCompStyles(elsToTrackCssFor, "UIFrozen");
-						})
-						.then(()=>window._alarmPr(300))
-						.then(()=>{
-							// 4 - Take another screenshot and compare/save the difference -- there should be any
-							if (diffCheckNeeded) {
-								var pageCnvsAfter = window.page2Canvas(true);
-								const diffThr = 2;
-								const {
-									sizeDiff,
-									wDiff,
-									hDiff,
-									canvasesAreSame,
-									diffCnvs,
-									accuDiff
-								} = window.getCnvsDiff(pageCnvsBefore, pageCnvsAfter, diffThr);
-								if (!canvasesAreSame) {
-									debugger;
-									// 4.1 - if needed, refreshing our saved canvas
-									const ifForceRefresh = true;
-									window.getStoredFullPageCanvas(ifForceRefresh);
-								}
-								console.assert(canvasesAreSame, "Visual Difference after manipulation, total size diff in pixels:", sizeDiff, "wDiff: ", wDiff, "hDiff:", hDiff, "total pixel value Diff: ", accuDiff, window.location.href);
-								// TODO log differences in console
-								outRes = {
-									accuDiff: accuDiff,
-									diffCnvs: diffCnvs
-								};
+				var outRes = null;
+				// const allEls = Array.from(document.body.querySelectorAll("*"));
+				const elsToTrackCssFor = window.findElsStyledByOrder().concat(window.findElsStyledByCrucialAttrs());
+				console.log("[PREPPING] N els to reverse changes to (cause styled by tree-based selectors):", elsToTrackCssFor.length);
+				// // 3.3 - Removing <noscript> so they don't affect our lists of invisible elements
+				// removeNoScript();
+				// 1 - make dom maniplation instant -- so out diff checks actually pick them up <== We should do that prior to screenshot taking - otherwise comparisons show a diff due to animations
+				window.toggleDomPrepForInstaManip("on");
+				if (diffCheckNeeded) {
+					// 1.1 - Take a full-page screeonshot 
+					var pageCnvsBefore = window.getStoredFullPageCanvas(); // window.page2Canvas(true);
+					// jqG.origPageCnvs = pageCnvsBefore; // saving for the future use
+				}
+				const separateChangeTracking4ShadowDom = false;
+				return window.unwrapShadowDomAsync(separateChangeTracking4ShadowDom)
+					.then(()=>window._alarmPr(1000))
+					.then(()=>{
+						// 2.-1 - If needed, expand html/body height to capture the page-underlying canvas bgImg
+						_restoreBodyHF = ensureBaseCanvasVisible();
+						// 2 - Prep stylesheets
+						__makeCrossOrigStylesheetsAccessible();
+						// 3.0 - Replacing marquee with divs
+						_marquee2div(); // cause marquee causes trouble and often has no text, looking broken/empty
+						// 3.1 - Extract pseudo graphics in separate elements
+						_detachPseudoElements(); // this generates new <spans>, which affects what needs wrapping -- do it before wrapping
+					})
+					.then(()=>window._alarmPr(350)) // a small delay to finish UI reflows after PseudoElement extraction -- to avoid false style restorations)
+					.then(()=>{
+						// 3.2 - Do alterations
+						__wrapNakedTxtNodesInSpans();
+						// A bit of time for reflow to happen - otherwise we have false-flag differences
+						// 3.3 - Hide outsideViewport fixed els <== TODO: move before taking 1st canvas to avoid false flags <-- after a debug
+						hideInvisFixedEls();
+						// 3.4 - appling CSS that no longer applies due to nth-child and nth-of-type being messed up (because of our element inserting above)
+						_cleanUpStyleReversingF = window.revert2PreCompStyles(elsToTrackCssFor, "NoShadowDOM");
+						// _cleanUpStyleReversingF = window.revert2PreCompStyles(elsToTrackCssFor, "UIFrozen");						
+					})
+					.then(()=>window._alarmPr(300))
+					.then(()=>{
+						// 4 - Take another screenshot and compare/save the difference -- there should be any
+						if (diffCheckNeeded) {
+							var pageCnvsAfter = window.page2Canvas(true);
+							const diffThr = 2;
+							const {
+								sizeDiff,
+								wDiff,
+								hDiff,
+								canvasesAreSame,
+								diffCnvs,
+								accuDiff
+							} = window.getCnvsDiff(pageCnvsBefore, pageCnvsAfter, diffThr);
+							if (!canvasesAreSame) {
+								debugger;
+								// 4.1 - if needed, refreshing our saved canvas
+								const ifForceRefresh = true;
+								window.getStoredFullPageCanvas(ifForceRefresh);
 							}
-							// 5.1 - Clean up
-							window.toggleDomPrepForInstaManip("on", {
-								refresh: true
-							}); // refreshing due to us adding spans
-							// window.toggleDomPrepForInstaManip("off", {
-							// 	refresh: true
-							// }); // refreshing due to us adding spans
-							// 5.2 - ensuring getAllVis collections are refreshed
-							window.domGetters.forceRefresh();
-							// jqG.__elStore.allVis = null;							
-							// 5.4 - Saving computed styles for all visible elements
-							document.documentElement.dispatchEvent(new Event("DOMPrepped"));
-							console.log("DONE PREPPING", location.href);
-							resolve(outRes);
-							// return outRes;							
-						});
-				});
+							console.assert(canvasesAreSame, "Visual Difference after manipulation, total size diff in pixels:", sizeDiff, "wDiff: ", wDiff, "hDiff:", hDiff, "total pixel value Diff: ", accuDiff, window.location.href);
+							// TODO log differences in console
+							outRes = {
+								accuDiff: accuDiff,
+								diffCnvs: diffCnvs
+							};
+						}
+						// 5.1 - Clean up
+						window.toggleDomPrepForInstaManip("on", {
+							refresh: true
+						}); // refreshing due to us adding spans
+						// window.toggleDomPrepForInstaManip("off", {
+						// 	refresh: true
+						// }); // refreshing due to us adding spans
+						// 5.2 - ensuring getAllVis collections are refreshed
+						window.domGetters.forceRefresh();
+						// jqG.__elStore.allVis = null;							
+						// 5.4 - Saving computed styles for all visible elements
+						document.documentElement.dispatchEvent(new Event("DOMPrepped"));
+						console.log("DONE PREPPING", location.href);
+						// resolve(outRes);
+						return outRes;							
+					});
 			}	
 		};
 	})();
@@ -781,35 +784,34 @@
 		const problematicIFrameSelectors = ["#dummy-chat-button-iframe"].join(",");
 		// const onlyExtractIframesForTheseWebsites = ["butlershome.ie"]; // TODO: Keep this somewhere in a profile-related config
 		// Only for the top-level window/document -- at least for now
-		if(window === window.top){
-			const ifrEls = Array
-				.from(document.querySelectorAll(problematicIFrameSelectors))
-				.filter(x=>x.tagName.toLowerCase() === "iframe")
-				.filter(x=>x.contentDocument !== null); // only SameOrigin, local iframe
-			console.log("[IFRAME_2_SHADOW] swapping n iframes:", ifrEls.length);
-			ifrEls.forEach(ifrEl => {
-				// 1 - create an empty div -- a container instead of the iframe
-				const div = window.__makeCleanDiv();
-				Array.from(ifrEl.attributes).forEach(x=>div.setAttribute(x.name, x.value));
-				// 2 - swap iframe for the div
-				ifrEl._replacementEl = div;
-				// 3 - import nodes
-				const stEls = Array
-					.from(ifrEl.contentDocument.head.querySelectorAll("style"))
-					.map(el => document.importNode(el, true));
-				const bodyEls = Array
-					.from(ifrEl.contentDocument.body.childNodes)
-					.map(el=> document.importNode(el, true));
-				// 4 - attach the nodes to a shadow root
-				const shadow = div.attachShadow({mode: "open"});
-				shadow.append(...stEls, ...bodyEls);
-				// stEls.concat(bodyEls).forEach(el=>shadow.appendChild(el));
-				// 5 - iframe replacement and style restoring
-				ifrEl.replaceWith(div);
-				__restoreStyling([__el2styles(ifrEl)]);
-				console.log("%cReplaced an iframe with a shadowDom Div.", "background-color:#555500");
-			});
-		}
+		// if(window === window.top){
+		const ifrEls = ((ifrEls2Replace.length)?ifrEls2Replace:Array.from(document.querySelectorAll(problematicIFrameSelectors)))
+			.filter(x=>x.tagName.toLowerCase() === "iframe")
+			.filter(x=>x.contentDocument !== null); // only SameOrigin, local iframe
+		console.log("[IFRAME_2_SHADOW] swapping n iframes:", ifrEls.length);
+		ifrEls.forEach(ifrEl => {
+			// 1 - create an empty div -- a container instead of the iframe
+			const div = window.__makeCleanDiv();
+			Array.from(ifrEl.attributes).forEach(x=>div.setAttribute(x.name, x.value));
+			// 2 - swap iframe for the div
+			ifrEl._replacementEl = div;
+			// 3 - import nodes
+			const stEls = Array
+				.from(ifrEl.contentDocument.head.querySelectorAll("style"))
+				.map(el => document.importNode(el, true));
+			const bodyEls = Array
+				.from(ifrEl.contentDocument.body.childNodes)
+				.map(el=> document.importNode(el, true));
+			// 4 - attach the nodes to a shadow root
+			const shadow = div.attachShadow({mode: "open"});
+			shadow.append(...stEls, ...bodyEls);
+			// stEls.concat(bodyEls).forEach(el=>shadow.appendChild(el));
+			// 5 - iframe replacement and style restoring
+			ifrEl.replaceWith(div);
+			__restoreStyling([__el2styles(ifrEl)]);
+			console.log("%cReplaced an iframe with a shadowDom Div.", "background-color:#555500");
+		});
+		// }
 	}
 	
 	window.extractLocalIFramesInShadowDow = extractLocalIFramesInShadowDow;

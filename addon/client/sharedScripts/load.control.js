@@ -114,7 +114,7 @@
 			// NOTE: this is suboptimal to call it here, but I'm out of ideas how else to disable JS and Animations at the same time --> // TODO: Maybe more all js disabling to a separate location
 			window.toggleDomPrepForInstaManip("on"); // Otherwise some elements get stuck in an invisible position <-- js disabled, but CSS animations running
 			// NOTE: disabling selectors kills the js runtime on Youtube -- trying out this temporary hack of not doing this for youtube -- other options: unwrap iframes in DIVs; replace iframes with screenshots
-			const urls2skipJsOverwriting = ["youtube", "youtu.be", "www.google.com"];
+			const urls2skipJsOverwriting = ["youtube", "youtu.be"]; //, "www.google.com"
 			if(urls2skipJsOverwriting.some(x=>location.host.indexOf(x) > -1)){
 				console.log("[PScript STUB]%c NOT Overwriting JS for this host: %s", "color:orange;background-color:darkgreen;", location.host);
 			}else{
@@ -230,12 +230,12 @@
 				});
 				// Disabling in-built animations
 				w.eval(`Element.prototype.animate = function(){console.log("[PScript STUB] Preventing built-in Animation: ", ...arguments)}`);
+				// Preventing event Dispatching - no idea how to stop JS animations otherwise (they save a copy to setTimeout)
+				w.eval(`EventTarget.prototype.dispatchEvent = function(e){console.log("[PScript STUB] Preventing an event: ", e.type, location.href)};`);
+				// ensuring iframes can receive messages
+				w.eval(`Event.prototype.stopImmediatePropagation = function(){console.log("%c[PScript STUB] Not calling stopImmediatePropagation", "background-color:#5A5A05;");}`);
+				w.eval(`window.stop();`);
 			}
-			// Preventing event Dispatching - no idea how to stop JS animations otherwise (they save a copy to setTimeout)
-			w.eval(`EventTarget.prototype.dispatchEvent = function(e){console.log("[PScript STUB] Preventing an event: ", e.type, location.href)};`);
-			// ensuring iframes can receive messages
-			w.eval(`Event.prototype.stopImmediatePropagation = function(){console.log("%c[PScript STUB] Not calling stopImmediatePropagation", "background-color:#5A5A05;");}`);
-			w.eval(`window.stop();`);
 			window.dispatchEvent(new Event("StopEventHandling"));
 		} catch (err) {
 			console.error(err.toString(), "\nSTACK TRACE: ", err.stack, location.href);

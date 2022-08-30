@@ -54,7 +54,13 @@
 			console.log("[PAGEMode] Removing data-aos fade sliding things.");
 			aosSliders.forEach(el => el.removeAttribute("data-aos"));
 		}
+		__animationRelatedMods();
 	};
+	
+	function __animationRelatedMods(){
+		// some items become hidden while we move things around (due to our paused animations, they won't run, and stay invisible)
+		document.querySelectorAll("#reamaze-widget").forEach(x=>x.style.animation="none");
+	}
 	
 	function __pageContextGenericMods(){
 		__disableNiceScroll();

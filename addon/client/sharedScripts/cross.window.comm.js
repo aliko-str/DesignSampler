@@ -1,6 +1,21 @@
 /* eslint-env browser */
 
 (()=>{
+	// we need to ensure that nested iframes reply/fail2reply before their parent stops waiting and declare a failure
+	function __counteIFrameNestedness(){
+		var w = window;
+		var counter = 1;
+		while(w !== window.top){
+			counter++;
+			w = w.parent;
+			if(counter > 100){ // fool check
+				throw "We failed to reach the top window from a nested iframe --> debug.";
+			}
+		}
+		return counter;
+	}
+	const TIMEOUT_REPLY_FROM_IFRAME = 1500/__counteIFrameNestedness();
+	
 	function askSubFr4WinSizes(visIframesArr){
 		const abortCntrlArr = []; // so we can remove eventListeners without calling removeEventListener within itself -- Just to try smth new
 		window.dispatchEvent(new Event("StopEventHandling")); // Temporarly stoppping so our frame-window communication triggers nothing
@@ -11,10 +26,11 @@
 				abortCntrlArr.push(new AbortController());
 				window.setTimeout(()=>{
 					if(!_done){
-						console.error("IFrame failed to respond to TellPapaYourMachineId; It'll be treated as an 'invisible' iframe", window.__el2stringForDiagnostics(ifrEl));
+						console.error("IFrame failed to respond to TellPapaYourMachineId; It'll be replaced with shadowDom or treated as an 'invisible' iframe", window.__el2stringForDiagnostics(ifrEl));
+						window.extractLocalIFramesInShadowDow([ifrEl]);
 						reject();
 					}
-				}, 1000);//diagnostics
+				}, TIMEOUT_REPLY_FROM_IFRAME);//diagnostics
 				window.addEventListener("message", (e)=>{
 					if(e.data.action === "HaveYourMachineId" && e.data.msgId === msgId){
 						ifrEl.__machineFrameId = e.data.machineFrameId;
