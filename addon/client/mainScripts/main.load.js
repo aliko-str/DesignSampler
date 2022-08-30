@@ -12,25 +12,44 @@
 		// There isn't a scrollEnd event, and smooth scrolling takes time -- use the wacky solution below to detect the end of scrolling
 		return new Promise(function(resolve, reject) {
 			let timer, tStart, done = false;
+			let _t;
+			const checkDelay = 150;
 			const scrollHandler = () => {
-				window.clearTimeout(timer);
-				timer = setTimeout( () => {
-					console.log("%cDone scrolling to the top: " + (Date.now()-tStart) + "ms", "color:pink;");
-					window.removeEventListener("scroll", scrollHandler);
-					done = true;
-					resolve();
-				}, 150);
+				_t = Date.now();
+				window._alarmPr(checkDelay).then(()=>{
+					if((Date.now()-_t) >= checkDelay && !done){
+						console.log("%cDone scrolling to the top: " + (Date.now()-tStart) + "ms", "color:pink;");
+						window.removeEventListener("scroll", scrollHandler);
+						done = true;
+						resolve();
+					}
+				});
 			};
+			// const scrollHandler = () => {
+			// 	window.clearTimeout(timer);
+			// 	timer = setTimeout( () => {
+			// 		console.log("%cDone scrolling to the top: " + (Date.now()-tStart) + "ms", "color:pink;");
+			// 		window.removeEventListener("scroll", scrollHandler);
+			// 		done = true;
+			// 		resolve();
+			// 	}, 150);
+			// };
 			window.addEventListener('scroll', scrollHandler, { passive: true });
 			tStart = Date.now();
 			window.scrollTo({top: 0, left: 0, behavior: "smooth"}); // some pages use scrolling-based animations, and these don't reset unless scrolling is 'smooth'
 			console.log("[SCROLL] To Top.");
-			window.setTimeout(()=>{
+			window._alarmPr(MAX_SCROLL_TOP_TIME).then(()=>{
 				if(!done){
 					console.log("[SCROLL] Timed-out before scrollTop finished -- probably page firing 'scroll' events manually");
 					resolve();
 				}
-			}, MAX_SCROLL_TOP_TIME);
+			});
+			// window.setTimeout(()=>{
+			// 	if(!done){
+			// 		console.log("[SCROLL] Timed-out before scrollTop finished -- probably page firing 'scroll' events manually");
+			// 		resolve();
+			// 	}
+			// }, MAX_SCROLL_TOP_TIME);
 		});
 	}
 	
@@ -38,12 +57,17 @@
 		return new Promise(function(resolve, reject) {
 			const nSteps = Math.floor(window.getScrlEl().scrollHeight / window.innerHeight);
 			for(let i = 1; i <= nSteps; i++){
-				window.setTimeout(()=>{
+				window._alarmPr(150 * i).then(()=>{
 					window.scrollTo({left: 0, top: Math.ceil(window.scrollY + window.innerHeight), behavior: "instant"});
-					console.log("Current scroll: ", window.scrollY, " Window height: ", window.getScrlEl().scrollHeight);
-				}, 150 * i);
+					console.log("Current scroll: ", window.scrollY, " Window height: ", window.getScrlEl().scrollHeight);					
+				});
+				// window.setTimeout(()=>{
+				// 	window.scrollTo({left: 0, top: Math.ceil(window.scrollY + window.innerHeight), behavior: "instant"});
+				// 	console.log("Current scroll: ", window.scrollY, " Window height: ", window.getScrlEl().scrollHeight);
+				// }, 150 * i);
 			}
-			window.setTimeout(resolve, 150 * nSteps + 10);
+			window._alarmPr(150 * nSteps + 10).then(resolve);
+			// window.setTimeout(resolve, 150 * nSteps + 10);
 		});
 	}
 	

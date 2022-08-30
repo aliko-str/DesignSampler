@@ -379,7 +379,6 @@
 				return !ifrArr.some(ifr=>grEl.contains(ifr)); // because we use swapping for banner detection -- triggers reloading
 			});
 			console.groupCollapsed("Looping potentialBanners, n: ", mainGrArr.length);
-			debugger;
 			const potentialBanners = mainGrArr.map(mainGrEl=>{
 				const bannerSiblings = _getBannerSibligns(mainGrEl, hiddenGrArr, ifrArr);
 				var currEl = mainGrEl.parentElement;

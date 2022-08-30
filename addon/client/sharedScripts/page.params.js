@@ -446,6 +446,7 @@
 	}
 
 	function _getBannerExtraDataAsync(jqBanners){
+		debugger;
 		const prArr = jqBanners.toArray().map(bannerEl=>{
 			const bannerItemProtoResObj = {bannerId: bannerEl._id};
 			return Promise.allSettled(bannerEl._hiddImgs.map(hidImgEl=>{

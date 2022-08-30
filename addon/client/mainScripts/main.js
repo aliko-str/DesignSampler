@@ -37,14 +37,17 @@
 				// Page Mods and Animation Freezing 
 				window.__pageContextGenericMods();
 				window.stopAllAnimations(); // Everything is frozen in place after this F - no changed to DOM from page scripts
+				window.overrideSetTimeout();
 			})
 			.then(()=>window._alarmPr(450)); // So stopped animations/transitions finalize... Hope 450 is enough
 	}
 	
 	function addonMain(){
 		console.log("Main Content Script rolling, ", window.location.href);
+		window.preAnyChangePageMods();
 		window.recordNoStylingCssAsync()
 			.then(applyPageModsAsync)
+			.then(window.extractLocalIFramesInShadowDow)
 			.then(()=>window.unwrapShadowDomAsync(true)) // NOTE: I have to do it here (and not with other page alterations) since otherwise the new IFrames won't be counted as visible, and won't be processed
 			.then(diff=>{
 				if(diff){

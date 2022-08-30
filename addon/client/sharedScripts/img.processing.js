@@ -173,7 +173,7 @@
 		const img = new Image();
 		img.setAttribute("src", url);
 		// img.src = url;
-		return Promise.all([pr, img.decode()]).then(()=>{
+		return Promise.all([pr, window._imgDecodeOrTimeout(img)]).then(()=>{
 			// const z = window.devicePixelRatio;
 			const canvas = document.createElementNS("http://www.w3.org/1999/xhtml", "canvas");
 			canvas.width = img.naturalWidth; // * z;

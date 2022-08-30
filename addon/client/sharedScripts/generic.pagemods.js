@@ -3,7 +3,7 @@
 
 (()=>{
 	// TODO: Move these exceptions to an external file
-	const noActionExceptions = ["crimsouneclub.com", "fabindia.com", "corneliajames.com", "saintandsofia.com", "www.rubynz.com", "www.ezliving-interiors.ie"]; // because some of the genericPageMods cause page re-load
+	const noActionExceptions = ["crimsouneclub.com", "fabindia.com", "corneliajames.com", "saintandsofia.com", "www.rubynz.com", "www.ezliving-interiors.ie", "covethouse.eu", "homefurniture.ca"]; // because some of the genericPageMods cause page re-load
 	
 	function __ssGenericPageMod(){
 		if(noActionExceptions.some(x=>window.location.href.indexOf(x) > -1)){
@@ -31,7 +31,7 @@
 		const commonCookieContainerSelectors = ["#onetrust-banner-sdk", "#onetrust-consent-sdk", ".cc-window.cc-banner.cc-bottom", "#cookie-bar, #cookie-law-info-bar, #cookie-notice", ".cookie-policy.cookie-policy--open", "#__tealiumGDPRecModal", "#cookie_alert", "#js-cookie-banner", "#cookie_terms", "[data-role='gdpr-cookie-container']", "#ccc", "[id*='shopify-privacy-banner']", "#cookieNotification", "#cmplz-cookiebanner-container"].join(",");
 		document.querySelectorAll(commonCookieContainerSelectors).forEach(el=>el.remove());
 		// Generic Overlays
-		const commonOverlaySelectors = [".pum-overlay", ".overlay_11", "#boxpopup0", "#boxpopup1", "#boxpopup2", "#boxpopup3", "#boxpopup", ".md-overlay", "#myModal", ".modal-backdrop", "#shopify-section-popup", '#onesignal-slidedown-container'];
+		const commonOverlaySelectors = [".pum-overlay", ".overlay_11", "#boxpopup0", "#boxpopup1", "#boxpopup2", "#boxpopup3", "#boxpopup", ".md-overlay", "#myModal", ".modal-backdrop", "#shopify-section-popup", '#onesignal-slidedown-container', "#pa-push-notification-subscription", ".fancybox-wrap", ".fancybox-overlay"];
 		document.querySelectorAll(commonOverlaySelectors).forEach(el=>el.remove());
 		const commonNoScrollClasses = ["pum-open-overlay", "modal-open"];
 		commonNoScrollClasses.forEach(c => {
@@ -39,14 +39,7 @@
 			document.body.classList.remove(c);
 		});
 		// KLaviyo bs popups -- common for eCommerce
-		const klaviyo = document.querySelectorAll("[class*='kl-private-reset-css'][role='dialog']");
-		if(klaviyo.length){
-			klaviyo[0].parentElement.id = klaviyo[0].parentElement.id || "klavioIsCrap" + Math.round(Math.random()*100);
-			window.CssInjector._injectStringCss("#" + klaviyo[0].parentElement.id, "display: none !important;");
-			console.log("%c[PAGEModes] Cleaned KLaviyo", "color:gray;");
-			// window.CssInjector._injectStringCss("[class*='kl-private-reset-css']:has([class*='kl-private-reset-css'][role='dialog'])", "display: none !important;");
-		}
-		// 
+		__handleKlaviyo();
 		// .forEach(x=>x.parentElement.style.display = "none");
 		// Overlays with style-fixed overflows on body/html
 		const fixedBodySels = ["#attentive_overlay"].join(",");
@@ -64,6 +57,11 @@
 	};
 	
 	function __pageContextGenericMods(){
+		__disableNiceScroll();
+		// __handleScrollReveal();
+	}
+	
+	function __disableNiceScroll(){
 		// should run before we unbind/redefine native functions to stop animations/transitions
 		// Some other things that I couldn't figure out how to dea with
 		// Jquery nicescroll -- no idea how they do scrolling - not with css for sure
@@ -84,7 +82,48 @@
 		}
 	}
 	
+	function preAnyChangePageMods(){
+		__handleScrollReveal();
+	}
+	
+	function __handleScrollReveal(){
+		const w = window.wrappedJSObject;
+		if(w.ScrollReveal){
+			const _sr = w.ScrollReveal();
+			if(_sr.destroy){
+				return _sr.destroy();// newer versions
+			}else if(w.sr && w.sr.store){
+				// we're lucky to have guessed the name of the reference - as in the example from github
+				w.sr.store.elements = {};
+			}else{
+				w.eval(`ScrollReveal().tools.__proto__.forOwn = function(){console.log("calling overridden forOwn for ScrollReveal");}`);
+			}
+			document.querySelectorAll("[data-sr-id]").forEach(el=>{
+				el.style = null;
+				el.removeAttribute("data-sr-id");
+			});
+			console.log("[ScrollReveal] Cleaned.");
+		}
+	}
+	
+	function __handleKlaviyo(){
+		// const klaviyo = document.querySelectorAll("[class*='kl-private-reset-css'][role='dialog']");
+		// if(klaviyo.length){
+		// 	klaviyo[0].parentElement.id = klaviyo[0].parentElement.id || "klavioIsCrap" + Math.round(Math.random()*100);
+		// 	window.CssInjector._injectStringCss("#" + klaviyo[0].parentElement.id, "display: none !important;");
+		// 	console.log("%c[PAGEModes] Cleaned KLaviyo", "color:gray;");
+		// 	// window.CssInjector._injectStringCss("[class*='kl-private-reset-css']:has([class*='kl-private-reset-css'][role='dialog'])", "display: none !important;");
+		// }
+		const klScripts = Array.from(document.head.querySelectorAll("script")).filter(x=>x.src && x.src.indexOf("klaviyo.js") > -1);
+		if(klScripts.length){
+			// console.log("[GEN PAGE MODs] Klaviyo Detected. Launching a Mutation Observer");
+			window.CssInjector._injectStringCss("[class*='kl-private-reset-css']", "display: none !important;");
+			console.log("%c[PAGEModes] Cleaned KLaviyo", "color:gray;");
+		}
+	}
+	
 	window.__pageContextGenericMods = __pageContextGenericMods;
+	window.preAnyChangePageMods = preAnyChangePageMods;
 
 	window.__ssGenericPageMod = __ssGenericPageMod;	
 })();

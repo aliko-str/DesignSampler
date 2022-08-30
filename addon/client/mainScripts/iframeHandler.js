@@ -24,6 +24,7 @@
 				// })
 				.then(window.recordNoStylingCssAsync) // moving here cause we don't want these in Previsiting
 				.then(window.stopAllAnimations)
+				.then(window.overrideSetTimeout)
 				.then(()=>{
 					return Promise.resolve({
 						"action": "IFrameLoaded",

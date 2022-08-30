@@ -904,6 +904,25 @@
 		const sw = window.getScrlEl().scrollWidth;
 		return sw < cw * 1.5? sw: cw;
 	}
+	
+	// const _bgFetch = (url)=>{
+	// 	// const base = location.protocol + "//" + location.host + location.pathname;
+	// 	const fullUrl = new URL(url, location.href);
+	// 	// because Google Ads mess with window.setTimeout and it no longer fires -- I don't know how they do it, since page scripts are supposed to have a difference version of "window" (different from content scripts)
+	// 	return browser.runtime.sendMessage({
+	// 		"action": "fetch",
+	// 		"url": fullUrl
+	// 	});
+	// };
+	
+	function _imgDecodeOrTimeout(img){
+		const timeout = 5000;
+		return Promise.race([img.decode(), window._alarmPr(timeout).then(()=>{ return {timedout: true}; })]).then(res=>{
+			if(res && res.timedout){
+				console.warn("[img.decode] timed out -- either image not loaded within 5sec, or img.decode no longer works <-- latter sometimes possible ==> continuing anyway");
+			}
+		});
+	}
 
 	window.__setCSSPropJqArr = __setCSSPropJqArr;
 	window.__restoreCSSPropJqArr = __restoreCSSPropJqArr;
@@ -952,6 +971,8 @@
 	window.__getSaneDocScrollWidth = __getSaneDocScrollWidth;
 	window._isItOutsideTopViewport = _isItOutsideTopViewport;
 	
+	window._imgDecodeOrTimeout = _imgDecodeOrTimeout;
+	// window._bgFetch = _bgFetch;
 
 })();
 

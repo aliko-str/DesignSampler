@@ -527,7 +527,7 @@
 					_marquee2div(); // cause marquee causes trouble and often has no text, looking broken/empty
 					// 3.1 - Extract pseudo graphics in separate elements
 					_detachPseudoElements(); // this generates new <spans>, which affects what needs wrapping -- do it before wrapping
-					window._locAlarmPr(350) // a small delay to finish UI reflows after PseudoElement extraction -- to avoid false style restorations
+					window._alarmPr(350) // a small delay to finish UI reflows after PseudoElement extraction -- to avoid false style restorations
 						.then(()=>{
 							// 3.2 - Do alterations
 							__wrapNakedTxtNodesInSpans();
@@ -538,7 +538,7 @@
 							_cleanUpStyleReversingF = window.revert2PreCompStyles(elsToTrackCssFor, "NoShadowDOM");
 							// _cleanUpStyleReversingF = window.revert2PreCompStyles(elsToTrackCssFor, "UIFrozen");
 						})
-						.then(()=>window._locAlarmPr(300))
+						.then(()=>window._alarmPr(300))
 						.then(()=>{
 							// 4 - Take another screenshot and compare/save the difference -- there should be any
 							if (diffCheckNeeded) {
@@ -776,7 +776,43 @@
 			});
 	}
 	
-
+	function extractLocalIFramesInShadowDow(ifrEls2Replace = []){ // TODO: use for all problematic iframes that fail to communicate with the parent
+		// Some iframes become completely unresponsive for some reason, after a delay -- if they are local (about:blank), put their content in a shadowRoot
+		const problematicIFrameSelectors = ["#dummy-chat-button-iframe"].join(",");
+		// const onlyExtractIframesForTheseWebsites = ["butlershome.ie"]; // TODO: Keep this somewhere in a profile-related config
+		// Only for the top-level window/document -- at least for now
+		if(window === window.top){
+			const ifrEls = Array
+				.from(document.querySelectorAll(problematicIFrameSelectors))
+				.filter(x=>x.tagName.toLowerCase() === "iframe")
+				.filter(x=>x.contentDocument !== null); // only SameOrigin, local iframe
+			console.log("[IFRAME_2_SHADOW] swapping n iframes:", ifrEls.length);
+			ifrEls.forEach(ifrEl => {
+				// 1 - create an empty div -- a container instead of the iframe
+				const div = window.__makeCleanDiv();
+				Array.from(ifrEl.attributes).forEach(x=>div.setAttribute(x.name, x.value));
+				// 2 - swap iframe for the div
+				ifrEl._replacementEl = div;
+				// 3 - import nodes
+				const stEls = Array
+					.from(ifrEl.contentDocument.head.querySelectorAll("style"))
+					.map(el => document.importNode(el, true));
+				const bodyEls = Array
+					.from(ifrEl.contentDocument.body.childNodes)
+					.map(el=> document.importNode(el, true));
+				// 4 - attach the nodes to a shadow root
+				const shadow = div.attachShadow({mode: "open"});
+				shadow.append(...stEls, ...bodyEls);
+				// stEls.concat(bodyEls).forEach(el=>shadow.appendChild(el));
+				// 5 - iframe replacement and style restoring
+				ifrEl.replaceWith(div);
+				__restoreStyling([__el2styles(ifrEl)]);
+				console.log("%cReplaced an iframe with a shadowDom Div.", "background-color:#555500");
+			});
+		}
+	}
+	
+	window.extractLocalIFramesInShadowDow = extractLocalIFramesInShadowDow;
 	window.unwrapShadowDomAsync = unwrapShadowDomAsync;
 	window.restoreDomAfterDataExtraction = restoreDomAfterDataExtraction;
 	window.prepDomForDataExtractionAsync = prepDomForDataExtractionAsync;

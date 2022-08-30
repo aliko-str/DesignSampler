@@ -114,7 +114,7 @@
 			// NOTE: this is suboptimal to call it here, but I'm out of ideas how else to disable JS and Animations at the same time --> // TODO: Maybe more all js disabling to a separate location
 			window.toggleDomPrepForInstaManip("on"); // Otherwise some elements get stuck in an invisible position <-- js disabled, but CSS animations running
 			// NOTE: disabling selectors kills the js runtime on Youtube -- trying out this temporary hack of not doing this for youtube -- other options: unwrap iframes in DIVs; replace iframes with screenshots
-			const urls2skipJsOverwriting = ["youtube", "youtu.be"];
+			const urls2skipJsOverwriting = ["youtube", "youtu.be", "www.google.com"];
 			if(urls2skipJsOverwriting.some(x=>location.host.indexOf(x) > -1)){
 				console.log("[PScript STUB]%c NOT Overwriting JS for this host: %s", "color:orange;background-color:darkgreen;", location.host);
 			}else{
@@ -228,11 +228,13 @@
 				allCssProps2Disable.forEach(cssProp => {
 					overwriteCSS2Prop(cssProp, w);
 				});
-				// Preventing event Dispatching - no idea how to stop JS animations otherwise (they save a copy to setTimeout)
-				w.eval(`EventTarget.prototype.dispatchEvent = function(e){console.log("[PScript STUB] Preventing an event: ", e.type, location.href)};`);
 				// Disabling in-built animations
 				w.eval(`Element.prototype.animate = function(){console.log("[PScript STUB] Preventing built-in Animation: ", ...arguments)}`);
 			}
+			// Preventing event Dispatching - no idea how to stop JS animations otherwise (they save a copy to setTimeout)
+			w.eval(`EventTarget.prototype.dispatchEvent = function(e){console.log("[PScript STUB] Preventing an event: ", e.type, location.href)};`);
+			// ensuring iframes can receive messages
+			w.eval(`Event.prototype.stopImmediatePropagation = function(){console.log("%c[PScript STUB] Not calling stopImmediatePropagation", "background-color:#5A5A05;");}`);
 			w.eval(`window.stop();`);
 			window.dispatchEvent(new Event("StopEventHandling"));
 		} catch (err) {
@@ -241,6 +243,21 @@
 		console.log("Animation Freezing finished for", window.location.href);
 		document.documentElement.dispatchEvent(new Event("UIFrozen"));
 	};
+	
+	function overrideSetTimeout(){
+		// because quite often they stop working - no idea why, or how content pages actually do that
+		window.clearTimeout = ()=>console.error("[OVERRIDEs] We've overridden window.setTimeout -- we can't use clearTimeout anymore");
+		window.setTimeout = (f, t, ...rest)=>{
+			window._alarmPr(t).then(()=>{
+				if(typeof f === "string"){
+					eval(f);
+				}else{
+					f(...rest);
+				}
+			});
+		};
+		console.log("[OVERRIDEs] Replaced the local setTimeout with the backend one.");
+	}
 	
 	function pauseVideoAudio(){
 		const avEls = Array.from(document.querySelectorAll("video, audio"));
@@ -308,11 +325,11 @@
 		});
 	};
 	
-	function _locAlarmPr(timeout){
-		return new Promise(function(resolve, reject) {
-			window.setTimeout(resolve, timeout);
-		});
-	}
+	// function _locAlarmPr(timeout){
+	// 	return new Promise(function(resolve, reject) {
+	// 		window.setTimeout(resolve, timeout);
+	// 	});
+	// }
 	
 	// Checking for Quirks mode and linking scrollingElement to documentElement if needed
 	const getScrlEl = (()=>{
@@ -337,14 +354,15 @@
 	
 	window.waitForAllImagesToLoadAsync = function(){
 		// small timeout - otherwise many images aren't found for some reason
-		return _locAlarmPr(100).then(_waitForAllImagesToLoadPr);
+		return _alarmPr(100).then(_waitForAllImagesToLoadPr);
 	};
 	
 	// window.stopMarqueeAsync = stopMarqueeAsync;
 	window._alarmPr = _alarmPr;
-	window._locAlarmPr = _locAlarmPr;
+	// window._locAlarmPr = _locAlarmPr;
 	window.getScrlEl = getScrlEl;
 	window.pauseVideoAudio = pauseVideoAudio;
 	window.stopAllAnimations = stopAllAnimations;
+	window.overrideSetTimeout = overrideSetTimeout;
 	window.getPageLoadedPr = getPageLoadedPr;
 })();

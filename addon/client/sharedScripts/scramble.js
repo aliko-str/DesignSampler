@@ -418,7 +418,7 @@
 					// 3.4 - Wait for the image to be decoded
 					const img = new Image();
 					img.src = bgImgDat;
-					return img.decode().then(() => {
+					return window._imgDecodeOrTimeout(img).then(() => {
 						// 3.4 - Replace bg with a blurred version
 						x.el.style.setProperty("background-image", 'url("' + img.src + '")', "important");
 						x.el.style.setProperty("background-repeat", "no-repeat", "important");
@@ -913,7 +913,7 @@
 		// make sure we only proceed after our BG image is ready to be rendered in all the background elements
 		const img = new Image();
 		img.src = bgUrl;
-		return img.decode().then(() => {
+		return window._imgDecodeOrTimeout(img).then(() => {
 			const restoreDomF = __img2backgroundAsync(allGraphRes, allBgCnvsRes, bgVal);
 			return restoreDomF;
 		});
@@ -925,7 +925,7 @@
 		//		const _jqOverlays = window._findOverlays(); // We can't keep this here for speeding up <-- some items are removed from DOM
 		const img = new Image();
 		img.src = bgUrl;
-		return img.decode().then(() => {
+		return window._imgDecodeOrTimeout(img).then(() => {
 			return __img2backgroundAsync(allGraphRes, allBgCnvsRes, null, function(elInfo) {
 				const cnvsPromise =  elInfo.cnvs? Promise.resolve(elInfo.cnvs): window._el2canvasWhiteBgNoOverlaysAsync(elInfo.el, elInfo.b, false);
 				return cnvsPromise.then(cnvs=>{

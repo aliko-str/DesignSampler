@@ -45,6 +45,20 @@ function listenForTimers(){
 	});
 };
 
+// function listenForFetch(){
+// 	// console.log("LISTENING for timer");
+// 	browser.runtime.onMessage.addListener((msg)=>{
+// 		if(msg.action === "fetch"){
+// 			console.assert(msg.url);
+// 			return window.fetch(msg.url).then(res=>{
+// 				debugger;
+// 				console.log("BG Fetch returned");
+// 				return res;
+// 			});
+// 		}
+// 	});
+// };
+
 function _enableFullCORS(httpRespInfo){
 	// fixing Web Admins' fuckups -- not set Access-Control-Allow-Origin headers (often leads to non-loaded icons, fonts, etc.)
 	const reqTypesToAlter = ["script", "xmlhttprequest", "font"];
@@ -169,6 +183,7 @@ async function doAllTheWork(setUpData, port) {
 	}); // doesn't do anything - just talking to the App
 	// 1.4 timers // TODO: create a clean-up F for timers <-- remove handlers
 	listenForTimers(); // We should call it before any of the work loading
+	// listenForFetch();
 	// 1.5 - Set up handling requests for iframe ids
 	const ifrIdCleanUpF = setUpIFrameIdQueryHandling();
 	// 2 - Actual work

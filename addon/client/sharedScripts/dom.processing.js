@@ -1422,8 +1422,8 @@
 		const isItAttachedToBottom = (bbox.bottom < (window.innerHeight + 5) && bbox.bottom > (window.innerHeight - 5));
 		const isItAttachedToLeft = (bbox.left < 5 && bbox.left > -5);
 		const isItAttachedToRight = (bbox.right > (window.innerWidth - 5) && bbox.right < (window.innerWidth + 5));
-		if (bbox.width > FULL_SCREEN_WIDTH && bbox.height > FULL_SCREEN_HEIGHT) {
-			return false; // it's a full-screen overlay
+		if ((bbox.width > FULL_SCREEN_WIDTH && bbox.height > FULL_SCREEN_HEIGHT / 2) || (bbox.width > FULL_SCREEN_WIDTH / 2 && bbox.height > FULL_SCREEN_HEIGHT)) {
+			return false; // it's a full-screen overlay; Or an element too large to be a sticky menu
 		}
 		// if (bbox.width > FULL_SCREEN_WIDTH && (isItAttachedToTop || isItAttachedToBottom)) {
 		// 	return true;
