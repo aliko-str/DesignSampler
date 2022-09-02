@@ -5,7 +5,7 @@
 // const _debug = true;
 
 (function(){
-	var cnvsDiffAfterShadowDomMods, accuDiffAfterShadowDomMods;
+	// var cnvsDiffAfterShadowDomMods, accuDiffAfterShadowDomMods;
 	
 	function applyPageModsAsync(){
 		// We need to do this before anything else, but after a page loaded -- pageMods determine which iframes are visible (e.g., due to removing "overflow:hidden" on <html>)
