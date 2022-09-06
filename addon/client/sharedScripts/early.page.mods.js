@@ -12,10 +12,37 @@
 	// }
 	const w = window.wrappedJSObject;
 	try{
+		// Animation frame
+		w.eval(`
+			(()=>{
+				const rAF = window.requestAnimationFrame.bind(window);
+				var __requestAnimations = true;
+				var __animationCounter = 0;
+				window.addEventListener("StopEventHandling", ()=>{
+					__requestAnimations = false;
+				}, {once: false, passive: true});
+				window.addEventListener("StartEventHandling", ()=>{
+					__requestAnimations = true;
+				}, {once: false, passive: true});
+				window.requestAnimationFrame = function(f){
+					__animationCounter++;
+					if(!(__animationCounter % 1000)){
+						console.log("[EARLY OVERRIDEs] Animation Frame request, ", __animationCounter);
+					}
+					if(__requestAnimations){
+						return rAF(f);
+					}
+					if(!(__animationCounter % 100)){
+						console.log("[EARLY OVERRIDEs]%c Not Handling Animation Frame requests, ", "background-color:gray;color:pink;", __animationCounter);
+					}
+					return 0;
+				};
+			})();
+			`);
+		
 		// Mutation Observer -- otherwise it generates cyclical events <-- the more we manipulate DOM, the more Observer's callbacks are called -- kills FF
 		w.eval(`
 			(()=>{
-				window.__hi = "hi";
 				const observersStore = [];
 				var __mutationCounter = 0;
 				var __observeMutations = true;
@@ -27,31 +54,49 @@
 						x.takeRecords();
 						x.disconnect();
 					});
+					console.log("[EARLY OVERRIDEs] Disconnected observersStore, ", observersStore.length, "__observeMutations:", __observeMutations);
 				}, {once: false, passive: true});
 				window.addEventListener("StartEventHandling", ()=>{
 					__observeMutations = true;
 					observersStore.forEach(x => x.observe());
+					console.log("[EARLY OVERRIDEs] RECONNECTED observersStore, ", observersStore.length, "__observeMutations:", __observeMutations);
 				}, {once: false, passive: true});
 				// New MO
 				window.MutationObserver = class extends MO{
 					constructor(cb){
+						var self;
 						const realCb = function(mutationList, observer){
 							__mutationCounter++;
+							console.log("%c realCb called, ", "color:gray;", __mutationCounter, __observeMutations);
 							if(__observeMutations){
-								cb(mutationList, observer);
+								if(cb.name.startsWith("bound") && !cb.hasOwnProperty("prototype")){
+									cb(mutationList, observer);
+								}else{
+									cb.call(self, mutationList, observer);
+								}
 							}else{
 								if(!(__mutationCounter % 100)){
 									console.log("[EARLY OVERRIDEs] Not processing MutationObserver changes, n:", __mutationCounter, location.href);
-									
 								}
 							}
 						}
 						super(realCb);
+						self = this;
+						observersStore.push(this);
 					}
 					observe(targetNode, config){
 						this.__lastTargetNode = targetNode || this.__lastTargetNode;
 						this.__lastConfig = config || this.__lastConfig;
-						return super.observe(this.__lastTargetNode, this.__lastConfig);
+						if(!this.__lastTargetNode){
+							console.log("[EARLY OVERRIDEs]%c our 1st attempt to restore 'observe' - skipping it", "color:red;");
+							return;
+						}
+						if(__observeMutations){
+							return super.observe(this.__lastTargetNode, this.__lastConfig);
+						}else{
+							console.log("[EARLY OVERRIDEs] MutationObserver: observer called while __observeMutations is false.", location.href);
+							console.trace();
+						}
 					}
 				}
 			})();

@@ -44,7 +44,7 @@
 			});
 		});
 		return Promise.allSettled(prArr).then(()=>{
-			window.dispatchEvent(new Event("StartEventHandling")); // In case some of the rendering isn't finished?...
+			// window.dispatchEvent(new Event("StartEventHandling")); // In case some of the rendering isn't finished?... // <-- disabling -- re-enables all animations on the main window
 			abortCntrlArr.forEach(x => x.abort()); // removing listeners for HaveYourMachineId
 			return visIframesArr;
 		});

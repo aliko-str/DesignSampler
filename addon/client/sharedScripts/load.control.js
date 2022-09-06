@@ -162,7 +162,8 @@
 						debugger;
 					}
 					if(++window.___stubFCallCounter === 100){
-						console.log("%c[PScript STUB] too many calls to a Stub F", window.___stubFCallCounter, "==> Do smth to avoid slow-downs. For now, just no longer printing logs.", "color:pink;font-style:oblique;");
+						console.log("%c[PScript STUB] too many calls to a Stub F", "color:pink;font-style:oblique;", window.___stubFCallCounter, "==> Do smth to avoid slow-downs. For now, just no longer printing logs.");
+						console.trace("Where the 100th overridden call came from.")
 						window.___stopLogs = true;
 						try{
 							${removeNonNativeWinProps}
@@ -185,19 +186,19 @@
 					};
 					`);
 				// redefining setInterval/Timeout to no-op -- hopefully animations stop.
-				w.eval(`setInterval = () => {
-					console.log("[PScript STUB] Page scripts trying to set an interval --> we've replaced it with no-op", window.location.href);
-					${stopJsThrow};
-					return 0;
-				};`);
-				w.eval(`setTimeout = () => {
-					console.log("[PScript STUB] Page scripts trying to set a timeout --> we've replaced it with no-op", window.location.href);
-					// if(window.___stubFCallCounter > 100){
-					// 	debugger;
-					// }
-					${stopJsThrow};
-					return 0;
-				};`);
+				if(window !== window.top){
+					// early.page.mods already re-define timeouts
+					w.eval(`setInterval = () => {
+						console.log("[PScript STUB] Page scripts trying to set an interval --> we've replaced it with no-op", window.location.href);
+						${stopJsThrow};
+						return 0;
+					};`);
+					w.eval(`setTimeout = () => {
+						console.log("[PScript STUB] Page scripts trying to set a timeout --> we've replaced it with no-op", window.location.href);
+						${stopJsThrow};
+						return 0;
+					};`);	
+				}
 				// Just element selection isn't enough -- we need to ensure XHRs don't 'grow' webpages after we screenshot them
 				function stubPageF(className, fName, w, returnV = "null"){
 					w.eval(`${className}.prototype.${fName} = ()=>{
@@ -214,7 +215,7 @@
 				// ELEMENT f to disble
 				// setHTML <== Not yet used/available
 				const domManipF2Disable = ["after", "append", "appendChild", "before", "insertAdjacentElement", "insertAdjacentHTML", "prepend", "remove", "replaceWith", "replaceChildren", "querySelector", "querySelectorAll", "attachShadow"];
-				domManipF2Disable.forEach(fName => stubPageF("HTMLElement", fName, w));
+				domManipF2Disable.forEach(fName => stubPageF("HTMLElement", fName, w, (fName.indexOf("All") > -1)?"[]":"null"));
 				// Node f to disable
 				["insertBefore", "appendChild", "replaceChild", "removeChild"].forEach(f => stubPageF("Node", f, w));
 				// Class adding via Element.setProperty

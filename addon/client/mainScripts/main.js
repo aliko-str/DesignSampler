@@ -84,7 +84,6 @@
 			.then(handleIFrameLoadingAsync)
 			.then(mainWork);
 	}
-	
 
 	
 	function handleIFrameLoadingAsync(){
