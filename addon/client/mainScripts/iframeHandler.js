@@ -39,7 +39,7 @@
 			console.warn("[IFRAME] Timed out on: " + window.location.href);
 		})
 		.then(()=>{
-			return window.unwrapShadowDomAsync(false);
+			// return window.unwrapShadowDomAsync(false); // no longer needed - we do it during DOM prepping
 		})
 		.then(()=>{
 			return window._alarmPr(delayForScriptsToRun);

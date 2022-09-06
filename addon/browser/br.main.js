@@ -914,6 +914,15 @@ function doPostPrevisitWork(settings, jobProgress, pageMods, portToApp) {
 				// 	console.error("Couldn't inject Content Scripts ==> auto closing the tab and moving on to the next url, ", aUrlObj.url);
 				// 	browser.tabs.remove(aTab.id).catch(reject);
 				// });
+				// browser.tabs.executeScript(aTab.id, {
+				// 	file: prefixSrc("early.page.mods.js", "shared"),
+				// 	runAt: "document_start",
+				// 	matchAboutBlank: true,
+				// 	allFrames: true
+				// }).catch(err=>{
+				// 	console.error("Couldn't inject early.page.mods Scripts ", JSON.stringify(err));
+				// });
+				
 				_execScripts(aTab.id, [prefixSrc("early.page.mods.js", "shared")], "document_start").catch(err=>{
 					console.error("Couldn't inject early.page.mods Scripts ", JSON.stringify(err));
 				});

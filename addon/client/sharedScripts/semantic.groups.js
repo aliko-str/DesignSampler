@@ -397,11 +397,6 @@
 						return null;
 					}
 				}
-				
-				// if(currEl && bannerSiblings.length){
-				// 	// saving hidden images so we don't have to re-search for them
-				// 	currEl._hiddImgs = bannerSiblings.filter(x=>currEl.contains(x));
-				// }
 				return currEl; // it's null, we've reach HTMLDocument <-- I don't expect to be here often, but it's possible
 			}).filter(el=>el);
 			console.groupEnd();

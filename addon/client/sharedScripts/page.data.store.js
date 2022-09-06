@@ -41,6 +41,9 @@
 			return window._getElId(el)+(pseudoKey?pseudoKey.replace("::", ":"):"");
 		};
 		const _recordStyles = (timepoint)=>{
+			if(window === window.top){
+				console.log("%c [TIMEPOIUT] Style recording: %s", "background-color:DimGray", timepoint);
+			}
 			console.assert(cmpStStore[timepoint] === undefined, "Already initialized styleStore for the timepoint:", timepoint, "?... Debug.", location.href);
 			// initializing cmpStStore
 			const stIdPairs = pseudo2record

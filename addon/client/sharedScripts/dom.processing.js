@@ -329,11 +329,13 @@
 						jqG.__elStore.semantic.titles = $(titleElArr);
 					}).then(() => {
 						// forming all independent (of other semantic groups) groups here
-						return Promise.all([window._semanticGroupDetectors.findRotatingBannersAsync(), window._semanticGroupDetectors.findSocialButtonAreasAsync(jqG.__elStore.semantic.menus)]).then(([bannerElArr, socialButtonsArr]) => {
-							jqG.__elStore.semantic.rotatingBanners = $(bannerElArr);
-
-							jqG.__elStore.semantic.socialButtons = $(socialButtonsArr);
-						});
+						return Promise
+							.all([window._semanticGroupDetectors.findRotatingBannersAsync(), 
+								window._semanticGroupDetectors.findSocialButtonAreasAsync(jqG.__elStore.semantic.menus)])
+							.then(([bannerElArr, socialButtonsArr]) => {
+								jqG.__elStore.semantic.rotatingBanners = $(bannerElArr);
+								jqG.__elStore.semantic.socialButtons = $(socialButtonsArr);
+							});
 					}).then(() => {
 						return window._semanticGroupDetectors.findHeadersFootersAsync(jqG.__elStore.semantic.menusV, jqG.__elStore.semantic.overlays).then(({
 							headers,

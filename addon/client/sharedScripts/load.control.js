@@ -4,6 +4,23 @@
 // NOTE: Should we also overwrite XMLHttpRequest.prototype.send and fetch()?
 
 (function(){
+	const cleanNames = "'close', 'stop', 'focus', 'blur', 'open', 'alert', 'confirm', 'prompt', 'print', 'postMessage', 'captureEvents', 'releaseEvents', 'getSelection', 'getComputedStyle', 'matchMedia', 'moveTo', 'moveBy', 'resizeTo', 'resizeBy', 'scroll', 'scrollTo', 'scrollBy', 'requestAnimationFrame', 'cancelAnimationFrame', 'getDefaultComputedStyle', 'scrollByLines', 'scrollByPages', 'sizeToContent', 'updateCommands', 'find', 'dump', 'setResizable', 'requestIdleCallback', 'cancelIdleCallback', 'btoa', 'atob', 'setTimeout', 'clearTimeout', 'setInterval', 'clearInterval', 'queueMicrotask', 'createImageBitmap', 'fetch', 'self', 'name', 'history', 'customElements', 'locationbar', 'menubar', 'personalbar', 'scrollbars', 'statusbar', 'toolbar', 'status', 'closed', 'event', 'frames', 'length', 'opener', 'parent', 'frameElement', 'navigator', 'clientInformation', 'external', 'applicationCache', 'screen', 'innerWidth', 'innerHeight', 'scrollX', 'pageXOffset', 'scrollY', 'pageYOffset', 'screenLeft', 'screenTop', 'screenX', 'screenY', 'outerWidth', 'outerHeight', 'performance', 'mozInnerScreenX', 'mozInnerScreenY', 'devicePixelRatio', 'scrollMaxX', 'scrollMaxY', 'fullScreen', 'ondevicemotion', 'ondeviceorientation', 'onabsolutedeviceorientation', 'InstallTrigger', 'sidebar', 'visualViewport', 'crypto', 'onabort', 'onblur', 'onfocus', 'onauxclick', 'onbeforeinput', 'oncanplay', 'oncanplaythrough', 'onchange', 'onclick', 'onclose', 'oncontextmenu', 'oncuechange', 'ondblclick', 'ondrag', 'ondragend', 'ondragenter', 'ondragexit', 'ondragleave', 'ondragover', 'ondragstart', 'ondrop', 'ondurationchange', 'onemptied', 'onended', 'onformdata', 'oninput', 'oninvalid', 'onkeydown', 'onkeypress', 'onkeyup', 'onload', 'onloadeddata', 'onloadedmetadata', 'onloadend', 'onloadstart', 'onmousedown', 'onmouseenter', 'onmouseleave', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'onwheel', 'onpause', 'onplay', 'onplaying', 'onprogress', 'onratechange', 'onreset', 'onresize', 'onscroll', 'onseeked', 'onseeking', 'onselect', 'onstalled', 'onsubmit', 'onsuspend', 'ontimeupdate', 'onvolumechange', 'onwaiting', 'onselectstart', 'ontoggle', 'onpointercancel', 'onpointerdown', 'onpointerup', 'onpointermove', 'onpointerout', 'onpointerover', 'onpointerenter', 'onpointerleave', 'ongotpointercapture', 'onlostpointercapture', 'onmozfullscreenchange', 'onmozfullscreenerror', 'onanimationcancel', 'onanimationend', 'onanimationiteration', 'onanimationstart', 'ontransitioncancel', 'ontransitionend', 'ontransitionrun', 'ontransitionstart', 'onwebkitanimationend', 'onwebkitanimationiteration', 'onwebkitanimationstart', 'onwebkittransitionend', 'u2f', 'onerror', 'speechSynthesis', 'onafterprint', 'onbeforeprint', 'onbeforeunload', 'onhashchange', 'onlanguagechange', 'onmessage', 'onmessageerror', 'onoffline', 'ononline', 'onpagehide', 'onpageshow', 'onpopstate', 'onrejectionhandled', 'onstorage', 'onunhandledrejection', 'onunload', 'ongamepadconnected', 'ongamepaddisconnected', 'localStorage', 'origin', 'crossOriginIsolated', 'isSecureContext', 'indexedDB', 'caches', 'sessionStorage', 'window', 'document', 'location', 'top', '___stubFCallCounter', '___windowObjCleaned', '___origSetIntervalF', '__pageScriptEventsAllowed', '___origSetTimeoutF', '___stopLogs'";
+	// var cleanNames;
+	// (()=>{
+	// 	const iframe = document.createElement('iframe');
+	// 	iframe.style.display = 'none';
+	// 	iframe.onload = ()=>{
+	// 		cleanNames = "'" + Object.keys(iframe.contentWindow).concat(["___stubFCallCounter", "___windowObjCleaned"]).join("', '") + "'";
+	// 		document.body.removeChild(iframe);
+	// 	};
+	// 	document.body.appendChild(iframe);
+	// })();
+	
+	function ytFix(){
+		// dumb YouTube fix
+		document.querySelectorAll("[aria-label*='Hide more videos']").forEach(x=>x.click());
+	}
+	
 	function _withNatCode(f) {
 		return f.toString().indexOf("[native code]") > -1;
 	}
@@ -115,8 +132,10 @@
 			window.toggleDomPrepForInstaManip("on"); // Otherwise some elements get stuck in an invisible position <-- js disabled, but CSS animations running
 			// NOTE: disabling selectors kills the js runtime on Youtube -- trying out this temporary hack of not doing this for youtube -- other options: unwrap iframes in DIVs; replace iframes with screenshots
 			const urls2skipJsOverwriting = ["youtube", "youtu.be"]; //, "www.google.com"
+			// const urls2skipJsOverwriting = [];
 			if(urls2skipJsOverwriting.some(x=>location.host.indexOf(x) > -1)){
 				console.log("[PScript STUB]%c NOT Overwriting JS for this host: %s", "color:orange;background-color:darkgreen;", location.host);
+				ytFix();
 			}else{
 				// adding a counter for Stub F calls
 				w.eval(`window.___stubFCallCounter = 0;`);
@@ -124,37 +143,34 @@
 					(()=>{
 						if(!window.___windowObjCleaned){
 							console.log("Prepping to clean page window of custom props");
-							const iframe = document.createElement('iframe');
-							iframe.style.display = 'none';
-							iframe.onload = ()=>{
-								const cleanNames = Object.keys(iframe.contentWindow).concat(["___stubFCallCounter", "___windowObjCleaned"]);
-								document.body.removeChild(iframe);
-								const allNames = Object.keys(window);
-								console.log("[PScript CLEANUP] REMOVing", allNames.length - cleanNames.length, " properties from the window object", window.location.href);
-								var _i = 0;
-								allNames.forEach(k => {
-									if(!cleanNames.includes(k)){
-										delete window[k];
-										console.log("[PScript CLEANUP] %i %s", _i++, k);
-									}
-								});
-								window.___windowObjCleaned = true;
-							};
-							document.body.appendChild(iframe);
+							const cleanNames = [${cleanNames}];
+							const allNames = Object.keys(window);
+							console.log("[PScript CLEANUP] REMOVing", allNames.length - cleanNames.length, " properties from the window object", window.location.href);
+							var _i = 0;
+							allNames.forEach(k => {
+								if(!cleanNames.includes(k)){
+									delete window[k];
+									console.log("[PScript CLEANUP] %i %s", _i++, k);
+								}
+							});
+							window.___windowObjCleaned = true;
 						}
 					})();
 				`;
 				const stopJsThrow = `
+					if(window.___stubFCallCounter > 100){
+						debugger;
+					}
 					if(++window.___stubFCallCounter === 100){
+						console.log("%c[PScript STUB] too many calls to a Stub F", window.___stubFCallCounter, "==> Do smth to avoid slow-downs. For now, just no longer printing logs.", "color:pink;font-style:oblique;");
+						window.___stopLogs = true;
 						try{
-							console.log("%c[PScript STUB] too many calls to a Stub F", window.___stubFCallCounter, "==> Do smth to avoid slow-downs. For now, just no longer printing logs.", "color:pink;font-style:oblique;");
-							window.___stopLogs = true;
 							${removeNonNativeWinProps}
-							console.log = ()=>{};	
 						}catch (e){
 							console.error("couldn't stop js execution", JSON.stringify(e));
 						}
-						throw "[PScript STUB] Stop JS please";
+						console.log = ()=>{};
+						// throw "[PScript STUB] Stop JS please";
 					}
 				`;
 				// redefining document.write -- otherwise all event handlers (including ours) get removed
@@ -176,6 +192,9 @@
 				};`);
 				w.eval(`setTimeout = () => {
 					console.log("[PScript STUB] Page scripts trying to set a timeout --> we've replaced it with no-op", window.location.href);
+					// if(window.___stubFCallCounter > 100){
+					// 	debugger;
+					// }
 					${stopJsThrow};
 					return 0;
 				};`);
@@ -234,6 +253,9 @@
 				w.eval(`EventTarget.prototype.dispatchEvent = function(e){console.log("[PScript STUB] Preventing an event: ", e.type, location.href)};`);
 				// ensuring iframes can receive messages
 				w.eval(`Event.prototype.stopImmediatePropagation = function(){console.log("%c[PScript STUB] Not calling stopImmediatePropagation", "background-color:#5A5A05;");}`);
+				w.eval(`CSSStyleSheet.prototype.insertRule = function(){console.log("[PScript STUB] Not inserting rules", ...arguments)};`);
+				w.eval(`XMLHttpRequest.prototype.send = function(){console.log("[PScript STUB] Not Sending a XMLHttpRequest", ...arguments)};`);
+				
 				w.eval(`window.stop();`);
 			}
 			window.dispatchEvent(new Event("StopEventHandling"));

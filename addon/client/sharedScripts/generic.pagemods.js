@@ -120,7 +120,7 @@
 		// 	console.log("%c[PAGEModes] Cleaned KLaviyo", "color:gray;");
 		// 	// window.CssInjector._injectStringCss("[class*='kl-private-reset-css']:has([class*='kl-private-reset-css'][role='dialog'])", "display: none !important;");
 		// }
-		const klScripts = Array.from(document.head.querySelectorAll("script")).filter(x=>x.src && x.src.indexOf("klaviyo.js") > -1);
+		const klScripts = Array.from(document.head.querySelectorAll("script")).filter(x=>x.src && x.src.indexOf("klaviyo.com") > -1);
 		if(klScripts.length){
 			// console.log("[GEN PAGE MODs] Klaviyo Detected. Launching a Mutation Observer");
 			window.CssInjector._injectStringCss("[class*='kl-private-reset-css']", "display: none !important;");

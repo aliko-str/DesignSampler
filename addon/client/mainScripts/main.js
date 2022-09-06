@@ -47,7 +47,30 @@
 		window.preAnyChangePageMods();
 		window.recordNoStylingCssAsync()
 			.then(applyPageModsAsync)
+			.then(()=>{
+				document.querySelectorAll("html > :not(head, body)").forEach(x=>x.remove()); // removing bizzare elements outside of Head and Body
+			})
 			.then(window.extractLocalIFramesInShadowDow)
+			// .then(()=>{
+			// 	debugger;
+			// 	const allLocalIframes = Array
+			// 		.from(document.querySelectorAll("iframe"))  // too many troubles with too many iframes -- unwrap as many as possible
+			// 		.filter(ifrEl=>{
+			// 			console.log(ifrEl.src);
+			// 			const res = !ifrEl.src || ifrEl.src.indexOf("about:blank") > -1 || location.href.indexOf(ifrEl.src) > -1;
+			// 			return res;
+			// 		});
+			// 		//  // local iframes only
+			// 		// .filter(ifrEl=>{
+			// 		// 	const st = window.getComputedStyle(ifrEl);
+			// 		// 	const b = ifrEl.getBoundingClientRect();
+			// 		// 	console.log(b, st.display, st.visibility);
+			// 		// 	return st.display !== "none" && st.visibility !== "hidden" && (b.width >= 1 && b.height >= 1);
+			// 		// });
+			// 	console.log("%c allLocalIframes n:%i", "background-color:orange;", allLocalIframes.length);
+			// 	return window.extractLocalIFramesInShadowDow(allLocalIframes);
+			// })
+			// .then(window.extractLocalIFramesInShadowDow)
 			// .then(()=>window.unwrapShadowDomAsync(true)) // NOTE: I have to do it here (and not with other page alterations) since otherwise the new IFrames won't be counted as visible, and won't be processed
 			// .then(diff=>{
 			// 	if(diff){
