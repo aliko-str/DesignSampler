@@ -534,6 +534,7 @@ function doPostPrevisitWork(settings, jobProgress, pageMods, portToApp) {
 	function createOnePageProcessor() {
 		return new Promise((resolve, reject) => {
 			// 0 - Basic setups
+			let loadedOnce = false, loadedTwice = false;
 			var _prematureTabClosingFlag = true;
 			var aTab;
 			const iFrameProcessors = [];
@@ -820,6 +821,7 @@ function doPostPrevisitWork(settings, jobProgress, pageMods, portToApp) {
 					// } // otherwise no point changing anything
 					respF({
 						"action": "haveYourTabId",
+						"reloadAfter1stLoad": !loadedTwice,
 						"tabId": aTab.id,
 						"urlId": aUrlObj.url,
 						settings: settings
@@ -865,11 +867,22 @@ function doPostPrevisitWork(settings, jobProgress, pageMods, portToApp) {
 					return;
 				} // it's a call from a different tab - ours isn't alive yet
 				if (details.tabId === aTab.id && details.frameId === 0) {
+					// a dumb hack for ensuring all images load -- reloading a page once
+					let nTimes = "more than twice";
+					if(!loadedOnce){
+						loadedOnce = true;
+						nTimes = "once";
+					}else if(!loadedTwice){
+						loadedTwice = true;
+						nTimes = "twice";
+					}
+					console.log("BR.MAIN tracking REloading -- loaded %c%s.", "color:pink;font-weight: bold;", nTimes);
 					// 5.1 - Attach our script here <== The last step, so we are sure all listeners are set up by this point
-					_execScripts(aTab.id, scriptsToLoadArr, "document_end").catch(err=>{
-						console.error("Couldn't inject Content Scripts ==> auto closing the tab and moving on to the next url, ", aUrlObj.url);
-						browser.tabs.remove(aTab.id).catch(reject);
-					});
+					_execScripts(aTab.id, scriptsToLoadArr, "document_end")
+						.catch(err=>{
+							console.error("Couldn't inject Content Scripts ==> auto closing the tab and moving on to the next url, ", aUrlObj.url);
+							browser.tabs.remove(aTab.id).catch(reject);
+						});
 				}
 			};
 			// 6 - Setup a 1m timeout - if no response after a minute, presume it's all dead ==> close the tab, tell App to banish a Url

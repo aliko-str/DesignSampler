@@ -135,6 +135,10 @@
 			"pageTitleId": document.title
 		}).then(function (respObj) {
 			console.assert(respObj.action === "haveYourTabId");
+			// trying to overcome FFs greedily postponing img loading -- reloading a page -- no idea how else to solve this, as I'm not exactly sure what causes that, page scripts or FF internals
+			if(respObj.reloadAfter1stLoad === true){
+				return window.location.reload();
+			}
 			// restoring the real page title
 			document.title = oldTitle;
 			// saving our internal tab/url ids
