@@ -27,7 +27,7 @@
 	
 	const getPageLoadedPr = (()=>{
 		var pr;
-		const defaultTOutDelay = 6000;
+		const defaultTOutDelay = 7000;
 		const tStart = Date.now();
 		const __set = ()=>{
 			if (document.readyState === "complete") {

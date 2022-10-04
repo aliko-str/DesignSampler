@@ -28,7 +28,7 @@
 		const cookieButtons2Click = ["#CybotCookiebotDialogBodyButtonDecline", "button.close", ".recommendation-modal__close-button", "#btn-cookie-allow", ".js-cookie-consent-close", ".cookie-banner-accept", ".cookie-accept-button", ".js-accept-gdpr", ".eg-cc-dismiss", "#inputAcceptCookies", ".cookie-notice__close"].concat(bannerCloseButtons).join(",");
 		document.querySelectorAll(cookieButtons2Click).forEach(x=>x.click());
 		// Common cookie-notice providers/messages
-		const commonCookieContainerSelectors = ["#onetrust-banner-sdk", "#onetrust-consent-sdk", ".cc-window.cc-banner.cc-bottom", "#cookie-bar, #cookie-law-info-bar, #cookie-notice", ".cookie-policy.cookie-policy--open", "#__tealiumGDPRecModal", "#cookie_alert", "#js-cookie-banner", "#cookie_terms", "[data-role='gdpr-cookie-container']", "#ccc", "[id*='shopify-privacy-banner']", "#cookieNotification", "#cmplz-cookiebanner-container"].join(",");
+		const commonCookieContainerSelectors = ["#onetrust-banner-sdk", "#onetrust-consent-sdk", ".cc-window.cc-banner.cc-bottom", "#cookie-bar, #cookie-law-info-bar, #cookie-notice", ".cookie-policy.cookie-policy--open", "#__tealiumGDPRecModal", "#cookie_alert", "#js-cookie-banner", "#cookie_terms", "[data-role='gdpr-cookie-container']", "#ccc", "[id*='shopify-privacy-banner']", "#cookieNotification", "#cmplz-cookiebanner-container", "#adroll_consent_container"].join(",");
 		document.querySelectorAll(commonCookieContainerSelectors).forEach(el=>el.remove());
 		// Generic Overlays
 		const commonOverlaySelectors = [".pum-overlay", ".overlay_11", "#boxpopup0", "#boxpopup1", "#boxpopup2", "#boxpopup3", "#boxpopup", ".md-overlay", "#myModal", ".modal-backdrop", "#shopify-section-popup", '#onesignal-slidedown-container', "#pa-push-notification-subscription", ".fancybox-wrap", ".fancybox-overlay"];
@@ -64,6 +64,7 @@
 	
 	function __pageContextGenericMods(){
 		__disableNiceScroll();
+		_disablePawAnimate();
 		// __handleScrollReveal();
 	}
 	
@@ -109,6 +110,14 @@
 				el.removeAttribute("data-sr-id");
 			});
 			console.log("[ScrollReveal] Cleaned.");
+		}
+	}
+	
+	function _disablePawAnimate(){
+		const animatedEls = document.querySelectorAll("[paw-animate]");
+		if(animatedEls.length){
+			console.log("[PAGE_MODS] %cDisabling Paw-Animate for %s elements", "color:orange;", animatedEls.length);
+			window.CssInjector._injectStringCss("[paw-animate]", "animation:none !important;opacity:1 !important;"); // using CSS because scripts often scroll-trigger some opacity changes for these elements
 		}
 	}
 	

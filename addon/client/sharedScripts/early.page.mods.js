@@ -67,7 +67,7 @@
 						var self;
 						const realCb = function(mutationList, observer){
 							__mutationCounter++;
-							console.log("%c realCb called, ", "color:gray;", __mutationCounter, __observeMutations);
+							// console.log("%c realCb called, ", "color:gray;", __mutationCounter, __observeMutations);
 							if(__observeMutations){
 								if(cb.name.startsWith("bound") && !cb.hasOwnProperty("prototype")){
 									cb(mutationList, observer);
@@ -124,7 +124,6 @@
 						console.log("[EARLY OVERRIDEs]%c NO LONGER Setting timeouts, %s ", "background-color:#8b0000; color: gray;", location.href);
 					}
 					if(!_allowTimeoutsFlag || ___counterT > MAX_TIMEOUTS){
-						debugger;
 						return 1;
 					}
 					if(isNaN(t)){
