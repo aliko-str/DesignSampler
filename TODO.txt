@@ -126,6 +126,7 @@ EXTRA TODO:
 		c1) Process pseudoElement with bgCol the same way as with bgImg <-- now they are simply not accounted for
 		d1) Selected <option> to be counted as text (also for Scrambling)
 		e1) Move load.control.js functions in window.onload -- otherwise our browser.runtime.onMessage may not fire anymore after document.write by a page script <-- Some rare bugs with execution simply stopping (couldn't reproduce at some point)
+		f1) Stop re-enabling disabled JS -- it sometimes kills the page during HTML save
 
 
 TODO: decide if use all primitives as seeds for root search; or just a fraction <-- depending on performance costs

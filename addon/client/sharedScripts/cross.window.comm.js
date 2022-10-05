@@ -50,13 +50,30 @@
 		});
 	}
 	
+	function __findIFramesInShadowRoots(visElArr){
+		const shadowRoots = visElArr
+			.map(x=>x.openOrClosedShadowRoot)
+			.filter(x=>x);
+		debugger;
+		console.log("N shadowRoots:", shadowRoots.length, location.href);
+		const nestedEls = shadowRoots.map(root=>Array.from(root.querySelectorAll(":not(style)")));
+		return shadowRoots
+			.map(root=>Array.from(root.querySelectorAll("iframe")))
+			.flat(1)
+			.concat(nestedEls.length?__findIFramesInShadowRoots(nestedEls):[]); // potential shadow-nested elements
+	}
 	
 	function propagateFrVisReqsAsync(){
-		var jqVisIframes = window.domGetters.getAllVis().filter("iframe");
-		if(!jqVisIframes.length){
+		const visIFrames = window.domGetters.getAllVis().filter("iframe").toArray();
+		const inShadowRootIFrames =  __findIFramesInShadowRoots(window.domGetters.getAllVis().toArray());
+		if(inShadowRootIFrames.length){
+			console.log("[IFr Vis Check] %cFound iframes nested in shadow roots, n: %i", "color:yellow;", inShadowRootIFrames.length);
+		}
+		const allIFrames = visIFrames.concat(inShadowRootIFrames);
+		if(!allIFrames.length){
 			return Promise.resolve(); // no nested iframes to process
 		}
-		return askSubFr4WinSizes(jqVisIframes.toArray())
+		return askSubFr4WinSizes(allIFrames)
 			.then(visFrInfoArr=>{
 				const res = visFrInfoArr
 					.filter(el => el.__machineFrameId !== undefined)

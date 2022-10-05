@@ -159,7 +159,7 @@
 				`;
 				const stopJsThrow = `
 					if(window.___stubFCallCounter > 100){
-						debugger;
+						// debugger;
 					}
 					if(++window.___stubFCallCounter === 100){
 						console.log("%c[PScript STUB] too many calls to a Stub F", "color:pink;font-style:oblique;", window.___stubFCallCounter, "==> Do smth to avoid slow-downs. For now, just no longer printing logs.");
@@ -283,7 +283,7 @@
 	}
 	
 	function pauseVideoAudio(){
-		const avEls = Array.from(document.querySelectorAll("video, audio"));
+		const avEls = window.DOMutils.pierceShadowQuery("video, audio"); // Array.from(document.querySelectorAll("video, audio"));
 		if(avEls.length){
 			console.log("Audio/video elements -- pausing them, n: ", avEls.length, location.href);
 			avEls.forEach(el => {

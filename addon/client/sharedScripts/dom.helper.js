@@ -21,7 +21,20 @@
 		}
 	}
 	
+	function pierceShadowQuery(selector, rootEl = document){
+		// an equivalent of document.querySelectorAll, but also making elements in shadowDom visible
+		const shRoots = Array
+			.from(rootEl.querySelectorAll(":not(svg *)"))
+			.filter(x=>x.openOrClosedShadowRoot)
+			.map(x=>x.openOrClosedShadowRoot);
+		const inShadowEls = shRoots.map(newRootEl=>pierceShadowQuery(selector, newRootEl)).flat(1);
+		return Array
+			.from(rootEl.querySelectorAll(selector))
+			.concat(inShadowEls);
+	}
+	
 	window.DOMutils = {
-		restoreElement: restoreElement
+		restoreElement: restoreElement,
+		pierceShadowQuery: pierceShadowQuery
 	};
 })();

@@ -5,7 +5,7 @@
 // const _debug = true;
 
 (function(){
-	// var cnvsDiffAfterShadowDomMods, accuDiffAfterShadowDomMods;
+	var cnvsDiffAfterShadowDomMods, accuDiffAfterShadowDomMods;
 	
 	function applyPageModsAsync(){
 		// We need to do this before anything else, but after a page loaded -- pageMods determine which iframes are visible (e.g., due to removing "overflow:hidden" on <html>)
@@ -51,26 +51,6 @@
 				document.querySelectorAll("html > :not(head, body)").forEach(x=>x.remove()); // removing bizzare elements outside of Head and Body
 			})
 			.then(window.extractLocalIFramesInShadowDow)
-			// .then(()=>{
-			// 	debugger;
-			// 	const allLocalIframes = Array
-			// 		.from(document.querySelectorAll("iframe"))  // too many troubles with too many iframes -- unwrap as many as possible
-			// 		.filter(ifrEl=>{
-			// 			console.log(ifrEl.src);
-			// 			const res = !ifrEl.src || ifrEl.src.indexOf("about:blank") > -1 || location.href.indexOf(ifrEl.src) > -1;
-			// 			return res;
-			// 		});
-			// 		//  // local iframes only
-			// 		// .filter(ifrEl=>{
-			// 		// 	const st = window.getComputedStyle(ifrEl);
-			// 		// 	const b = ifrEl.getBoundingClientRect();
-			// 		// 	console.log(b, st.display, st.visibility);
-			// 		// 	return st.display !== "none" && st.visibility !== "hidden" && (b.width >= 1 && b.height >= 1);
-			// 		// });
-			// 	console.log("%c allLocalIframes n:%i", "background-color:orange;", allLocalIframes.length);
-			// 	return window.extractLocalIFramesInShadowDow(allLocalIframes);
-			// })
-			// .then(window.extractLocalIFramesInShadowDow)
 			// .then(()=>window.unwrapShadowDomAsync(true)) // NOTE: I have to do it here (and not with other page alterations) since otherwise the new IFrames won't be counted as visible, and won't be processed
 			// .then(diff=>{
 			// 	if(diff){
@@ -81,7 +61,9 @@
 			// .then(()=>{
 			// 	return window._alarmPr(1000);
 			// })
-			.then(handleIFrameLoadingAsync)
+			
+			// .then(handleIFrameLoadingAsync) // NOW moved after domPrepping -- so it finds iframes that were extracted out of shadowDom during domPrepping
+			
 			.then(mainWork);
 	}
 
@@ -135,16 +117,19 @@
 			"pageTitleId": document.title
 		}).then(function (respObj) {
 			console.assert(respObj.action === "haveYourTabId");
-			// trying to overcome FFs greedily postponing img loading -- reloading a page -- no idea how else to solve this, as I'm not exactly sure what causes that, page scripts or FF internals
-			if(respObj.reloadAfter1stLoad === true){
-				return window.location.reload();
-			}
 			// restoring the real page title
 			document.title = oldTitle;
 			// saving our internal tab/url ids
 			tabId = respObj.tabId;
 			urlId = respObj.urlId;
 			settings = respObj.settings;
+			// trying to overcome FFs greedily postponing img loading -- reloading a page -- no idea how else to solve this, as I'm not exactly sure what causes that, page scripts or FF internals
+			if(respObj.reloadAfter1stLoad === true){
+				return new Promise(function(resolve, reject) {
+					window.location.reload();
+					// not resolving -- just waiting for a reload
+				});
+			}
 		}).then(()=>{
 			// Run it all - Promises used for async
 			const p0 = (!settings.screenshotsNeeded) ? Promise.resolve() : (browser.runtime.sendMessage({
@@ -157,27 +142,62 @@
 			p0.then(()=>{
 				console.log("DONE SAVING SCREENSHOT");
 				if(settings.pageVarsNeeded){
-					// first wait for iFrames to do Dom Prepping
-					return browser.runtime.sendMessage({
-						"action": "PrepIFrames",
-						"urlId": urlId
-					}).then(()=>{
-						// iframes are done, so let's do screenshotting to see if we broke Design by changing DOM
-						return window.prepDomForDataExtractionAsync(true)
-							.then(({accuDiff, diffCnvs})=>{
-								return browser.runtime.sendMessage({
-									"action": "SaveImg",
-									"urlId": urlId,
-									"folders": ["visDiffAfterDomManip"],
-									"name": accuDiff + "_" + window._urlToHost(urlId),
-									"dat": window.__cnvs2DataUrl(diffCnvs)
-								});
+					return window.prepDomForDataExtractionAsync(true)
+						.then(({accuDiff, diffCnvs})=>{
+							// FIXME: extrac visDiffComparison in a separate step and capture if after iframe prepping -- we now miss out of the difference in iframes -- a consequence of a dumb hack to extract iframes out of shadowDom, which happens during domPrep
+							return browser.runtime.sendMessage({
+								"action": "SaveImg",
+								"urlId": urlId,
+								"folders": ["visDiffAfterDomManip"],
+								"name": accuDiff + "_" + window._urlToHost(urlId),
+								"dat": window.__cnvs2DataUrl(diffCnvs)
 							});
-					});
+						})
+						.then(handleIFrameLoadingAsync)
+						.then(()=>browser.runtime.sendMessage({
+							"action": "PrepIFrames",
+							"urlId": urlId
+						}));
+						
+					// // first wait for iFrames to do Dom Prepping
+					// return browser.runtime.sendMessage({
+					// 	"action": "PrepIFrames",
+					// 	"urlId": urlId
+					// }).then(()=>{
+					// 	// iframes are done, so let's do screenshotting to see if we broke Design by changing DOM
+					// 	return window.prepDomForDataExtractionAsync(true)
+					// 		.then(({accuDiff, diffCnvs})=>{
+					// 			return browser.runtime.sendMessage({
+					// 				"action": "SaveImg",
+					// 				"urlId": urlId,
+					// 				"folders": ["visDiffAfterDomManip"],
+					// 				"name": accuDiff + "_" + window._urlToHost(urlId),
+					// 				"dat": window.__cnvs2DataUrl(diffCnvs)
+					// 			});
+					// 		});
+					// });
+						
+					// // first wait for iFrames to do Dom Prepping
+					// return browser.runtime.sendMessage({
+					// 	"action": "PrepIFrames",
+					// 	"urlId": urlId
+					// }).then(()=>{
+					// 	// iframes are done, so let's do screenshotting to see if we broke Design by changing DOM
+					// 	return window.prepDomForDataExtractionAsync(true)
+					// 		.then(({accuDiff, diffCnvs})=>{
+					// 			return browser.runtime.sendMessage({
+					// 				"action": "SaveImg",
+					// 				"urlId": urlId,
+					// 				"folders": ["visDiffAfterDomManip"],
+					// 				"name": accuDiff + "_" + window._urlToHost(urlId),
+					// 				"dat": window.__cnvs2DataUrl(diffCnvs)
+					// 			});
+					// 		});
+					// });
 				}
 				return Promise.resolve(); // we won't be collecting data, so don't bother changing anything
 			}).then(() => {
-				// NOTE: no longer needed - we moved shadowDom alterations together with other page.preprocessing actions
+				// // NOTE: no longer needed - we moved shadowDom alterations together with other page.preprocessing actions <== STILL needed -- because some shadowRoots contain iframes and these aren't counted if unwrapping happens with the rest of page prep
 				// // Not sure where else to put this...
 				// if(cnvsDiffAfterShadowDomMods){ // if nothing was changed/replaced, we have no visDiff to save
 				// 	return browser.runtime.sendMessage({

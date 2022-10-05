@@ -518,6 +518,7 @@
 					var pageCnvsBefore = window.getStoredFullPageCanvas(); // window.page2Canvas(true);
 					// jqG.origPageCnvs = pageCnvsBefore; // saving for the future use
 				}
+				// return Promise.resolve()
 				const separateChangeTracking4ShadowDom = false;
 				return window.unwrapShadowDomAsync(separateChangeTracking4ShadowDom)
 					.then(()=>window._alarmPr(1000))

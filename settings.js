@@ -1,9 +1,9 @@
 const path = require("path");
 
 const settings = {
-	profile: "EStoreHome_All",
+	profile: "EStoreFashion_All",
 	// profile: "Universities_EN",
-	inFileUrls: path.join("./Inputs/ECommerce.Home", "ECommerce.FurnitureHomeDecor.ALL.txt"),
+	inFileUrls: path.join("./Inputs/ECommerce.Fashion", "ECommerce.FashionClothes.ALL.txt"),
 	// inFileUrls: path.join("./Inputs/Universities", "Unis.EN_0-650.txt"),
 	ffRunParams: {
 		source: "--source-dir=/Users/Aleksii/Projects/FF.v83.Addon.ScreenAndVars/addon/",
