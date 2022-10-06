@@ -285,7 +285,7 @@
 	function pauseVideoAudio(){
 		const avEls = window.DOMutils.pierceShadowQuery("video, audio"); // Array.from(document.querySelectorAll("video, audio"));
 		if(avEls.length){
-			console.log("Audio/video elements -- pausing them, n: ", avEls.length, location.href);
+			console.log("%cAudio/video elements -- pausing them, n: %i, %s", "color:gray;", avEls.length, location.href);
 			avEls.forEach(el => {
 				el.pause();
 			});

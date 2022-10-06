@@ -473,6 +473,10 @@
 			if(el2setHeightOn){
 				const h = scrollH + "px";
 				const chId = window.__setCSSPropJqArr([el2setHeightOn], "height", h, "important");
+				if(scrollH < window.getScrlEl().scrollHeight){
+					// some of body/html children had min-height depending on body/html height --> set h to viewport height (still no longer invisible body/html bg image, but it also is no longer replicated along the entire length of page - it's a semi-solution, should work for most cases)
+					window.__setCSSPropJqArr([el2setHeightOn], "height", "100vh", "important", chId);
+				}
 				return ()=>{
 					window.__restoreCSSPropJqArr([el2setHeightOn], "height", chId);
 				};
@@ -668,6 +672,7 @@
 	
 	function _shadowRoots2Divs(){
 		const shadowRoots = _lineUpShadowRoot(document.body); // after manual slotting, the roots need to be re-searched for
+		const tags2NotImportFromShadow = ["style", "link"];
 		shadowRoots
 			.forEach(rootEl => {
 				const div = window.__makeCleanDiv();
@@ -675,7 +680,7 @@
 				Array.from(rootEl.attributes).forEach(x=>div.setAttribute(x.name, x.value));
 				const shadowContent = Array
 					.from(rootEl.openOrClosedShadowRoot.childNodes)
-					.filter(x=>x.nodeType !== document.ELEMENT_NODE || x.tagName.toLowerCase() !== "style") // not polluting the global scope with inShadowRoot <style>s
+					.filter(x=>x.nodeType !== document.ELEMENT_NODE || tags2NotImportFromShadow.every(tg=>x.tagName.toLowerCase() !== tg)) // not polluting the global scope with inShadowRoot <style>s
 					.map(el=>{
 						if(el.nodeType === document.ELEMENT_NODE){
 							Array.from(el.querySelectorAll("style")).forEach(x => x.remove()); // checking if there are also nested styles somewhere in a shadowRoot
