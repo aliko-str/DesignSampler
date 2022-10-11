@@ -1,0 +1,140 @@
+url	industry	subIndustry
+http://www.dmartindia.com/	Retail, E-Commerce	Apparel Stores, Grocery Stores, Footwear Stores, Personal Care
+http://www.metroshoes.net/	Retail, E-Commerce, Leather , Accessories	Footwear Stores
+http://www.jockeyindia.com/	Retail, Garment , Textile, E-Commerce	Yarn , Fibre , Thread , Textile , Accessories, Readymade Garments, Apparel Stores
+http://pcjeweller.com/	Gems , Jewellery , Watches, Retail, E-Commerce	Gems , Jewellery, Jewellery , Watches
+http://	Exporters , Importers, Retail, E-Commerce	Exporters , Importers , Commodity Traders, Apparel Stores
+http://www.montecarlocorporate.com/	Retail, Garment , Textile, E-Commerce	Readymade Garments, Apparel Stores
+http://www.forevernew.co.in/	Retail, E-Commerce	Apparel Stores
+http://www.pepejeans.com/	Retail, Garment , Textile, E-Commerce	Readymade Garments, Apparel Stores
+http://in.puma.com/	Retail, E-Commerce	Footwear Stores, Sports , Games , Entertainment Outlets
+http://www.veromoda.in/	Retail, E-Commerce	Apparel Stores
+http://www.zivame.com/	Retail, E-Commerce	Apparel Stores
+http://www.truesilver.co.in/	Gems , Jewellery , Watches, E-Commerce	Gems , Jewellery
+http://ajio.com/	Garment , Textile, E-Commerce	Readymade Garments
+http://www.baggit.com/	Retail, E-Commerce, Leather , Accessories	Leather & Accessories
+http://www.bellacasa.in/	Retail, Garment , Textile, E-Commerce	Furnishings, Apparel Stores
+http://www.beltkart.com/	E-Commerce, Leather , Accessories	
+http://www.bijnis.com/	E-Commerce, Leather , Accessories	
+http://www.bluestone.com/	Gems , Jewellery , Watches, E-Commerce	Gems , Jewellery
+http://velvetcase.com/	Gems , Jewellery , Watches, E-Commerce	Gems , Jewellery
+http://www.tailorman.com/	Garment , Textile, E-Commerce	Readymade Garments
+http://www.caratlane.com/	Gems , Jewellery , Watches, E-Commerce	Gems , Jewellery
+http://www.chhabra555.com/	Retail, Garment , Textile, E-Commerce	Readymade Garments, Apparel Stores
+http://chunmun.in/	Retail, Garment , Textile, E-Commerce	Readymade Garments, Apparel Stores
+http://www.classicpolos.com/	Retail, E-Commerce	Apparel Stores
+http://www.safegold.com/	Gems , Jewellery , Watches, E-Commerce	Gems , Jewellery
+http://www.dukeindia.com/	Retail, Garment , Textile, E-Commerce	Readymade Garments, Apparel Stores
+http://www.meesho.com/	Garment , Textile, E-Commerce	Readymade Garments
+http://globusfashion.com/	Retail, Garment , Textile, E-Commerce	Yarn , Fibre , Thread , Textile , Accessories, Readymade Garments, Apparel Stores
+http://www.gocolors.co.in/	Retail, E-Commerce	Apparel Stores
+http://www.goodearth.in/	Retail, E-Commerce	Apparel Stores, Gift & Decorative Items, Furniture , Furnishing , Sanitary Outlets
+http://www.hidesign.com/	E-Commerce, Leather , Accessories	
+http://www.anitadongre.com/	Garment , Textile, E-Commerce	Fashion Designers
+http://iconicindia.com/	Garment , Textile, E-Commerce	Readymade Garments
+http://www.jinaam.com/	Retail, Garment , Textile, E-Commerce	Readymade Garments, Apparel Stores
+http://karlsburg.in/	Garment , Textile, E-Commerce	Readymade Garments
+http://www.kalanjali.com/	Retail, Garment , Textile, E-Commerce	Handlooms , Handicrafts , Earthenware, Apparel Stores
+http://www.kapsons.com/	Retail, E-Commerce	Apparel Stores
+http://www.lakshitaonline.com/	Garment , Textile, E-Commerce	Readymade Garments
+http://kilol.in/	Garment , Textile, E-Commerce	Readymade Garments
+http://www.leathermanfashion.com/	E-Commerce, Leather , Accessories	
+http://www.cottonworld.net/	Retail, E-Commerce	Apparel Stores
+http://www.manishmalhotra.in/	Retail, Garment , Textile, E-Commerce	Fashion Designers, Apparel Stores
+http://www.meenabazaar.com/	Retail, Garment , Textile, E-Commerce	Readymade Garments, Apparel Stores
+http://www.moustachejeans.com/	Retail, Garment , Textile, E-Commerce	Readymade Garments, Apparel Stores
+http://www.nalli.com/	Retail, Garment , Textile, E-Commerce	Readymade Garments, Apparel Stores
+http://www.chennaibazaar.com/	Gems , Jewellery , Watches, Garment , Textile, E-Commerce	Readymade Garments, Gems , Jewellery
+http://www.numerounojeanswear.com/	Retail, Garment , Textile, E-Commerce	Readymade Garments, Apparel Stores
+http://www.ovjjewels.com/	Gems , Jewellery , Watches, E-Commerce	Gems , Jewellery
+http://www.shopnaari.com/	Garment , Textile, E-Commerce	Readymade Garments
+http://www.ramrajcotton.in/	Garment , Textile, E-Commerce	Readymade Garments
+http://www.ritukumar.com/	Retail, Garment , Textile, E-Commerce	Fashion Designers, Apparel Stores
+http://www.rkgroup.biz/	BFSI , Fintech, Courier , Logistics , Supply Chain , Packaging , Transport, Exporters , Importers, Garment , Textile, E-Commerce	Financial Services , Financial Advisor, Courier , Logistics , Warehouse , Transport, Yarn , Fibre , Thread , Textile , Accessories, Exporters , Importers , Commodity Traders
+http://shreeshivam.in/	Retail, Garment , Textile, E-Commerce	Readymade Garments, Apparel Stores
+http://www.laxmipati.com/	Garment , Textile, E-Commerce	Readymade Garments
+http://soch.com/	Retail, E-Commerce	Apparel Stores
+http://www.sohumshoppe.com/	Retail, E-Commerce	Apparel Stores
+http://www.somashop.com/	Retail, Garment , Textile, E-Commerce	Readymade Garments, Furnishings, Furniture , Furnishing , Sanitary Outlets
+http://www.spykar.com/	Retail, Garment , Textile, E-Commerce	Readymade Garments, Apparel Stores
+http://www.startriteshoes.com/	Retail, E-Commerce	Footwear Stores
+http://www.tbase.in/	Retail, E-Commerce	Apparel Stores
+http://www.taruntahiliani.com/	Retail, Garment , Textile, E-Commerce	Fashion Designers, Apparel Stores
+http://www.thechennaisilks.com/	Retail, Garment , Textile, E-Commerce	Readymade Garments, Apparel Stores
+http://technosport.in/	Garment , Textile, E-Commerce	Readymade Garments
+http://turtle.in/	Retail, Garment , Textile, E-Commerce	Yarn , Fibre , Thread , Textile , Accessories, Readymade Garments, Apparel Stores
+http://www.taraash.com/	Gems , Jewellery , Watches, E-Commerce	Gems , Jewellery
+http://www.myvishal.com/	Retail, E-Commerce	Apparel Stores
+http://www.wamanharipethesons.com/	Gems , Jewellery , Watches, E-Commerce	Gems , Jewellery
+http://wildcraft.com/	Retail, E-Commerce, Leather , Accessories	Apparel Stores, Footwear Stores
+http://3aclothing.com/	Garment , Textile, E-Commerce	Readymade Garments
+http://www.aksharjewel.com/	Gems , Jewellery , Watches, E-Commerce	Gems , Jewellery
+http://www.myshopbazzar.com/	Garment , Textile, E-Commerce	Readymade Garments
+http://www.amitgem.com/	Gems , Jewellery , Watches, E-Commerce	Gems , Jewellery
+http://armaankhandesigns.com/	Garment , Textile, E-Commerce	Fashion Designers
+http://www.aviragold.com/	Gems , Jewellery , Watches, E-Commerce	Gems , Jewellery
+http://www.aviratefashion.in/	Retail, E-Commerce	Apparel Stores
+http://myratna.com/	Gems , Jewellery , Watches, E-Commerce	Gems , Jewellery
+http://www.babycouture.in/	Garment , Textile, E-Commerce	Readymade Garments
+http://www.beebaykids.com/	Garment , Textile, E-Commerce	Readymade Garments
+http://bestsellerclothing.in/	Garment , Textile, E-Commerce	Readymade Garments
+http://www.walkerstyleways.com/	E-Commerce, Leather , Accessories	
+http://www.bharatsthali.com/	Garment , Textile, E-Commerce	Readymade Garments
+http://base.kartrocket.co/	Garment , Textile, E-Commerce	Readymade Garments
+http://www.bonjourretail.com/	Retail, E-Commerce	Apparel Stores
+http://www.bunaai.com/	Garment , Textile, E-Commerce	Readymade Garments, Furnishings
+http://www.butterflyfields.com/	Garment , Textile, E-Commerce	Readymade Garments
+http://campussutra.com/	Garment , Textile, E-Commerce	Readymade Garments
+http://www.charaghdin.com/	Garment , Textile, E-Commerce	Readymade Garments
+http://www.charu.org.in/	Garment , Textile, E-Commerce	Readymade Garments
+http://www.chumbak.com/	Retail, E-Commerce	Apparel Stores, Gift & Decorative Items, Personal Care
+http://cliffclimbers.net/	Entertainment , Online Games, Garment , Textile, E-Commerce, Leather , Accessories	Sports ,Toys, Entertainment Products, Readymade Garments
+http://www.usplworld.com/	Garment , Textile, E-Commerce	Readymade Garments
+http://statusquo.in/	Garment , Textile, E-Commerce	Readymade Garments
+http://www.desiethnicity.com/	Garment , Textile, E-Commerce	Readymade Garments
+http://discoverdiva.com/	Garment , Textile, E-Commerce	Readymade Garments
+http://www.dress365days.com/	Garment , Textile, E-Commerce	Readymade Garments
+http://www.ejohri.com/	Gems , Jewellery , Watches, E-Commerce	Gems , Jewellery
+http://www.eschoolbuddy.com/	Retail, E-Commerce	Apparel Stores
+http://www.etashee.com/	Garment , Textile, E-Commerce	Readymade Garments
+http://fabriclore.com/	Garment , Textile, E-Commerce	Yarn , Fibre , Thread , Textile , Accessories
+http://www.fayonkids.com/	Garment , Textile, E-Commerce	Readymade Garments
+http://www.filmyvastra.com/	Garment , Textile, E-Commerce	Readymade Garments
+http://www.fourseven.com/	Gems , Jewellery , Watches, E-Commerce	Gems , Jewellery
+http://www.gocoop.com/	Garment , Textile, E-Commerce	Yarn , Fibre , Thread , Textile , Accessories, Readymade Garments
+http://fashiano.in/	Garment , Textile, E-Commerce	Readymade Garments
+http://www.thepostbox.in/	E-Commerce, Leather , Accessories	
+http://www.houseofmasaba.com/	Retail, E-Commerce	Apparel Stores, Personal Care
+http://www.hpsingh.com/	Garment , Textile, E-Commerce	Yarn , Fibre , Thread , Textile , Accessories, Furnishings
+http://latin-quarters.com/	Garment , Textile, E-Commerce	Readymade Garments
+http://612league.com/	Garment , Textile, E-Commerce	Readymade Garments
+http://www.indiansilkhouse.com/	Exporters , Importers, Gems , Jewellery , Watches, Garment , Textile, E-Commerce	Readymade Garments, Exporters , Importers , Commodity Traders, Gems , Jewellery
+http://www.esbeda.com/	E-Commerce, Leather , Accessories	
+http://www.jainson.co.in/	Garment , Textile, E-Commerce	Readymade Garments
+http://www.jewelxy.com/	Gems , Jewellery , Watches, E-Commerce	Gems , Jewellery
+http://www.johareez.com/	Gems , Jewellery , Watches, E-Commerce	Gems , Jewellery
+http://johribazaaronline.com/	Gems , Jewellery , Watches, E-Commerce	Gems , Jewellery
+http://www.jrsilks.com/	Retail, E-Commerce	Apparel Stores
+http://julietindia.in/	Garment , Textile, E-Commerce	Readymade Garments
+http://kiikii.in/	Garment , Textile, E-Commerce	Readymade Garments
+http://krate.in/	Retail, E-Commerce	Apparel Stores
+http://kruvsfashion.com/	Garment , Textile, E-Commerce	Readymade Garments
+http://kuberbox.com/	Gems , Jewellery , Watches, E-Commerce	Gems , Jewellery
+http://lastinch.in/	Exporters , Importers, Garment , Textile, E-Commerce, Cosmetic , Beauty & Wellness	Readymade Garments, Exporters , Importers , Commodity Traders
+http://www.karabags.com/	E-Commerce, Leather , Accessories	
+http://www.themerchbay.com/	Retail, E-Commerce	Apparel Stores
+http://www.moralfibre-fabrics.com/	Garment , Textile, E-Commerce	Yarn , Fibre , Thread , Textile , Accessories, Readymade Garments
+http://www.mylittlelambs.in/	Garment , Textile, E-Commerce	Readymade Garments, Furnishings
+http://www.mysoresareeudyog.com/	Garment , Textile, E-Commerce	Readymade Garments
+http://www.nappadori.com/	Retail, E-Commerce	Leather & Accessories
+http://www.privypleasures.com/	Garment , Textile, E-Commerce	Readymade Garments
+http://www.20dresses.com/	Garment , Textile, E-Commerce	Readymade Garments
+http://www.papilior.com/	Gems , Jewellery , Watches, E-Commerce	Gems , Jewellery
+http://www.parthas.com/	Garment , Textile, E-Commerce	Readymade Garments
+http://www.shardasarees.com/	Garment , Textile, E-Commerce	Readymade Garments
+http://pashtush.in/	Garment , Textile, E-Commerce	Readymade Garments
+http://zariin.com/	Gems , Jewellery , Watches, E-Commerce	Gems , Jewellery
+http://www.pinustore.com/	Garment , Textile, E-Commerce	Readymade Garments
+http://www.pipabella.com/	Gems , Jewellery , Watches, E-Commerce	Gems , Jewellery
+http://www.rashiratanjaipur.net/	Gems , Jewellery , Watches, E-Commerce	Gems , Jewellery
+http://www.cubmcpaws.com/	Garment , Textile, E-Commerce	Readymade Garments

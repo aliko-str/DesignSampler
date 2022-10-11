@@ -180,7 +180,11 @@ async function makeProfile() {
 		// first run - fresh jobProgressArr is to be created
 		console.log("No jobProgress.json file found -- creating it and the object");
 		const inUrlsAsText = await fs.promises.readFile(settings.inFileUrls, "utf8");
-		var allUrlsArr = inUrlsAsText.trim().split("\n").map(x => x.split('\t')[0]);
+		var allUrlsArr = inUrlsAsText
+			.trim()
+			.split("\n")
+			.filter(x=>x.indexOf("http") > -1) // in case the 1st line is a header
+			.map(x => x.split('\t')[0]);
 		if (!settings.allowUrlPath) {
 			// only Hostnames, i.e., homepages to be visited
 			const hostnameRegEx = /(http[s]*\:\/\/[\w\.\-]*\/|$)/;

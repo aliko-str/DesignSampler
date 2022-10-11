@@ -1,0 +1,69 @@
+url	industry	subIndustry
+http://www.amway.in/	Consumer Durables, Home Appliances, E-Commerce, Cosmetic , Beauty & Wellness	Consumer Goods
+http://www.bribooks.com/	E-Commerce, Paper , Publishing , Printing	Publication Houses
+http://adityavision.com/	Consumer Durables, Home Appliances, E-Commerce	Consumer Goods
+http://www.banaas.com/	Consumer Durables, Home Appliances, E-Commerce	Consumer Goods
+http://www.bathla.com/	Consumer Durables, Home Appliances, E-Commerce	Consumer Goods
+http://www.bellacasa.in/	Retail, Garment , Textile, E-Commerce	Furnishings, Apparel Stores
+http://bismigroup.com/	Consumer Durables, Home Appliances, Food , FMCG, E-Commerce	Repair , Service Centre, Dairy Products, Consumer Goods
+http://www.bpiindia.com/	E-Commerce, Paper , Publishing , Printing	Publication Houses
+http://www.lotuselectronics.com/	Consumer Durables, Home Appliances, Information Technology (IT) , Data Analytics , AI , Robotics , IOT, E-Commerce	IT- Hardware, Consumer Goods
+http://www.currimbhoys.com/	Consumer Durables, Home Appliances, E-Commerce	Consumer Goods
+http://www.goodearth.in/	Retail, E-Commerce	Apparel Stores, Gift & Decorative Items, Furniture , Furnishing , Sanitary Outlets
+http://homeedge.co.in/	Wood , Plastic  Furniture , Fixtures , Fittings, E-Commerce	
+http://www.ibdwebstore.com/	E-Commerce, Paper , Publishing , Printing	Publication Houses
+http://www.jagdambaflatware.com/	Consumer Durables, Home Appliances, E-Commerce	Consumer Goods
+http://www.libramattres.com/	Garment , Textile, E-Commerce	Furnishings
+http://www.mmfoam.in/	Garment , Textile, E-Commerce	Furnishings
+http://nayasa.com/	Consumer Durables, Home Appliances, E-Commerce	Consumer Goods
+http://www.harshaindia.com/	Consumer Durables, Home Appliances, Electrical , Electronics , Batteries, E-Commerce	Consumer Goods, Electrical , Electronics
+http://www.rkgroup.biz/	BFSI , Fintech, Courier , Logistics , Supply Chain , Packaging , Transport, Exporters , Importers, Garment , Textile, E-Commerce	Financial Services , Financial Advisor, Courier , Logistics , Warehouse , Transport, Yarn , Fibre , Thread , Textile , Accessories, Exporters , Importers , Commodity Traders
+http://www.somashop.com/	Retail, Garment , Textile, E-Commerce	Readymade Garments, Furnishings, Furniture , Furnishing , Sanitary Outlets
+http://sonovision.in/	Consumer Durables, Home Appliances, E-Commerce	Consumer Goods
+http://www.videotexindia.com/	Consumer Durables, Home Appliances, E-Commerce	Consumer Goods
+http://atomberg.com/	Consumer Durables, Home Appliances, E-Commerce	Consumer Goods
+http://www.bestword.in/	E-Commerce, Paper , Publishing , Printing	Publication Houses
+http://bookmanindia.com/	E-Commerce, Paper , Publishing , Printing	Publication Houses
+http://www.bubberhandicrafts.com/	Exporters , Importers, Garment , Textile, Wood , Plastic  Furniture , Fixtures , Fittings, E-Commerce	Handlooms , Handicrafts , Earthenware, Exporters , Importers , Commodity Traders, Associations
+http://www.bunaai.com/	Garment , Textile, E-Commerce	Readymade Garments, Furnishings
+http://www.chrismerchants.com/	Consumer Durables, Home Appliances, Electrical , Electronics , Batteries, E-Commerce	Consumer Goods, Electrical , Electronics
+http://www.ecoware.in/	Consumer Durables, Home Appliances, E-Commerce	Consumer Goods
+http://storyathome.com/	Garment , Textile, E-Commerce	Furnishings
+http://fridgehouse.in/	Consumer Durables, Home Appliances, Retail, E-Commerce	Consumer Goods, Consumer Electronics , MobileStores , IT Hardware
+http://www.gkpublications.com/	E-Commerce, Paper , Publishing , Printing	Publication Houses
+http://www.heritagepublishers.in/	E-Commerce, Paper , Publishing , Printing	Publication Houses
+http://www.hpsingh.com/	Garment , Textile, E-Commerce	Yarn , Fibre , Thread , Textile , Accessories, Furnishings
+http://www.kbartsandcrafts.com/	Wood , Plastic  Furniture , Fixtures , Fittings, E-Commerce	
+http://www.kkpublication.com/	E-Commerce, Paper , Publishing , Printing	Publication Houses
+http://kabraexpress.com/	Courier , Logistics , Supply Chain , Packaging , Transport, Travel , Tourism, E-Commerce	Courier , Logistics , Warehouse , Transport, Tourism & Transport Services
+http://www.campfire.co.in/	E-Commerce, Paper , Publishing , Printing	Publication Houses
+http://kemexel.com/	Courier , Logistics , Supply Chain , Packaging , Transport, E-Commerce	Courier , Logistics , Warehouse , Transport
+http://www.homescapesindia.com/	Garment , Textile, E-Commerce	Furnishings
+http://www.theethnicstory.com/	Garment , Textile, E-Commerce	Handlooms , Handicrafts , Earthenware, Furnishings
+http://www.lifelongindiaonline.com/	Consumer Durables, Home Appliances, E-Commerce	Consumer Goods
+http://www.shopfreelance.com/	Retail, E-Commerce	Gift & Decorative Items, Furniture , Furnishing , Sanitary Outlets
+http://www.mylittlelambs.in/	Garment , Textile, E-Commerce	Readymade Garments, Furnishings
+http://comfortis.in/	Garment , Textile, E-Commerce	Furnishings
+http://homecanvas.com/	Wood , Plastic  Furniture , Fixtures , Fittings, E-Commerce	
+http://www.patelinfo.com/	E-Commerce, Paper , Publishing , Printing	Publication Houses, Printing
+http://www.plyneer.com/	Wood , Plastic  Furniture , Fixtures , Fittings, E-Commerce	
+http://www.ratanjaipur.com/	Retail, Garment , Textile, E-Commerce	Yarn , Fibre , Thread , Textile , Accessories, Readymade Garments, Furnishings, Gift & Decorative Items
+http://www.salonabichona.com/	Garment , Textile, E-Commerce	Readymade Garments, Furnishings
+http://saralhome.com/	Garment , Textile, E-Commerce	Furnishings
+http://www.smartshoppers.in/	Consumer Durables, Home Appliances, E-Commerce	Consumer Goods
+http://tuffwareindia.com/	Consumer Durables, Home Appliances, E-Commerce	Consumer Goods
+http://www.steelworld.com/	E-Commerce, Paper , Publishing , Printing	Publication Houses
+http://www.targetpublications.org/	E-Commerce, Paper , Publishing , Printing	Publication Houses
+http://kural33.com/	Garment , Textile, E-Commerce	Furnishings
+http://www.englishbookstore.net/	E-Commerce, Paper , Publishing , Printing	Publication Houses
+http://episodesilver.com/	Garment , Textile, E-Commerce	Furnishings
+http://www.expobazaar.in/	Garment , Textile, E-Commerce	Furnishings
+http://www.theindusvalley.in/	Consumer Durables, Home Appliances, E-Commerce	Consumer Goods
+http://www.furlenco.com/	Wood , Plastic  Furniture , Fixtures , Fittings, E-Commerce	
+http://cityfurnish.com/	Wood , Plastic  Furniture , Fixtures , Fittings, E-Commerce	
+http://nanosafesolutions.com/	Consumer Durables, Home Appliances, Hospitals , Healthcare, E-Commerce	Medical Equipments , Healthcare , Surgical Products, Consumer Goods
+http://www.fabrento.com/	Wood , Plastic  Furniture , Fixtures , Fittings, E-Commerce	
+http://mysleepyhead.com/	Garment , Textile, E-Commerce	Furnishings
+http://artzfolio.com/	Office Automation , Stationery, Garment , Textile, E-Commerce	Furnishings
+http://www.wakefit.co/	Garment , Textile, E-Commerce	Furnishings
+http://www.xpressbees.com/	Courier , Logistics , Supply Chain , Packaging , Transport, E-Commerce	Courier , Logistics , Warehouse , Transport
