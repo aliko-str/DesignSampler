@@ -141,6 +141,7 @@
 				w.eval(`window.___stubFCallCounter = 0;`);
 				const removeNonNativeWinProps = `
 					(()=>{
+						window.___windowObjCleaned = true; // disabling to see if it helps -- maybe some pages freezes because some code is tracking window props being removed -- ala app cycle simulation
 						if(!window.___windowObjCleaned){
 							console.log("Prepping to clean page window of custom props");
 							const cleanNames = [${cleanNames}];
@@ -223,7 +224,7 @@
 				// DIRECT html-as-string manipulation
 				w.eval(`Object.defineProperty(Element.prototype, "innerHTML", {
 					set (v){console.log("[PScript STUB] not SETTING HTML", v);}, 
-					get(){console.log("[PScript STUB][Asking for html]"); return ""},  
+					get(){console.log("[PScript STUB][Asking for html]"); return "";},  
 					enumerable: true,
 					configurable: true
 				});`);
@@ -248,6 +249,19 @@
 				allCssProps2Disable.forEach(cssProp => {
 					overwriteCSS2Prop(cssProp, w);
 				});
+				// disabling class manipulation <-- I can't believe I missed it for so long...
+				const tokenListMethods = ["add", "remove", "replace", "toggle"];
+				tokenListMethods.forEach(method => {
+					w.eval(`DOMTokenList.prototype['${method}'] = function(clList){console.log("[PScript STUB] Not using '${method}' on DOMTokenList, classList:", clList);}`);
+				});
+				// also disabling direct class manipulation via className
+				w.eval(`Object.defineProperty(Element.prototype, "className", {
+					set (v){console.log("[PScript STUB] not SETTING className", v);}, 
+					get(){console.log("[PScript STUB][Asking for className]"); return "";},  
+					enumerable: true,
+					configurable: true
+				});`);
+				
 				// Disabling in-built animations
 				w.eval(`Element.prototype.animate = function(){console.log("[PScript STUB] Preventing built-in Animation: ", ...arguments)}`);
 				// Preventing event Dispatching - no idea how to stop JS animations otherwise (they save a copy to setTimeout)
