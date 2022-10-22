@@ -80,19 +80,28 @@
 	};
 
 	function _renderWarnings(rootEl){
-		const warnElBuildF = (msg)=>`<span class='previsit-warn'>${msg}</span>`;
 		const doc = window.getScrlEl();//window.getScrlEl() || document.documentElement;
+		// general page length
 		if(doc.scrollHeight > MAX_PAGE_LENGTH){
-			const warnElS = warnElBuildF("Long Page: " + doc.scrollHeight + "px. Exclude?");
-			rootEl.querySelector("#" + draggableId).insertAdjacentHTML("afterbegin", warnElS);
+			renderWarning("Long Page: " + doc.scrollHeight + "px. Exclude?", rootEl);
+		}
+		// overflow wankiness
+		if(document.scrollingElement.scrollWidth > window.innerWidth){
+			renderWarning("[Ahtung] scrollWidth > innerWidth", rootEl);
+		}
+		if(document.scrollingElement.scrollHeight < window.innerHeight + 5){
+			renderWarning("[Ahtung] scrollHeight same as innerHeight? If not, debug", rootEl);
 		}
 		if(document.querySelectorAll("frameset").length){
 			window.alert("FRAMESET detected - nothing will work here. Dump this steaming pile-of-garbage page. It'll close automatically.");
 			window.close();
-			// const framesetWarn = "<span class='previsit-warn'>FRAMESET detected - dump the page!</span>";
-			// jqRoot.find("#" + draggableId).prepend(framesetWarn);
 		}
 	}
+	
+	function renderWarning(msg, rootEl){
+		rootEl.querySelector("#" + draggableId).insertAdjacentHTML("afterbegin", `<span class='previsit-warn'>${msg}</span>`);
+	}
+	
 	
 	function validateHandler(e){
 		e.preventDefault();
