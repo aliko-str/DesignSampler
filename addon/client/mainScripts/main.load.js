@@ -57,7 +57,7 @@
 		return new Promise(function(resolve, reject) {
 			const nSteps = Math.floor(window.getScrlEl().scrollHeight / window.innerHeight);
 			for(let i = 1; i <= nSteps; i++){
-				window._alarmPr(250 * i).then(()=>{
+				window._alarmPr(450 * i).then(()=>{
 					window.scrollTo({left: 0, top: Math.ceil(window.scrollY + window.innerHeight), behavior: "instant"});
 					console.log("Current scroll: ", window.scrollY, " Window height: ", window.getScrlEl().scrollHeight);					
 				});
@@ -66,7 +66,7 @@
 				// 	console.log("Current scroll: ", window.scrollY, " Window height: ", window.getScrlEl().scrollHeight);
 				// }, 150 * i);
 			}
-			window._alarmPr(250 * nSteps + 10).then(resolve);
+			window._alarmPr(450 * nSteps + 10).then(resolve);
 			// window.setTimeout(resolve, 150 * nSteps + 10);
 		});
 	}

@@ -141,7 +141,7 @@
 				w.eval(`window.___stubFCallCounter = 0;`);
 				const removeNonNativeWinProps = `
 					(()=>{
-						window.___windowObjCleaned = true; // disabling to see if it helps -- maybe some pages freezes because some code is tracking window props being removed -- ala app cycle simulation
+						// window.___windowObjCleaned = true; // disabling to see if it helps -- maybe some pages freezes because some code is tracking window props being removed -- ala app cycle simulation
 						if(!window.___windowObjCleaned){
 							console.log("Prepping to clean page window of custom props");
 							const cleanNames = [${cleanNames}];

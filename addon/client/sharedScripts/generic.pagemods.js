@@ -18,17 +18,20 @@
 			document.documentElement.style["margin-top"] = "initial";
 		});
 		// google translate banners
-		document.querySelectorAll(".goog-te-banner-frame.skiptranslate").forEach(el => {
+		const gTranslEls = document.querySelectorAll(".goog-te-banner-frame.skiptranslate");
+		if(gTranslEls.length){
 			console.log("[PageMode] Removng Google translate iframe", location.href);
-			el.remove();
-		});
+			gTranslEls.forEach(el => el.remove());
+			document.body.style.top = "initial";
+		}
+
 		// Common alert banner x buttons
 		const bannerCloseButtons = [".klaviyo-close-form", ".js-usp-close", ".modal-close", ".js-modal-close", ".fancybox-close-small", "[data-wps-popup-close]", ".wisepops-close", ".s-close-popup", ".close-modal", ".ui-dialog-titlebar-close", ".popup-close"];
 		// Common cookieButtons to be clicked
 		const cookieButtons2Click = ["#CybotCookiebotDialogBodyButtonDecline", "button.close", ".recommendation-modal__close-button", "#btn-cookie-allow", ".js-cookie-consent-close", ".cookie-banner-accept", ".cookie-accept-button", ".js-accept-gdpr", ".eg-cc-dismiss", "#inputAcceptCookies", ".cookie-notice__close"].concat(bannerCloseButtons).join(",");
 		document.querySelectorAll(cookieButtons2Click).forEach(x=>x.click());
 		// Common cookie-notice providers/messages
-		const commonCookieContainerSelectors = ["#onetrust-banner-sdk", "#onetrust-consent-sdk", ".cc-window.cc-banner.cc-bottom", "#cookie-bar, #cookie-law-info-bar, #cookie-notice", ".cookie-policy.cookie-policy--open", "#__tealiumGDPRecModal", "#cookie_alert", "#js-cookie-banner", "#cookie_terms", "[data-role='gdpr-cookie-container']", "#ccc", "[id*='shopify-privacy-banner']", "#cookieNotification", "#cmplz-cookiebanner-container", "#adroll_consent_container"].join(",");
+		const commonCookieContainerSelectors = ["#onetrust-banner-sdk", "#onetrust-consent-sdk", ".cc-window.cc-banner.cc-bottom", "#cookie-bar, #cookie-law-info-bar, #cookie-notice", ".cookie-policy.cookie-policy--open", "#__tealiumGDPRecModal", "#cookie_alert", "#js-cookie-banner", "#cookie_terms", "[data-role='gdpr-cookie-container']", "#ccc", "[id*='shopify-privacy-banner']", "#cookieNotification", "#cmplz-cookiebanner-container", "#adroll_consent_container", "#sliding-popup", ".cc_banner-wrapper", ".cookiebanner", "#cookie-notification"].join(",");
 		document.querySelectorAll(commonCookieContainerSelectors).forEach(el=>el.remove());
 		// Generic Overlays
 		const commonOverlaySelectors = [".pum-overlay", ".overlay_11", "#boxpopup0", "#boxpopup1", "#boxpopup2", "#boxpopup3", "#boxpopup", ".md-overlay", "#myModal", ".modal-backdrop", "#shopify-section-popup", '#onesignal-slidedown-container', "#pa-push-notification-subscription", ".fancybox-wrap", ".fancybox-overlay"];
@@ -54,12 +57,27 @@
 			console.log("[PAGEMode] Removing data-aos fade sliding things.");
 			aosSliders.forEach(el => el.removeAttribute("data-aos"));
 		}
+		// extra actions
 		__animationRelatedMods();
+		styleBasedPageMods();
+		unfixBackgrounds();
+		// removing a pixel img -- often causes an empty line at the bottom
+		document.querySelectorAll("img[width='1'][height='1'], iframe[width='0'][height='0']").forEach(x=>x.remove());
+		;
 	};
 	
 	function __animationRelatedMods(){
 		// some items become hidden while we move things around (due to our paused animations, they won't run, and stay invisible)
 		document.querySelectorAll("#reamaze-widget").forEach(x=>x.style.animation="none");
+	}
+	
+	function unfixBackgrounds(){
+		// viewport-fixed background images are not displayed on full-page screenshots -- unfixing them summarily for all (instead of manually for each invidual webpage where I see it)
+		const els2unfix = Array.from(document.body.querySelectorAll("*")).filter(x=>getComputedStyle(x)["background-attachment"] === "fixed");
+		if(els2unfix.length){
+			console.log("[UNFIX] $cAttached background images, n:, %i", "color:gray;", els2unfix.length);
+			els2unfix.forEach(x=>x.style.setProperty("background-attachment", "initial", "important"));
+		}
 	}
 	
 	function __pageContextGenericMods(){
@@ -111,6 +129,12 @@
 			});
 			console.log("[ScrollReveal] Cleaned.");
 		}
+	}
+	
+	function styleBasedPageMods(){
+		// for cases of scripts showing notices with a delay
+		const cookieAlers2HideSelectors = ["#adroll_consent_container"].join(",");
+		window.CssInjector._injectStringCss(cookieAlers2HideSelectors, "display:none !important;");
 	}
 	
 	function _disablePawAnimate(){
