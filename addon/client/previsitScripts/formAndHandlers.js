@@ -72,6 +72,19 @@
 				return s.replace("$$c", "document.querySelectorAll") + ".forEach(x=>x.click())";
 			}else if(s.indexOf("$$r") > -1){
 				return s.replace("$$r", "document.querySelectorAll") + ".forEach(x=>x.remove())";
+			}else if(s.indexOf("$$w") > -1){
+				return s.replace("$$w", `(()=>{
+					return Array
+						.from(document.body.querySelectorAll("*"))
+						.filter(x=>{
+							try {
+								return x.getBoundingClientRect().right > window.innerWidth;
+							} catch (e) {
+								return false;
+							}
+						})
+						.filter((x, i, arr)=>!arr.some(y=>!y.isSameNode(x) && y.contains(x)));
+				})()`);
 			}
 			return s;
 		});
@@ -175,6 +188,20 @@
 	const w = window.wrappedJSObject;
 	w.eval("window.$$c = (s)=>document.querySelectorAll(s).forEach(x=>x.click());");
 	w.eval("window.$$r = (s)=>document.querySelectorAll(s).forEach(x=>x.remove());");
+	w.eval(`
+		window.$$w = ()=>{
+			return Array
+				.from(document.body.querySelectorAll("*"))
+				.filter(x=>{
+					try {
+						return x.getBoundingClientRect().right > window.innerWidth;
+					} catch (e) {
+						return false;
+					}
+				})
+				.filter((x, i, arr)=>!arr.some(y=>!y.isSameNode(x) && y.contains(x)));
+		};
+	`);
 
 	function renderFormAndAssignHandlers() {
 		const _log = console.log;

@@ -3,7 +3,7 @@
 
 (()=>{
 	// TODO: Move these exceptions to an external file
-	const noActionExceptions = ["crimsouneclub.com", "fabindia.com", "corneliajames.com", "saintandsofia.com", "www.rubynz.com", "www.ezliving-interiors.ie", "covethouse.eu", "homefurniture.ca"]; // because some of the genericPageMods cause page re-load
+	const noActionExceptions = ["crimsouneclub.com", "fabindia.com", "corneliajames.com", "saintandsofia.com", "www.rubynz.com", "www.ezliving-interiors.ie", "covethouse.eu", "homefurniture.ca", "international.univ-tours.fr", "ec-nantes.fr"]; // because some of the genericPageMods cause page re-load
 	
 	function __ssGenericPageMod(){
 		if(noActionExceptions.some(x=>window.location.href.indexOf(x) > -1)){

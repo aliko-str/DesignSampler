@@ -817,7 +817,8 @@
 			__restoreStyling([__el2styles(ifrEl)]);
 			console.log("%cReplaced an iframe with a shadowDom Div.", "background-color:#555500");
 		});
-		// }
+		// ensuring the swapped-out iframes are no longer in the allVis collection
+		window.domGetters.forceRefresh();
 	}
 	
 	window.extractLocalIFramesInShadowDow = extractLocalIFramesInShadowDow;

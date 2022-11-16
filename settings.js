@@ -3,9 +3,9 @@ const path = require("path");
 const settings = {
 	// profile: "EStoreHome_India",
 	// profile: "EStoreFashion_All",
-	profile: "Universities_EN",
+	profile: "Universities_World",
 	// inFileUrls: path.join("./Inputs/ECommerce.Home", "ECommerce.India.Fuglies.Home.txt"),
-	inFileUrls: path.join("./Inputs/Universities", "Unis.EN_0-650.txt"),
+	inFileUrls: path.join("./Inputs/Universities", "Unis.World_0-750.txt"),
 	ffRunParams: {
 		source: "--source-dir=/Users/Aleksii/Projects/FF.v83.Addon.ScreenAndVars/addon/",
 		ff: "--firefox=/Users/Aleksii/tmp/Firefox Developer Edition.app/Contents/MacOS/firefox-bin",

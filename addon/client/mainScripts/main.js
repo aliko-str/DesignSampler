@@ -13,6 +13,23 @@
 			.then((msg)=>{
 				console.assert(msg.action === "HaveYourPageMods");
 				try {
+					if(msg.pageModF.indexOf("$$w") > -1){
+						// because I forgot to replace it during previsiting <-- temporary fix
+						window.eval(`
+							window.$$w = ()=>{
+								return Array
+									.from(document.body.querySelectorAll("*"))
+									.filter(x=>{
+										try {
+											return x.getBoundingClientRect().right > window.innerWidth;
+										} catch (e) {
+											return false;
+										}
+									})
+									.filter((x, i, arr)=>!arr.some(y=>!y.isSameNode(x) && y.contains(x)));
+							};
+						`);
+					}
 					var pageModF = eval("(" + msg.pageModF + ")");
 					if (!pageModF || typeof pageModF !== "function") {
 						throw new Error("Passed pageModF isn't a function: " + msg.pageModF);

@@ -592,7 +592,7 @@
 	}
 	
 	function _cssCol2RgbaArr(cssColStr, alpha2uint = false){
-		console.assert(cssColStr.indexOf("rgb") > -1, "Computed color isn't in RGB(a)!", window.location.href);
+		console.assert(cssColStr.indexOf("rgb") > -1, "Computed color isn't in RGB(a)!", cssColStr, window.location.href);
 		return cssColStr.replace(")", "").split("(")[1].split(",").map(x=>x.trim()).map(x=>parseFloat(x));
 	}
 	
