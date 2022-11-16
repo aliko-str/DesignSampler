@@ -221,6 +221,7 @@
 				["insertBefore", "appendChild", "replaceChild", "removeChild"].forEach(f => stubPageF("Node", f, w));
 				// Class adding via Element.setProperty
 				w.eval(`HTMLElement.prototype.setAttribute = (a, b)=>console.log("[PScript STUB] Trying to set setAttribute", a, b);`);
+				w.eval(`HTMLElement.prototype.removeAttribute = (a)=>console.log("[PScript STUB] Trying to remove setAttribute", a);`);
 				// DIRECT html-as-string manipulation
 				w.eval(`Object.defineProperty(Element.prototype, "innerHTML", {
 					set (v){console.log("[PScript STUB] not SETTING HTML", v);}, 
