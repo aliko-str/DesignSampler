@@ -103,8 +103,8 @@ async function lintIt() {
 // 0.1 - Make sure FF knows this script can listen to messages from the addon
 async function checkFfMsgAllowed() {
 	if (process.platform === "darwin") {
-		const copyTo = "/Users/Aleksii/Library/Application Support/Mozilla/NativeMessagingHosts/myFFaddon.batch.screenshot.json";
-		const copyFrom = "/Users/Aleksii/Projects/FF.v83.Addon.ScreenAndVars/resources/myFFaddon.batch.screenshot.json";
+		const copyTo = "location where the file is with permissions for this addon to exchange messages with a native app";
+		const copyFrom = "location of such a file if it isn't created yet";
 //		const permFStr = await fs.promises.readFile(copyFrom, "utf8");
 //		const permJson = JSON.parse(permFStr);
 //		permJson.data.profileName = settings.profile;

@@ -1,17 +1,14 @@
 const path = require("path");
 
 const settings = {
-	// profile: "EStoreHome_India",
-	// profile: "EStoreFashion_All",
-	profile: "Universities_World",
-	// inFileUrls: path.join("./Inputs/ECommerce.Home", "ECommerce.India.Fuglies.Home.txt"),
-	inFileUrls: path.join("./Inputs/Universities", "Unis.World_0-750.txt"),
-	ffRunParams: {
-		source: "--source-dir=/Users/Aleksii/Projects/FF.v83.Addon.ScreenAndVars/addon/",
-		ff: "--firefox=/Users/Aleksii/tmp/Firefox Developer Edition.app/Contents/MacOS/firefox-bin",
+	profile: "[some name a folder where everything will be collected]",
+	inFileUrls: "path to list of urls to process, one url per line",
+	ffRunParams: { // params to run ff with webext
+		source: "--source-dir=[this addon location]",
+		ff: "--firefox=[ff binary location]",
 		_prflPrefix: "--firefox-profile=",
-		// prfl: "/Users/Aleksii/Projects/FF.v83.Addon.ScreenAndVars/FF.Profile_Sports_Clean", // uncomment to use a specific one
-		prflClean: "/Users/Aleksii/Projects/FF.v83.Addon.ScreenAndVars/DatColl_[CPY]_Clean/"
+		// prfl: "[specific profile you might want to use]", // uncomment to use a specific one
+		prflClean: "[path to a clean ff profile to copy if there isn't any other to use]"
 	},
 	// profile: "TestProfile",
 	// inFileUrls: path.join("./Inputs", "[proto]input.sports.7.txt"),

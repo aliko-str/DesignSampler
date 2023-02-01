@@ -6,3 +6,10 @@ DatColl_\[CPY\]_Clean
 TMP_examples
 .DS_Store
 .dataForMessenger.txt
+TODO.txt
+DONE.txt
+NOTES.txt
+package-lock.json
+.eslintrc.js
+Old.Code.Store.js
+Inputs/*
