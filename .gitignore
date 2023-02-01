@@ -13,3 +13,5 @@ package-lock.json
 .eslintrc.js
 Old.Code.Store.js
 Inputs/*
+settings.js
+main.js
