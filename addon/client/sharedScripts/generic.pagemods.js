@@ -63,8 +63,20 @@
 		unfixBackgrounds();
 		// removing a pixel img -- often causes an empty line at the bottom
 		document.querySelectorAll("img[width='1'][height='1'], iframe[width='0'][height='0']").forEach(x=>x.remove());
-		;
+		// hopefully innocent fixes for Firefox issues
+		ffBugFixes();
 	};
+	
+	function ffBugFixes(){
+		document.body.querySelectorAll("*").forEach(el=>{
+			const st = window.getComputedStyle(el);
+			// this blend mode causes background images to be invisible on screenshots
+			if(st["background-blend-mode"].includes("overlay")){
+				console.log("[FF FIX] Unsetting background-blend-mode, ", el.tagName);
+				el.style["background-blend-mode"] = "unset";
+			}
+		});
+	}
 	
 	function __animationRelatedMods(){
 		// some items become hidden while we move things around (due to our paused animations, they won't run, and stay invisible)

@@ -64,6 +64,17 @@
 
 	const _debug = true;
 	
+	const __w = `()=>Array
+			.from(document.body.querySelectorAll("*"))
+			.filter(x=>{
+				try {
+					return x.getBoundingClientRect().right > window.innerWidth;
+				} catch (e) {
+					return false;
+				}
+			})
+			.filter((x, i, arr)=>!arr.some(y=>!y.isSameNode(x) && y.contains(x)))`.replaceAll("\n", "").replaceAll("\t", "");
+	
 	// define a getter for the pageMod function
 	const _getF = (rootFormEl)=>{
 		const txtAreatxt = rootFormEl.querySelector("textarea").value;
@@ -73,18 +84,7 @@
 			}else if(s.indexOf("$$r") > -1){
 				return s.replace("$$r", "document.querySelectorAll") + ".forEach(x=>x.remove())";
 			}else if(s.indexOf("$$w") > -1){
-				return s.replace("$$w", `(()=>{
-					return Array
-						.from(document.body.querySelectorAll("*"))
-						.filter(x=>{
-							try {
-								return x.getBoundingClientRect().right > window.innerWidth;
-							} catch (e) {
-								return false;
-							}
-						})
-						.filter((x, i, arr)=>!arr.some(y=>!y.isSameNode(x) && y.contains(x)));
-				})()`);
+				return s.replaceAll("$$w()", `(${__w})()`);
 			}
 			return s;
 		});
@@ -188,20 +188,7 @@
 	const w = window.wrappedJSObject;
 	w.eval("window.$$c = (s)=>document.querySelectorAll(s).forEach(x=>x.click());");
 	w.eval("window.$$r = (s)=>document.querySelectorAll(s).forEach(x=>x.remove());");
-	w.eval(`
-		window.$$w = ()=>{
-			return Array
-				.from(document.body.querySelectorAll("*"))
-				.filter(x=>{
-					try {
-						return x.getBoundingClientRect().right > window.innerWidth;
-					} catch (e) {
-						return false;
-					}
-				})
-				.filter((x, i, arr)=>!arr.some(y=>!y.isSameNode(x) && y.contains(x)));
-		};
-	`);
+	w.eval(`window.$$w = ${__w};`);
 
 	function renderFormAndAssignHandlers() {
 		const _log = console.log;
